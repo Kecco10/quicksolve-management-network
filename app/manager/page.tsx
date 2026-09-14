@@ -8,6 +8,8 @@ type ExperienceBand =
   | "11–20 anni"
   | "Oltre 20 anni";
 
+type ManagerialExperienceBand = "Meno di 3 anni" | "3–10 anni" | "Oltre 10 anni";
+
 type RoleFamily = keyof typeof roleFamilies;
 
 const PRIVACY_VERSION = "1.0-2026-09-11";
@@ -64,6 +66,12 @@ const experienceOptions: ExperienceBand[] = [
   "Oltre 20 anni",
 ];
 
+const managerialExperienceOptions: ManagerialExperienceBand[] = [
+  "Meno di 3 anni",
+  "3–10 anni",
+  "Oltre 10 anni",
+];
+
 const regionProvinceMap: Record<string, string[]> = {
   Abruzzo: ["L'Aquila", "Chieti", "Pescara", "Teramo"],
   Basilicata: ["Matera", "Potenza"],
@@ -103,9 +111,16 @@ export default function ManagerPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [experience, setExperience] = useState<ExperienceBand | "">("");
+  const [managerialExperience, setManagerialExperience] = useState<ManagerialExperienceBand | "">("");
   const [roleFamily, setRoleFamily] = useState<RoleFamily | "">("");
   const [primaryRole, setPrimaryRole] = useState("");
   const [otherRole, setOtherRole] = useState("");
+  const [secondaryRoleFamily1, setSecondaryRoleFamily1] = useState<RoleFamily | "">("");
+  const [secondaryRole1, setSecondaryRole1] = useState("");
+  const [secondaryOtherRole1, setSecondaryOtherRole1] = useState("");
+  const [secondaryRoleFamily2, setSecondaryRoleFamily2] = useState<RoleFamily | "">("");
+  const [secondaryRole2, setSecondaryRole2] = useState("");
+  const [secondaryOtherRole2, setSecondaryOtherRole2] = useState("");
   const [region, setRegion] = useState("");
   const [province, setProvince] = useState("");
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
@@ -119,8 +134,40 @@ export default function ManagerPage() {
     [roleFamily]
   );
 
+  const secondaryRoleOptions1 = useMemo(
+    () => (secondaryRoleFamily1 ? [...roleFamilies[secondaryRoleFamily1]] : []),
+    [secondaryRoleFamily1]
+  );
+
+  const secondaryRoleOptions2 = useMemo(
+    () => (secondaryRoleFamily2 ? [...roleFamilies[secondaryRoleFamily2]] : []),
+    [secondaryRoleFamily2]
+  );
+
   const passwordValid = password.length >= 6 && password === confirmPassword;
   const roleValid = primaryRole !== "" && (primaryRole !== "Altro" || otherRole.trim() !== "");
+
+  const normalizedPrimaryRole = primaryRole === "Altro" ? otherRole.trim() : primaryRole;
+  const normalizedSecondaryRole1 =
+    secondaryRole1 === "Altro" ? secondaryOtherRole1.trim() : secondaryRole1;
+  const normalizedSecondaryRole2 =
+    secondaryRole2 === "Altro" ? secondaryOtherRole2.trim() : secondaryRole2;
+
+  const secondaryRoles = [
+    secondaryRoleFamily1 && normalizedSecondaryRole1
+      ? { family: secondaryRoleFamily1, role: normalizedSecondaryRole1 }
+      : null,
+    secondaryRoleFamily2 && normalizedSecondaryRole2
+      ? { family: secondaryRoleFamily2, role: normalizedSecondaryRole2 }
+      : null,
+  ].filter((item): item is { family: RoleFamily; role: string } => Boolean(item));
+
+  const secondaryRole1Valid =
+    secondaryRoleFamily1 === "" ||
+    (secondaryRole1 !== "" && (secondaryRole1 !== "Altro" || secondaryOtherRole1.trim() !== ""));
+  const secondaryRole2Valid =
+    secondaryRoleFamily2 === "" ||
+    (secondaryRole2 !== "" && (secondaryRole2 !== "Altro" || secondaryOtherRole2.trim() !== ""));
 
   const canSubmit =
     firstName.trim() !== "" &&
@@ -128,8 +175,11 @@ export default function ManagerPage() {
     email.trim() !== "" &&
     passwordValid &&
     experience !== "" &&
+    managerialExperience !== "" &&
     roleFamily !== "" &&
     roleValid &&
+    secondaryRole1Valid &&
+    secondaryRole2Valid &&
     region !== "" &&
     province !== "" &&
     privacyAcknowledged &&
@@ -151,9 +201,11 @@ export default function ManagerPage() {
           email: email.trim().toLowerCase(),
           password,
           experience_band: experience,
+          managerial_experience_band: managerialExperience,
           primary_role_family: roleFamily,
-          primary_role: primaryRole === "Altro" ? otherRole.trim() : primaryRole,
+          primary_role: normalizedPrimaryRole,
           other_role: primaryRole === "Altro" ? otherRole.trim() : undefined,
+          secondary_roles: secondaryRoles,
           region,
           province,
           privacy_acknowledged: privacyAcknowledged,
@@ -189,7 +241,7 @@ export default function ManagerPage() {
           </div>
           <h1 className="mt-6 text-3xl font-bold text-slate-900">Registrazione completata</h1>
           <p className="mx-auto mt-4 max-w-xl text-lg leading-8 text-slate-600">
-            Il tuo account Management Network è stato creato. Il profilo professionale è ancora
+            Il tuo account Management Network è stato creato. Il profilo manageriale è ancora
             da completare: dalla dashboard potrai aggiungere competenze, seniority, disponibilità,
             contesto produttivo e qualificazioni.
           </p>
@@ -293,7 +345,31 @@ export default function ManagerPage() {
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <div className="mt-6">
+                <p className="mb-3 text-sm font-medium text-slate-700">
+                  Anni di esperienza in ruoli manageriali
+                </p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {managerialExperienceOptions.map((option) => (
+                    <ChoiceButton
+                      key={option}
+                      active={managerialExperience === option}
+                      onClick={() => setManagerialExperience(option)}
+                    >
+                      {option}
+                    </ChoiceButton>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-base font-bold text-slate-900">Ruolo principale</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Seleziona la famiglia professionale e il ruolo che descrive meglio la tua esperienza principale.
+                </p>
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <Field label="Famiglia professionale">
                   <select
                     value={roleFamily}
@@ -348,6 +424,126 @@ export default function ManagerPage() {
                   </Field>
                 </div>
               )}
+
+
+              <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <h3 className="text-base font-bold text-slate-900">Ruoli secondari · facoltativi</h3>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Puoi indicare fino a due ruoli aggiuntivi ricoperti nel corso della tua esperienza.
+                </p>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <Field label="Famiglia ruolo secondario 1">
+                    <select
+                      value={secondaryRoleFamily1}
+                      onChange={(e) => {
+                        setSecondaryRoleFamily1(e.target.value as RoleFamily | "");
+                        setSecondaryRole1("");
+                        setSecondaryOtherRole1("");
+                      }}
+                      className={inputClass}
+                    >
+                      <option value="">Nessun ruolo secondario</option>
+                      {Object.keys(roleFamilies).map((family) => (
+                        <option key={family} value={family}>
+                          {family}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field label="Ruolo secondario 1">
+                    <select
+                      value={secondaryRole1}
+                      disabled={!secondaryRoleFamily1}
+                      onChange={(e) => {
+                        setSecondaryRole1(e.target.value);
+                        if (e.target.value !== "Altro") setSecondaryOtherRole1("");
+                      }}
+                      className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}
+                    >
+                      <option value="">
+                        {secondaryRoleFamily1 ? "Seleziona il ruolo" : "Prima seleziona la famiglia"}
+                      </option>
+                      {secondaryRoleOptions1.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+
+                {secondaryRole1 === "Altro" && (
+                  <div className="mt-4">
+                    <Field label="Specifica il ruolo secondario 1">
+                      <input
+                        type="text"
+                        value={secondaryOtherRole1}
+                        onChange={(e) => setSecondaryOtherRole1(e.target.value)}
+                        className={inputClass}
+                        placeholder="Inserisci il ruolo"
+                      />
+                    </Field>
+                  </div>
+                )}
+
+                <div className="mt-5 grid gap-4 border-t border-slate-200 pt-5 md:grid-cols-2">
+                  <Field label="Famiglia ruolo secondario 2">
+                    <select
+                      value={secondaryRoleFamily2}
+                      onChange={(e) => {
+                        setSecondaryRoleFamily2(e.target.value as RoleFamily | "");
+                        setSecondaryRole2("");
+                        setSecondaryOtherRole2("");
+                      }}
+                      className={inputClass}
+                    >
+                      <option value="">Nessun secondo ruolo</option>
+                      {Object.keys(roleFamilies).map((family) => (
+                        <option key={family} value={family}>
+                          {family}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field label="Ruolo secondario 2">
+                    <select
+                      value={secondaryRole2}
+                      disabled={!secondaryRoleFamily2}
+                      onChange={(e) => {
+                        setSecondaryRole2(e.target.value);
+                        if (e.target.value !== "Altro") setSecondaryOtherRole2("");
+                      }}
+                      className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}
+                    >
+                      <option value="">
+                        {secondaryRoleFamily2 ? "Seleziona il ruolo" : "Prima seleziona la famiglia"}
+                      </option>
+                      {secondaryRoleOptions2.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+
+                {secondaryRole2 === "Altro" && (
+                  <div className="mt-4">
+                    <Field label="Specifica il ruolo secondario 2">
+                      <input
+                        type="text"
+                        value={secondaryOtherRole2}
+                        onChange={(e) => setSecondaryOtherRole2(e.target.value)}
+                        className={inputClass}
+                        placeholder="Inserisci il ruolo"
+                      />
+                    </Field>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div>
@@ -479,7 +675,7 @@ export default function ManagerPage() {
               </button>
 
               <p className="mt-3 text-center text-sm text-slate-500">
-                Dopo la registrazione completerai il profilo professionale dalla dashboard.
+                Dopo la registrazione completerai il profilo manageriale dalla dashboard.
               </p>
             </div>
           </section>
