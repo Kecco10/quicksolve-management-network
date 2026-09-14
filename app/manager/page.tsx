@@ -505,9 +505,13 @@ export default function ManagerPage() {
             <h1 className="mt-3 text-3xl font-bold text-slate-900 md:text-4xl">Crea il tuo profilo manageriale</h1>
           </div>
 
-          <div className="mb-8 flex items-center justify-between rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
-            <p className="font-semibold text-emerald-950">Step {currentStep + 1} di 5</p>
-            <span className="rounded-full bg-white px-4 py-2 text-sm font-bold text-emerald-900">{Math.round(progress)}%</span>
+          <div className="mb-5 flex justify-end">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <span>Step {currentStep + 1} di 5</span>
+              <span className="rounded-md border border-emerald-100 bg-emerald-50 px-2 py-1 font-bold text-emerald-900">
+                {Math.round(progress)}%
+              </span>
+            </div>
           </div>
 
           {submitError && <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{submitError}</div>}
