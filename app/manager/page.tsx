@@ -9,11 +9,19 @@ type ExperienceBand =
   | "Oltre 20 anni";
 
 type ManagerialExperienceBand = "Meno di 3 anni" | "3–10 anni" | "Oltre 10 anni";
-
 type RoleFamily = keyof typeof roleFamilies;
 
 const PRIVACY_VERSION = "1.0-2026-09-11";
 const PRIVACY_URL = "/legal/privacy-manager";
+const MAX_CV_SIZE = 5 * 1024 * 1024;
+
+const stepTitles = [
+  "Identità ed esperienza",
+  "Ruoli e competenze",
+  "Seniority e contesto",
+  "Disponibilità e qualifiche",
+  "Economico e privacy",
+] as const;
 
 const roleFamilies = {
   DIREZIONE: [
@@ -37,7 +45,7 @@ const roleFamilies = {
     "R&D Manager",
     "Product Manager",
   ],
-  "QUALITÀ": [
+  QUALITÀ: [
     "Quality Manager",
     "Responsabile Sistemi di Gestione (ISO / IATF)",
     "Supplier Quality Manager",
@@ -72,6 +80,109 @@ const managerialExperienceOptions: ManagerialExperienceBand[] = [
   "Oltre 10 anni",
 ];
 
+const competencyOptions = [
+  "Direzione operations e di stabilimento",
+  "Produzione e industrializzazione",
+  "Pianificazione e programmazione (S&OP, MPS, MRP)",
+  "Supply chain e logistica",
+  "Acquisti e gestione fornitori",
+  "Qualità e sistemi di gestione",
+  "Manutenzione e affidabilità",
+  "Ufficio tecnico e progettazione",
+  "R&S e innovazione di prodotto",
+  "Sicurezza e ambiente (HSE)",
+  "Controllo di gestione industriale e costificazione",
+  "Project e program management",
+  "Organizzazione e people management",
+  "Sistemi informativi industriali (ERP / MES)",
+  "Altro",
+] as const;
+
+const methodologyOptions = [
+  "Lean Manufacturing (VSM, 5S, SMED, Kanban, Kaizen)",
+  "World Class Manufacturing",
+  "TPM",
+  "Six Sigma (Green / Black Belt)",
+  "Theory of Constraints",
+  "Problem solving strutturato (8D, A3, FMEA)",
+  "Cost reduction e make or buy",
+  "Design to Cost / DFMA",
+  "Riprogettazione layout e flussi",
+  "Implementazione o migrazione ERP",
+  "Industria 4.0 / MES / IoT industriale",
+  "Start-up di stabilimento e trasferimenti produttivi",
+  "Turnaround e ristrutturazione operativa",
+  "Post-merger integration",
+  "Relazioni sindacali e gestione del cambiamento",
+  "Gestione commesse ETO / project manufacturing",
+  "Altro",
+] as const;
+
+const productionTypeOptions = ["ETO", "MTO", "ATO", "MTS", "Processo continuo"] as const;
+
+const sectorOptions = [
+  "Automotive",
+  "Macchine automatiche",
+  "Carpenteria",
+  "Packaging",
+  "Impiantistica",
+  "Oil & Gas",
+  "Aerospace",
+  "Energia",
+  "Navale",
+  "Biomedicale",
+  "Railway",
+] as const;
+
+const assignmentTypeOptions = [
+  "Temporary full time",
+  "Fractional a giorni",
+  "Progetto a termine",
+  "Advisory",
+] as const;
+
+const revenueBandOptions = [
+  "Fino a 10 M€",
+  "10–50 M€",
+  "50–100 M€",
+  "100–250 M€",
+  "Oltre 250 M€",
+] as const;
+
+const peopleManagedOptions = [
+  "Fino a 10 persone",
+  "11–30 persone",
+  "31–70 persone",
+  "71–150 persone",
+  "Oltre 150 persone",
+] as const;
+
+const pnlBandOptions = [
+  "Fino a 1 M€",
+  "1–5 M€",
+  "5–20 M€",
+  "20–50 M€",
+  "Oltre 50 M€",
+  "Non applicabile / non gestito direttamente",
+] as const;
+
+const dailyRateOptions = [
+  "Fino a 500 € / giorno",
+  "500–700 € / giorno",
+  "700–900 € / giorno",
+  "900–1.200 € / giorno",
+  "Oltre 1.200 € / giorno",
+] as const;
+
+const studyTitleOptions = [
+  "Diploma tecnico",
+  "Laurea triennale",
+  "Laurea magistrale / vecchio ordinamento",
+  "Master / MBA",
+  "Dottorato",
+  "Altro",
+] as const;
+
 const regionProvinceMap: Record<string, string[]> = {
   Abruzzo: ["L'Aquila", "Chieti", "Pescara", "Teramo"],
   Basilicata: ["Matera", "Potenza"],
@@ -104,7 +215,15 @@ function formatPersonName(value: string) {
     .replace(/(^|[\s'-])\p{L}/gu, (match) => match.toLocaleUpperCase("it-IT"));
 }
 
+function toggleInList(value: string, current: string[], max?: number) {
+  if (current.includes(value)) return current.filter((item) => item !== value);
+  if (max && current.length >= max) return current;
+  return [...current, value];
+}
+
 export default function ManagerPage() {
+  const [currentStep, setCurrentStep] = useState(0);
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -112,6 +231,9 @@ export default function ManagerPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [experience, setExperience] = useState<ExperienceBand | "">("");
   const [managerialExperience, setManagerialExperience] = useState<ManagerialExperienceBand | "">("");
+  const [region, setRegion] = useState("");
+  const [province, setProvince] = useState("");
+
   const [roleFamily, setRoleFamily] = useState<RoleFamily | "">("");
   const [primaryRole, setPrimaryRole] = useState("");
   const [otherRole, setOtherRole] = useState("");
@@ -121,37 +243,54 @@ export default function ManagerPage() {
   const [secondaryRoleFamily2, setSecondaryRoleFamily2] = useState<RoleFamily | "">("");
   const [secondaryRole2, setSecondaryRole2] = useState("");
   const [secondaryOtherRole2, setSecondaryOtherRole2] = useState("");
-  const [region, setRegion] = useState("");
-  const [province, setProvince] = useState("");
+  const [competencies, setCompetencies] = useState<string[]>([]);
+  const [otherCompetency, setOtherCompetency] = useState("");
+  const [methodologies, setMethodologies] = useState<string[]>([]);
+  const [otherMethodology, setOtherMethodology] = useState("");
+
+  const [revenueBand, setRevenueBand] = useState("");
+  const [peopleManagedBand, setPeopleManagedBand] = useState("");
+  const [pnlBand, setPnlBand] = useState("");
+  const [productionTypes, setProductionTypes] = useState<string[]>([]);
+  const [sectors, setSectors] = useState<string[]>([]);
+  const [otherSector, setOtherSector] = useState("");
+
+  const [assignmentTypes, setAssignmentTypes] = useState<string[]>([]);
+  const [daysPerWeek, setDaysPerWeek] = useState("");
+  const [availableFrom, setAvailableFrom] = useState("");
+  const [travelRadiusKm, setTravelRadiusKm] = useState("");
+  const [overnightAvailable, setOvernightAvailable] = useState<"" | "Sì" | "No">("");
+  const [vatActive, setVatActive] = useState<"" | "Sì" | "No">("");
+  const [professionalInsurance, setProfessionalInsurance] = useState<"" | "Sì" | "No">("");
+  const [insuranceLimit, setInsuranceLimit] = useState("");
+  const [certifications, setCertifications] = useState("");
+  const [languages, setLanguages] = useState("");
+  const [studyTitle, setStudyTitle] = useState("");
+  const [otherStudyTitle, setOtherStudyTitle] = useState("");
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [cvError, setCvError] = useState("");
+
+  const [dailyRateBand, setDailyRateBand] = useState("");
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
   const [visibilityConsent, setVisibilityConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const roleOptions = useMemo(
-    () => (roleFamily ? [...roleFamilies[roleFamily]] : []),
-    [roleFamily]
-  );
-
+  const roleOptions = useMemo(() => (roleFamily ? [...roleFamilies[roleFamily]] : []), [roleFamily]);
   const secondaryRoleOptions1 = useMemo(
     () => (secondaryRoleFamily1 ? [...roleFamilies[secondaryRoleFamily1]] : []),
     [secondaryRoleFamily1]
   );
-
   const secondaryRoleOptions2 = useMemo(
     () => (secondaryRoleFamily2 ? [...roleFamilies[secondaryRoleFamily2]] : []),
     [secondaryRoleFamily2]
   );
 
   const passwordValid = password.length >= 6 && password === confirmPassword;
-  const roleValid = primaryRole !== "" && (primaryRole !== "Altro" || otherRole.trim() !== "");
-
   const normalizedPrimaryRole = primaryRole === "Altro" ? otherRole.trim() : primaryRole;
-  const normalizedSecondaryRole1 =
-    secondaryRole1 === "Altro" ? secondaryOtherRole1.trim() : secondaryRole1;
-  const normalizedSecondaryRole2 =
-    secondaryRole2 === "Altro" ? secondaryOtherRole2.trim() : secondaryRole2;
+  const normalizedSecondaryRole1 = secondaryRole1 === "Altro" ? secondaryOtherRole1.trim() : secondaryRole1;
+  const normalizedSecondaryRole2 = secondaryRole2 === "Altro" ? secondaryOtherRole2.trim() : secondaryRole2;
 
   const secondaryRoles = [
     secondaryRoleFamily1 && normalizedSecondaryRole1
@@ -162,31 +301,124 @@ export default function ManagerPage() {
       : null,
   ].filter((item): item is { family: RoleFamily; role: string } => Boolean(item));
 
+  const primaryRoleValid = Boolean(roleFamily && normalizedPrimaryRole);
   const secondaryRole1Valid =
-    secondaryRoleFamily1 === "" ||
-    (secondaryRole1 !== "" && (secondaryRole1 !== "Altro" || secondaryOtherRole1.trim() !== ""));
+    secondaryRoleFamily1 === "" || Boolean(secondaryRole1 && normalizedSecondaryRole1);
   const secondaryRole2Valid =
-    secondaryRoleFamily2 === "" ||
-    (secondaryRole2 !== "" && (secondaryRole2 !== "Altro" || secondaryOtherRole2.trim() !== ""));
+    secondaryRoleFamily2 === "" || Boolean(secondaryRole2 && normalizedSecondaryRole2);
 
-  const canSubmit =
-    firstName.trim() !== "" &&
-    lastName.trim() !== "" &&
-    email.trim() !== "" &&
-    passwordValid &&
-    experience !== "" &&
-    managerialExperience !== "" &&
-    roleFamily !== "" &&
-    roleValid &&
-    secondaryRole1Valid &&
-    secondaryRole2Valid &&
-    region !== "" &&
-    province !== "" &&
-    privacyAcknowledged &&
-    visibilityConsent;
+  const competenciesValid =
+    competencies.length > 0 &&
+    competencies.length <= 5 &&
+    (!competencies.includes("Altro") || otherCompetency.trim() !== "");
+
+  const methodologiesValid =
+    methodologies.length > 0 &&
+    (!methodologies.includes("Altro") || otherMethodology.trim() !== "");
+
+  const studyTitleValid = studyTitle !== "" && (studyTitle !== "Altro" || otherStudyTitle.trim() !== "");
+
+  const canContinue = useMemo(() => {
+    switch (currentStep) {
+      case 0:
+        return (
+          firstName.trim() !== "" &&
+          lastName.trim() !== "" &&
+          email.trim() !== "" &&
+          passwordValid &&
+          experience !== "" &&
+          managerialExperience !== "" &&
+          region !== "" &&
+          province !== ""
+        );
+      case 1:
+        return primaryRoleValid && secondaryRole1Valid && secondaryRole2Valid && competenciesValid && methodologiesValid;
+      case 2:
+        return revenueBand !== "" && peopleManagedBand !== "" && pnlBand !== "" && productionTypes.length > 0 && (sectors.length > 0 || otherSector.trim() !== "");
+      case 3:
+        return (
+          assignmentTypes.length > 0 &&
+          daysPerWeek !== "" &&
+          availableFrom !== "" &&
+          travelRadiusKm !== "" &&
+          overnightAvailable !== "" &&
+          vatActive === "Sì" &&
+          professionalInsurance !== "" &&
+          (professionalInsurance !== "Sì" || insuranceLimit.trim() !== "") &&
+          studyTitleValid
+        );
+      case 4:
+        return dailyRateBand !== "" && privacyAcknowledged && visibilityConsent;
+      default:
+        return false;
+    }
+  }, [
+    currentStep,
+    firstName,
+    lastName,
+    email,
+    passwordValid,
+    experience,
+    managerialExperience,
+    region,
+    province,
+    primaryRoleValid,
+    secondaryRole1Valid,
+    secondaryRole2Valid,
+    competenciesValid,
+    methodologiesValid,
+    revenueBand,
+    peopleManagedBand,
+    pnlBand,
+    productionTypes,
+    sectors,
+    otherSector,
+    assignmentTypes,
+    daysPerWeek,
+    availableFrom,
+    travelRadiusKm,
+    overnightAvailable,
+    vatActive,
+    professionalInsurance,
+    insuranceLimit,
+    studyTitleValid,
+    dailyRateBand,
+    privacyAcknowledged,
+    visibilityConsent,
+  ]);
+
+  const progress = ((currentStep + 1) / stepTitles.length) * 100;
+
+  function nextStep() {
+    if (!canContinue) return;
+    setSubmitError("");
+    setCurrentStep((prev) => Math.min(prev + 1, stepTitles.length - 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function previousStep() {
+    setSubmitError("");
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleCvChange(file: File | null) {
+    setCvError("");
+    setCvFile(null);
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      setCvError("Carica un file PDF.");
+      return;
+    }
+    if (file.size > MAX_CV_SIZE) {
+      setCvError("Il CV non può superare 5 MB.");
+      return;
+    }
+    setCvFile(file);
+  }
 
   async function handleSubmit() {
-    if (!canSubmit || isSubmitting) return;
+    if (!canContinue || isSubmitting) return;
 
     setSubmitError("");
     setIsSubmitting(true);
@@ -202,12 +434,36 @@ export default function ManagerPage() {
           password,
           experience_band: experience,
           managerial_experience_band: managerialExperience,
+          region,
+          province,
           primary_role_family: roleFamily,
           primary_role: normalizedPrimaryRole,
           other_role: primaryRole === "Altro" ? otherRole.trim() : undefined,
           secondary_roles: secondaryRoles,
-          region,
-          province,
+          competencies: competencies.filter((item) => item !== "Altro"),
+          other_competency: competencies.includes("Altro") ? otherCompetency.trim() : undefined,
+          methodologies: methodologies.filter((item) => item !== "Altro"),
+          other_methodology: methodologies.includes("Altro") ? otherMethodology.trim() : undefined,
+          company_revenue_band: revenueBand,
+          people_managed_band: peopleManagedBand,
+          pnl_budget_band: pnlBand,
+          production_types: productionTypes,
+          sectors,
+          other_sector: otherSector.trim() || undefined,
+          assignment_types: assignmentTypes,
+          days_per_week: Number(daysPerWeek),
+          available_from: availableFrom,
+          travel_radius_km: Number(travelRadiusKm),
+          overnight_available: overnightAvailable === "Sì",
+          vat_active: vatActive === "Sì",
+          professional_insurance: professionalInsurance === "Sì",
+          insurance_limit: professionalInsurance === "Sì" ? insuranceLimit.trim() : undefined,
+          certifications: certifications.trim() || undefined,
+          languages: languages.trim() || undefined,
+          study_title: studyTitle === "Altro" ? otherStudyTitle.trim() : studyTitle,
+          cv_file_name: cvFile?.name,
+          cv_file_size: cvFile?.size,
+          daily_rate_band: dailyRateBand,
           privacy_acknowledged: privacyAcknowledged,
           privacy_version: PRIVACY_VERSION,
           profile_visibility_consent: visibilityConsent,
@@ -217,16 +473,10 @@ export default function ManagerPage() {
 
       const text = await response.text();
       const data = text ? JSON.parse(text) : null;
-
-      if (!response.ok) {
-        throw new Error(data?.message || "Errore durante la registrazione.");
-      }
-
+      if (!response.ok) throw new Error(data?.message || "Errore durante la registrazione.");
       setSuccess(true);
     } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "Si è verificato un errore durante la registrazione."
-      );
+      setSubmitError(error instanceof Error ? error.message : "Si è verificato un errore durante la registrazione.");
     } finally {
       setIsSubmitting(false);
     }
@@ -236,14 +486,10 @@ export default function ManagerPage() {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10">
         <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm md:p-12">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl text-emerald-900">
-            ✓
-          </div>
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl text-emerald-900">✓</div>
           <h1 className="mt-6 text-3xl font-bold text-slate-900">Registrazione completata</h1>
           <p className="mx-auto mt-4 max-w-xl text-lg leading-8 text-slate-600">
-            Il tuo account Management Network è stato creato. Il profilo manageriale è ancora
-            da completare: dalla dashboard potrai aggiungere competenze, seniority, disponibilità,
-            contesto produttivo e qualificazioni.
+            Il tuo profilo QuickSolve Management Network è stato registrato. Potrai aggiornarlo dalla tua area personale quando cambieranno disponibilità, competenze o informazioni professionali.
           </p>
         </div>
       </main>
@@ -252,477 +498,201 @@ export default function ManagerPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 md:py-10">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-5xl">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-10">
-          <div className="mb-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-900">
-              QuickSolve · Management Network
-            </p>
-            <h1 className="mt-3 text-3xl font-bold text-slate-900 md:text-4xl">
-              Crea il tuo profilo manager
-            </h1>
-            <p className="mt-3 max-w-2xl text-lg leading-7 text-slate-600">
-              Inizia con i dati essenziali. Dopo la registrazione potrai completare il profilo
-              professionale dalla tua area personale.
-            </p>
+          <div className="mb-7">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-900">QuickSolve · Management Network</p>
+            <h1 className="mt-3 text-3xl font-bold text-slate-900 md:text-4xl">Crea il tuo profilo manageriale</h1>
           </div>
 
-          <div className="mb-8 rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-semibold text-emerald-950">Fase 1 · Registrazione rapida</p>
-                <p className="mt-1 text-sm text-emerald-900/70">
-                  Inserisci solo le informazioni necessarie per creare l&apos;account.
-                </p>
+          <div className="mb-8 flex items-center justify-between rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+            <p className="font-semibold text-emerald-950">Step {currentStep + 1} di 5</p>
+            <span className="rounded-full bg-white px-4 py-2 text-sm font-bold text-emerald-900">{Math.round(progress)}%</span>
+          </div>
+
+          {submitError && <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{submitError}</div>}
+
+          {currentStep === 0 && (
+            <section className="space-y-6">
+              <SectionTitle title="Identità, accesso ed esperienza" subtitle="Partiamo dai dati personali, dall'esperienza complessiva e dalla tua area geografica di riferimento." />
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Nome"><input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} onBlur={() => setFirstName(formatPersonName(firstName))} className={inputClass} placeholder="Es. Marco" /></Field>
+                <Field label="Cognome"><input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} onBlur={() => setLastName(formatPersonName(lastName))} className={inputClass} placeholder="Es. Rossi" /></Field>
+                <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="nome@email.com" /></Field>
+                <div />
+                <Field label="Password"><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} placeholder="Minimo 6 caratteri" /></Field>
+                <Field label="Conferma password"><input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass} placeholder="Ripeti la password" /></Field>
               </div>
-              <span className="rounded-full bg-white px-4 py-2 text-sm font-bold text-emerald-900">
-                Profilo 25%
-              </span>
-            </div>
-          </div>
+              {password && password.length < 6 && <p className="text-sm text-rose-600">La password deve contenere almeno 6 caratteri.</p>}
+              {confirmPassword && password !== confirmPassword && <p className="text-sm text-rose-600">Le password non coincidono.</p>}
 
-          {submitError && (
-            <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-              {submitError}
-            </div>
+              <ChoiceSection title="Anni di esperienza professionale">
+                <div className="grid gap-3 sm:grid-cols-2">{experienceOptions.map((option) => <ChoiceButton key={option} active={experience === option} onClick={() => setExperience(option)}>{option}</ChoiceButton>)}</div>
+              </ChoiceSection>
+              <ChoiceSection title="Anni di esperienza in ruoli manageriali">
+                <div className="grid gap-3 sm:grid-cols-3">{managerialExperienceOptions.map((option) => <ChoiceButton key={option} active={managerialExperience === option} onClick={() => setManagerialExperience(option)}>{option}</ChoiceButton>)}</div>
+              </ChoiceSection>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Regione"><select value={region} onChange={(e) => { setRegion(e.target.value); setProvince(""); }} className={inputClass}><option value="">Seleziona la regione</option>{regionOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></Field>
+                <Field label="Provincia"><select value={province} disabled={!region} onChange={(e) => setProvince(e.target.value)} className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}><option value="">{region ? "Seleziona la provincia" : "Prima seleziona la regione"}</option>{region && regionProvinceMap[region].map((item) => <option key={item} value={item}>{item}</option>)}</select></Field>
+              </div>
+            </section>
           )}
 
-          <section className="space-y-8">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">Dati personali</h2>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <Field label="Nome">
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    onBlur={() => setFirstName(formatPersonName(firstName))}
-                    className={inputClass}
-                    placeholder="Es. Marco"
-                  />
-                </Field>
-
-                <Field label="Cognome">
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    onBlur={() => setLastName(formatPersonName(lastName))}
-                    className={inputClass}
-                    placeholder="Es. Rossi"
-                  />
-                </Field>
-
-                <Field label="Email">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={inputClass}
-                    placeholder="nome@email.com"
-                  />
-                </Field>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">Esperienza e ruolo principale</h2>
-
-              <div className="mt-4">
-                <p className="mb-3 text-sm font-medium text-slate-700">
-                  Anni di esperienza professionale
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {experienceOptions.map((option) => (
-                    <ChoiceButton
-                      key={option}
-                      active={experience === option}
-                      onClick={() => setExperience(option)}
-                    >
-                      {option}
-                    </ChoiceButton>
-                  ))}
+          {currentStep === 1 && (
+            <section className="space-y-7">
+              <SectionTitle title="Ruoli e competenze" subtitle="Definisci il ruolo principale, gli eventuali ruoli secondari e le aree in cui porti valore manageriale." />
+              <RoleSelector title="Ruolo principale" family={roleFamily} role={primaryRole} otherRole={otherRole} roleOptions={roleOptions} onFamilyChange={(value) => { setRoleFamily(value); setPrimaryRole(""); setOtherRole(""); }} onRoleChange={(value) => { setPrimaryRole(value); if (value !== "Altro") setOtherRole(""); }} onOtherRoleChange={setOtherRole} required />
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <h3 className="font-bold text-slate-900">Ruoli secondari · facoltativi</h3>
+                <p className="mt-1 text-sm text-slate-600">Puoi indicarne al massimo due.</p>
+                <div className="mt-5 space-y-6">
+                  <RoleSelector title="Ruolo secondario 1" family={secondaryRoleFamily1} role={secondaryRole1} otherRole={secondaryOtherRole1} roleOptions={secondaryRoleOptions1} onFamilyChange={(value) => { setSecondaryRoleFamily1(value); setSecondaryRole1(""); setSecondaryOtherRole1(""); }} onRoleChange={(value) => { setSecondaryRole1(value); if (value !== "Altro") setSecondaryOtherRole1(""); }} onOtherRoleChange={setSecondaryOtherRole1} />
+                  <RoleSelector title="Ruolo secondario 2" family={secondaryRoleFamily2} role={secondaryRole2} otherRole={secondaryOtherRole2} roleOptions={secondaryRoleOptions2} onFamilyChange={(value) => { setSecondaryRoleFamily2(value); setSecondaryRole2(""); setSecondaryOtherRole2(""); }} onRoleChange={(value) => { setSecondaryRole2(value); if (value !== "Altro") setSecondaryOtherRole2(""); }} onOtherRoleChange={setSecondaryOtherRole2} />
                 </div>
               </div>
 
-              <div className="mt-6">
-                <p className="mb-3 text-sm font-medium text-slate-700">
-                  Anni di esperienza in ruoli manageriali
-                </p>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {managerialExperienceOptions.map((option) => (
-                    <ChoiceButton
-                      key={option}
-                      active={managerialExperience === option}
-                      onClick={() => setManagerialExperience(option)}
-                    >
-                      {option}
-                    </ChoiceButton>
-                  ))}
+              <MultiSelectSection title="Aree di competenza" subtitle={`Seleziona fino a 5 aree · ${competencies.length}/5`} options={competencyOptions} values={competencies} onToggle={(value) => setCompetencies((current) => toggleInList(value, current, 5))} />
+              {competencies.includes("Altro") && <Field label="Specifica altra area di competenza"><input value={otherCompetency} onChange={(e) => setOtherCompetency(e.target.value)} className={inputClass} placeholder="Descrivi l'area" /></Field>}
+
+              <MultiSelectSection title="Metodologie e strumenti" subtitle="Puoi selezionare tutte quelle pertinenti." options={methodologyOptions} values={methodologies} onToggle={(value) => setMethodologies((current) => toggleInList(value, current))} />
+              {methodologies.includes("Altro") && <Field label="Specifica altra metodologia o strumento"><input value={otherMethodology} onChange={(e) => setOtherMethodology(e.target.value)} className={inputClass} placeholder="Descrivi metodologia o strumento" /></Field>}
+            </section>
+          )}
+
+          {currentStep === 2 && (
+            <section className="space-y-7">
+              <SectionTitle title="Seniority e contesto produttivo" subtitle="Questi dati distinguono il livello reale di responsabilità oltre al semplice titolo professionale." />
+              <div className="grid gap-4 md:grid-cols-3">
+                <Field label="Fatturato aziende in cui hai operato"><select value={revenueBand} onChange={(e) => setRevenueBand(e.target.value)} className={inputClass}><option value="">Seleziona fascia</option>{revenueBandOptions.map((item) => <option key={item}>{item}</option>)}</select></Field>
+                <Field label="Numero massimo di persone coordinate"><select value={peopleManagedBand} onChange={(e) => setPeopleManagedBand(e.target.value)} className={inputClass}><option value="">Seleziona fascia</option>{peopleManagedOptions.map((item) => <option key={item}>{item}</option>)}</select></Field>
+                <Field label="Budget o P&L gestito"><select value={pnlBand} onChange={(e) => setPnlBand(e.target.value)} className={inputClass}><option value="">Seleziona fascia</option>{pnlBandOptions.map((item) => <option key={item}>{item}</option>)}</select></Field>
+              </div>
+
+              <MultiSelectSection title="Tipologia produttiva" subtitle="Seleziona tutti i contesti in cui hai esperienza diretta." options={productionTypeOptions} values={productionTypes} onToggle={(value) => setProductionTypes((current) => toggleInList(value, current))} />
+              <MultiSelectSection title="Settori industriali" subtitle="Manteniamo la stessa classificazione usata nel network Engineering." options={sectorOptions} values={sectors} onToggle={(value) => setSectors((current) => toggleInList(value, current))} />
+              <Field label="Altro settore · facoltativo"><input value={otherSector} onChange={(e) => setOtherSector(e.target.value)} className={inputClass} placeholder="Es. Food & Beverage, Chimico, Farmaceutico..." /></Field>
+            </section>
+          )}
+
+          {currentStep === 3 && (
+            <section className="space-y-7">
+              <SectionTitle title="Disponibilità e qualifiche" subtitle="Definiamo come puoi lavorare, la mobilità e i requisiti professionali necessari per rapporti B2B." />
+              <MultiSelectSection title="Tipo di incarico" subtitle="Puoi selezionare più modalità." options={assignmentTypeOptions} values={assignmentTypes} onToggle={(value) => setAssignmentTypes((current) => toggleInList(value, current))} />
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Giorni a settimana disponibili"><select value={daysPerWeek} onChange={(e) => setDaysPerWeek(e.target.value)} className={inputClass}><option value="">Seleziona</option>{[1,2,3,4,5].map((day) => <option key={day} value={day}>{day}</option>)}</select></Field>
+                <Field label="Data di prima disponibilità"><input type="date" value={availableFrom} onChange={(e) => setAvailableFrom(e.target.value)} className={inputClass} /></Field>
+                <Field label="Raggio geografico disponibile"><select value={travelRadiusKm} onChange={(e) => setTravelRadiusKm(e.target.value)} className={inputClass}><option value="">Seleziona</option><option value="25">25 km</option><option value="50">50 km</option><option value="100">100 km</option><option value="200">200 km</option><option value="500">Oltre 200 km / trasferte nazionali</option></select></Field>
+                <Field label="Disponibile a pernottare fuori"><select value={overnightAvailable} onChange={(e) => setOvernightAvailable(e.target.value as "" | "Sì" | "No")} className={inputClass}><option value="">Seleziona</option><option>Sì</option><option>No</option></select></Field>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <h3 className="font-bold text-slate-900">Qualificazione B2B</h3>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <Field label="P.IVA attiva"><select value={vatActive} onChange={(e) => setVatActive(e.target.value as "" | "Sì" | "No")} className={inputClass}><option value="">Seleziona</option><option>Sì</option><option>No</option></select></Field>
+                  <Field label="Copertura RC professionale"><select value={professionalInsurance} onChange={(e) => { setProfessionalInsurance(e.target.value as "" | "Sì" | "No"); if (e.target.value !== "Sì") setInsuranceLimit(""); }} className={inputClass}><option value="">Seleziona</option><option>Sì</option><option>No</option></select></Field>
+                </div>
+                {vatActive === "No" && <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900"><strong>Profilo non registrabile nel network professionale.</strong> QuickSolve Management Network opera su rapporti B2B: per completare la registrazione è necessaria una P.IVA attiva.</div>}
+                {professionalInsurance === "Sì" && <div className="mt-4"><Field label="Massimale RC professionale"><input value={insuranceLimit} onChange={(e) => setInsuranceLimit(e.target.value)} className={inputClass} placeholder="Es. 1.000.000 €" /></Field></div>}
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Certificazioni · facoltativo"><textarea value={certifications} onChange={(e) => setCertifications(e.target.value)} className={`${inputClass} min-h-28 resize-y`} placeholder="Es. Six Sigma Black Belt, PMP, ISO, IATF, PED / EN 13445..." /></Field>
+                <Field label="Lingue e livello · facoltativo"><textarea value={languages} onChange={(e) => setLanguages(e.target.value)} className={`${inputClass} min-h-28 resize-y`} placeholder="Es. Inglese C1, Tedesco B2..." /></Field>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Titolo di studio"><select value={studyTitle} onChange={(e) => { setStudyTitle(e.target.value); if (e.target.value !== "Altro") setOtherStudyTitle(""); }} className={inputClass}><option value="">Seleziona</option>{studyTitleOptions.map((item) => <option key={item}>{item}</option>)}</select></Field>
+                {studyTitle === "Altro" ? <Field label="Specifica titolo di studio"><input value={otherStudyTitle} onChange={(e) => setOtherStudyTitle(e.target.value)} className={inputClass} placeholder="Inserisci titolo" /></Field> : <div />}
+              </div>
+
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5">
+                <p className="font-semibold text-slate-900">Curriculum Vitae · PDF</p>
+                <p className="mt-1 text-sm text-slate-500">Formato PDF, massimo 5 MB.</p>
+                <input type="file" accept="application/pdf,.pdf" onChange={(e) => handleCvChange(e.target.files?.[0] ?? null)} className="mt-4 block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-emerald-900 file:px-4 file:py-2.5 file:font-semibold file:text-white hover:file:bg-emerald-800" />
+                {cvFile && <p className="mt-3 text-sm font-medium text-emerald-800">Selezionato: {cvFile.name}</p>}
+                {cvError && <p className="mt-3 text-sm font-medium text-rose-600">{cvError}</p>}
+              </div>
+            </section>
+          )}
+
+          {currentStep === 4 && (
+            <section className="space-y-7">
+              <SectionTitle title="Economico, privacy e conferma" subtitle="Ultimo passaggio: fascia economica riservata al backoffice e consensi necessari per il network." />
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <Field label="Fascia di tariffa giornaliera"><select value={dailyRateBand} onChange={(e) => setDailyRateBand(e.target.value)} className={inputClass}><option value="">Seleziona fascia</option>{dailyRateOptions.map((item) => <option key={item}>{item}</option>)}</select></Field>
+                <p className="mt-2 text-sm text-slate-500">Questo dato è riservato al backoffice QuickSolve e non viene mostrato nel profilo anonimo alle aziende.</p>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <h2 className="text-xl font-bold text-slate-900">Privacy e visibilità</h2>
+                <div className="mt-4 space-y-4 text-sm leading-6 text-slate-700">
+                  <label className="flex items-start gap-3"><input type="checkbox" checked={privacyAcknowledged} onChange={(e) => setPrivacyAcknowledged(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900" /><span>Dichiaro di aver letto l&apos;<a href={PRIVACY_URL} target="_blank" rel="noreferrer" className="font-semibold text-emerald-900 underline underline-offset-2">Informativa Privacy Management Network</a>.</span></label>
+                  <label className="flex items-start gap-3"><input type="checkbox" checked={visibilityConsent} onChange={(e) => setVisibilityConsent(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900" /><span>Acconsento separatamente alla visibilità del mio profilo professionale strutturato alle aziende potenzialmente compatibili, inizialmente senza i miei dati di contatto direttamente identificativi.</span></label>
                 </div>
               </div>
 
-              <div className="mt-6">
-                <h3 className="text-base font-bold text-slate-900">Ruolo principale</h3>
-                <p className="mt-1 text-sm text-slate-500">
-                  Seleziona la famiglia professionale e il ruolo che descrive meglio la tua esperienza principale.
-                </p>
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-sm leading-6 text-emerald-950">
+                <strong>Profilo completo.</strong> Con la registrazione salvi in un unico flusso identità, esperienza, ruoli, competenze, seniority, contesto produttivo, disponibilità e qualificazioni. Potrai aggiornare i dati successivamente dalla tua area personale.
               </div>
+            </section>
+          )}
 
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <Field label="Famiglia professionale">
-                  <select
-                    value={roleFamily}
-                    onChange={(e) => {
-                      setRoleFamily(e.target.value as RoleFamily | "");
-                      setPrimaryRole("");
-                      setOtherRole("");
-                    }}
-                    className={inputClass}
-                  >
-                    <option value="">Seleziona la famiglia</option>
-                    {Object.keys(roleFamilies).map((family) => (
-                      <option key={family} value={family}>
-                        {family}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Ruolo principale">
-                  <select
-                    value={primaryRole}
-                    disabled={!roleFamily}
-                    onChange={(e) => {
-                      setPrimaryRole(e.target.value);
-                      if (e.target.value !== "Altro") setOtherRole("");
-                    }}
-                    className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}
-                  >
-                    <option value="">
-                      {roleFamily ? "Seleziona il ruolo" : "Prima seleziona la famiglia"}
-                    </option>
-                    {roleOptions.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
-
-              {primaryRole === "Altro" && (
-                <div className="mt-4">
-                  <Field label="Specifica il ruolo">
-                    <input
-                      type="text"
-                      value={otherRole}
-                      onChange={(e) => setOtherRole(e.target.value)}
-                      className={inputClass}
-                      placeholder="Inserisci il tuo ruolo"
-                    />
-                  </Field>
-                </div>
-              )}
-
-
-              <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <h3 className="text-base font-bold text-slate-900">Ruoli secondari · facoltativi</h3>
-                <p className="mt-1 text-sm leading-6 text-slate-600">
-                  Puoi indicare fino a due ruoli aggiuntivi ricoperti nel corso della tua esperienza.
-                </p>
-
-                <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  <Field label="Famiglia ruolo secondario 1">
-                    <select
-                      value={secondaryRoleFamily1}
-                      onChange={(e) => {
-                        setSecondaryRoleFamily1(e.target.value as RoleFamily | "");
-                        setSecondaryRole1("");
-                        setSecondaryOtherRole1("");
-                      }}
-                      className={inputClass}
-                    >
-                      <option value="">Nessun ruolo secondario</option>
-                      {Object.keys(roleFamilies).map((family) => (
-                        <option key={family} value={family}>
-                          {family}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-
-                  <Field label="Ruolo secondario 1">
-                    <select
-                      value={secondaryRole1}
-                      disabled={!secondaryRoleFamily1}
-                      onChange={(e) => {
-                        setSecondaryRole1(e.target.value);
-                        if (e.target.value !== "Altro") setSecondaryOtherRole1("");
-                      }}
-                      className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}
-                    >
-                      <option value="">
-                        {secondaryRoleFamily1 ? "Seleziona il ruolo" : "Prima seleziona la famiglia"}
-                      </option>
-                      {secondaryRoleOptions1.map((role) => (
-                        <option key={role} value={role}>
-                          {role}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                </div>
-
-                {secondaryRole1 === "Altro" && (
-                  <div className="mt-4">
-                    <Field label="Specifica il ruolo secondario 1">
-                      <input
-                        type="text"
-                        value={secondaryOtherRole1}
-                        onChange={(e) => setSecondaryOtherRole1(e.target.value)}
-                        className={inputClass}
-                        placeholder="Inserisci il ruolo"
-                      />
-                    </Field>
-                  </div>
-                )}
-
-                <div className="mt-5 grid gap-4 border-t border-slate-200 pt-5 md:grid-cols-2">
-                  <Field label="Famiglia ruolo secondario 2">
-                    <select
-                      value={secondaryRoleFamily2}
-                      onChange={(e) => {
-                        setSecondaryRoleFamily2(e.target.value as RoleFamily | "");
-                        setSecondaryRole2("");
-                        setSecondaryOtherRole2("");
-                      }}
-                      className={inputClass}
-                    >
-                      <option value="">Nessun secondo ruolo</option>
-                      {Object.keys(roleFamilies).map((family) => (
-                        <option key={family} value={family}>
-                          {family}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-
-                  <Field label="Ruolo secondario 2">
-                    <select
-                      value={secondaryRole2}
-                      disabled={!secondaryRoleFamily2}
-                      onChange={(e) => {
-                        setSecondaryRole2(e.target.value);
-                        if (e.target.value !== "Altro") setSecondaryOtherRole2("");
-                      }}
-                      className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}
-                    >
-                      <option value="">
-                        {secondaryRoleFamily2 ? "Seleziona il ruolo" : "Prima seleziona la famiglia"}
-                      </option>
-                      {secondaryRoleOptions2.map((role) => (
-                        <option key={role} value={role}>
-                          {role}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                </div>
-
-                {secondaryRole2 === "Altro" && (
-                  <div className="mt-4">
-                    <Field label="Specifica il ruolo secondario 2">
-                      <input
-                        type="text"
-                        value={secondaryOtherRole2}
-                        onChange={(e) => setSecondaryOtherRole2(e.target.value)}
-                        className={inputClass}
-                        placeholder="Inserisci il ruolo"
-                      />
-                    </Field>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">Area geografica</h2>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <Field label="Regione">
-                  <select
-                    value={region}
-                    onChange={(e) => {
-                      setRegion(e.target.value);
-                      setProvince("");
-                    }}
-                    className={inputClass}
-                  >
-                    <option value="">Seleziona la regione</option>
-                    {regionOptions.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Provincia">
-                  <select
-                    value={province}
-                    disabled={!region}
-                    onChange={(e) => setProvince(e.target.value)}
-                    className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}
-                  >
-                    <option value="">
-                      {region ? "Seleziona la provincia" : "Prima seleziona la regione"}
-                    </option>
-                    {region &&
-                      regionProvinceMap[region].map((item) => (
-                        <option key={item} value={item}>
-                          {item}
-                        </option>
-                      ))}
-                  </select>
-                </Field>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">Accesso</h2>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <Field label="Password">
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={inputClass}
-                    placeholder="Minimo 6 caratteri"
-                  />
-                </Field>
-
-                <Field label="Conferma password">
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={inputClass}
-                    placeholder="Ripeti la password"
-                  />
-                </Field>
-              </div>
-
-              {password && password.length < 6 && (
-                <p className="mt-2 text-sm text-rose-600">
-                  La password deve contenere almeno 6 caratteri.
-                </p>
-              )}
-
-              {confirmPassword && password !== confirmPassword && (
-                <p className="mt-2 text-sm text-rose-600">Le password non coincidono.</p>
-              )}
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-              <h2 className="text-xl font-bold text-slate-900">Privacy e visibilità</h2>
-
-              <div className="mt-4 space-y-4 text-sm leading-6 text-slate-700">
-                <label className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    checked={privacyAcknowledged}
-                    onChange={(e) => setPrivacyAcknowledged(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900"
-                  />
-                  <span>
-                    Dichiaro di aver letto l&apos;
-                    <a
-                      href={PRIVACY_URL}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-semibold text-emerald-900 underline underline-offset-2"
-                    >
-                      Informativa Privacy Management Network
-                    </a>
-                    .
-                  </span>
-                </label>
-
-                <label className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    checked={visibilityConsent}
-                    onChange={(e) => setVisibilityConsent(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900"
-                  />
-                  <span>
-                    Acconsento separatamente alla visibilità del mio profilo professionale
-                    strutturato alle aziende potenzialmente compatibili, inizialmente senza i miei
-                    dati di contatto direttamente identificativi.
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <div className="border-t border-slate-200 pt-6">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={!canSubmit || isSubmitting}
-                className="w-full rounded-2xl bg-emerald-900 px-6 py-4 text-base font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isSubmitting ? "Registrazione in corso..." : "Crea account e continua"}
-              </button>
-
-              <p className="mt-3 text-center text-sm text-slate-500">
-                Dopo la registrazione completerai il profilo manageriale dalla dashboard.
-              </p>
-            </div>
-          </section>
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-between">
+            <button type="button" onClick={previousStep} disabled={currentStep === 0 || isSubmitting} className="rounded-2xl border border-slate-300 px-6 py-3.5 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">Indietro</button>
+            {currentStep < stepTitles.length - 1 ? (
+              <button type="button" onClick={nextStep} disabled={!canContinue} className="rounded-2xl bg-emerald-900 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40">Continua</button>
+            ) : (
+              <button type="button" onClick={handleSubmit} disabled={!canContinue || isSubmitting} className="rounded-2xl bg-emerald-900 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40">{isSubmitting ? "Registrazione in corso..." : "Crea il profilo manageriale"}</button>
+            )}
+          </div>
         </div>
       </div>
     </main>
   );
 }
 
-const inputClass =
-  "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-900";
+const inputClass = "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-900 focus:ring-2 focus:ring-emerald-900/10";
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
+  return <div><h2 className="text-2xl font-bold text-slate-900">{title}</h2><p className="mt-2 max-w-3xl leading-7 text-slate-600">{subtitle}</p></div>;
+}
+
+function ChoiceSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return <div><p className="mb-3 text-sm font-semibold text-slate-700">{title}</p>{children}</div>;
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <label className="block"><span className="mb-2 block text-sm font-medium text-slate-700">{label}</span>{children}</label>;
+}
+
+function ChoiceButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return <button type="button" onClick={onClick} className={`rounded-2xl border px-5 py-4 text-left font-semibold transition ${active ? "border-emerald-900 bg-emerald-50 text-emerald-950" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"}`}>{children}</button>;
+}
+
+function MultiSelectSection({ title, subtitle, options, values, onToggle }: { title: string; subtitle: string; options: readonly string[]; values: string[]; onToggle: (value: string) => void }) {
   return (
-    <label className="block">
-      <span className="mb-2 block text-sm font-medium text-slate-700">{label}</span>
-      {children}
-    </label>
+    <div>
+      <div className="mb-3"><h3 className="font-bold text-slate-900">{title}</h3><p className="mt-1 text-sm text-slate-500">{subtitle}</p></div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {options.map((option) => {
+          const active = values.includes(option);
+          return <button key={option} type="button" onClick={() => onToggle(option)} className={`flex items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${active ? "border-emerald-900 bg-emerald-50 text-emerald-950" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"}`}><span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs ${active ? "border-emerald-900 bg-emerald-900 text-white" : "border-slate-300 bg-white"}`}>{active ? "✓" : ""}</span><span>{option}</span></button>;
+        })}
+      </div>
+    </div>
   );
 }
 
-function ChoiceButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
+function RoleSelector({ title, family, role, otherRole, roleOptions, onFamilyChange, onRoleChange, onOtherRoleChange, required = false }: { title: string; family: RoleFamily | ""; role: string; otherRole: string; roleOptions: string[]; onFamilyChange: (value: RoleFamily | "") => void; onRoleChange: (value: string) => void; onOtherRoleChange: (value: string) => void; required?: boolean }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-2xl border px-5 py-4 text-left text-lg font-semibold transition ${
-        active
-          ? "border-emerald-900 bg-emerald-50 text-emerald-950"
-          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-      }`}
-    >
-      {children}
-    </button>
+    <div>
+      <h3 className="font-bold text-slate-900">{title}{required ? "" : " · facoltativo"}</h3>
+      <div className="mt-3 grid gap-4 md:grid-cols-2">
+        <Field label="Famiglia professionale"><select value={family} onChange={(e) => onFamilyChange(e.target.value as RoleFamily | "")} className={inputClass}><option value="">{required ? "Seleziona la famiglia" : "Nessuna"}</option>{Object.keys(roleFamilies).map((item) => <option key={item} value={item}>{item}</option>)}</select></Field>
+        <Field label="Ruolo"><select value={role} disabled={!family} onChange={(e) => onRoleChange(e.target.value)} className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}><option value="">{family ? "Seleziona il ruolo" : "Prima seleziona la famiglia"}</option>{roleOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></Field>
+      </div>
+      {role === "Altro" && <div className="mt-4"><Field label="Specifica il ruolo"><input value={otherRole} onChange={(e) => onOtherRoleChange(e.target.value)} className={inputClass} placeholder="Inserisci il ruolo" /></Field></div>}
+    </div>
   );
 }
