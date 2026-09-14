@@ -13,7 +13,6 @@ type RoleFamily = keyof typeof roleFamilies;
 
 const PRIVACY_VERSION = "1.0-2026-09-11";
 const PRIVACY_URL = "/legal/privacy-manager";
-const MAX_CV_SIZE = 5 * 1024 * 1024;
 
 const stepTitles = [
   "Identità ed esperienza",
@@ -227,12 +226,16 @@ export default function ManagerPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [whatsappPhone, setWhatsappPhone] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [experience, setExperience] = useState<ExperienceBand | "">("");
   const [managerialExperience, setManagerialExperience] = useState<ManagerialExperienceBand | "">("");
   const [region, setRegion] = useState("");
   const [province, setProvince] = useState("");
+  const [selectedAreas, setSelectedAreas] = useState<Array<{ region: string; province: string }>>([]);
 
   const [roleFamily, setRoleFamily] = useState<RoleFamily | "">("");
   const [primaryRole, setPrimaryRole] = useState("");
@@ -258,8 +261,7 @@ export default function ManagerPage() {
   const [assignmentTypes, setAssignmentTypes] = useState<string[]>([]);
   const [daysPerWeek, setDaysPerWeek] = useState("");
   const [availableFrom, setAvailableFrom] = useState("");
-  const [travelRadiusKm, setTravelRadiusKm] = useState("");
-  const [overnightAvailable, setOvernightAvailable] = useState<"" | "Sì" | "No">("");
+  const [travelAvailable, setTravelAvailable] = useState(false);
   const [vatActive, setVatActive] = useState<"" | "Sì" | "No">("");
   const [professionalInsurance, setProfessionalInsurance] = useState<"" | "Sì" | "No">("");
   const [insuranceLimit, setInsuranceLimit] = useState("");
@@ -267,8 +269,6 @@ export default function ManagerPage() {
   const [languages, setLanguages] = useState("");
   const [studyTitle, setStudyTitle] = useState("");
   const [otherStudyTitle, setOtherStudyTitle] = useState("");
-  const [cvFile, setCvFile] = useState<File | null>(null);
-  const [cvError, setCvError] = useState("");
 
   const [dailyRateBand, setDailyRateBand] = useState("");
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
@@ -309,7 +309,6 @@ export default function ManagerPage() {
 
   const competenciesValid =
     competencies.length > 0 &&
-    competencies.length <= 5 &&
     (!competencies.includes("Altro") || otherCompetency.trim() !== "");
 
   const methodologiesValid =
@@ -322,14 +321,9 @@ export default function ManagerPage() {
     switch (currentStep) {
       case 0:
         return (
-          firstName.trim() !== "" &&
-          lastName.trim() !== "" &&
-          email.trim() !== "" &&
-          passwordValid &&
           experience !== "" &&
           managerialExperience !== "" &&
-          region !== "" &&
-          province !== ""
+          selectedAreas.length > 0
         );
       case 1:
         return primaryRoleValid && secondaryRole1Valid && secondaryRole2Valid && competenciesValid && methodologiesValid;
@@ -340,15 +334,23 @@ export default function ManagerPage() {
           assignmentTypes.length > 0 &&
           daysPerWeek !== "" &&
           availableFrom !== "" &&
-          travelRadiusKm !== "" &&
-          overnightAvailable !== "" &&
           vatActive === "Sì" &&
           professionalInsurance !== "" &&
           (professionalInsurance !== "Sì" || insuranceLimit.trim() !== "") &&
-          studyTitleValid
+          studyTitleValid &&
+          dailyRateBand !== ""
         );
       case 4:
-        return dailyRateBand !== "" && privacyAcknowledged && visibilityConsent;
+        return (
+          firstName.trim() !== "" &&
+          lastName.trim() !== "" &&
+          email.trim() !== "" &&
+          whatsappPhone.trim() !== "" &&
+          birthDate !== "" &&
+          passwordValid &&
+          privacyAcknowledged &&
+          visibilityConsent
+        );
       default:
         return false;
     }
@@ -357,11 +359,12 @@ export default function ManagerPage() {
     firstName,
     lastName,
     email,
+    whatsappPhone,
+    birthDate,
     passwordValid,
     experience,
     managerialExperience,
-    region,
-    province,
+    selectedAreas,
     primaryRoleValid,
     secondaryRole1Valid,
     secondaryRole2Valid,
@@ -376,8 +379,6 @@ export default function ManagerPage() {
     assignmentTypes,
     daysPerWeek,
     availableFrom,
-    travelRadiusKm,
-    overnightAvailable,
     vatActive,
     professionalInsurance,
     insuranceLimit,
@@ -402,20 +403,15 @@ export default function ManagerPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function handleCvChange(file: File | null) {
-    setCvError("");
-    setCvFile(null);
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      setCvError("Carica un file PDF.");
-      return;
-    }
-    if (file.size > MAX_CV_SIZE) {
-      setCvError("Il CV non può superare 5 MB.");
-      return;
-    }
-    setCvFile(file);
+  function removeProvince(regionToRemove: string, provinceToRemove: string) {
+    setSelectedAreas((current) =>
+      current.filter(
+        (area) =>
+          !(area.region === regionToRemove && area.province === provinceToRemove)
+      )
+    );
   }
+
 
   async function handleSubmit() {
     if (!canContinue || isSubmitting) return;
@@ -432,10 +428,16 @@ export default function ManagerPage() {
           last_name: formatPersonName(lastName),
           email: email.trim().toLowerCase(),
           password,
+          whatsapp_phone: whatsappPhone.trim(),
+          birth_date: birthDate,
+          linkedin_url: linkedinUrl.trim() || undefined,
           experience_band: experience,
           managerial_experience_band: managerialExperience,
-          region,
-          province,
+          region: selectedAreas[0]?.region ?? "",
+          province: selectedAreas[0]?.province ?? "",
+          regions: Array.from(new Set(selectedAreas.map((area) => area.region))),
+          provinces: selectedAreas.map((area) => area.province),
+          geographic_areas: selectedAreas,
           primary_role_family: roleFamily,
           primary_role: normalizedPrimaryRole,
           other_role: primaryRole === "Altro" ? otherRole.trim() : undefined,
@@ -453,16 +455,13 @@ export default function ManagerPage() {
           assignment_types: assignmentTypes,
           days_per_week: Number(daysPerWeek),
           available_from: availableFrom,
-          travel_radius_km: Number(travelRadiusKm),
-          overnight_available: overnightAvailable === "Sì",
+          travel_available: travelAvailable,
           vat_active: vatActive === "Sì",
           professional_insurance: professionalInsurance === "Sì",
           insurance_limit: professionalInsurance === "Sì" ? insuranceLimit.trim() : undefined,
           certifications: certifications.trim() || undefined,
           languages: languages.trim() || undefined,
           study_title: studyTitle === "Altro" ? otherStudyTitle.trim() : studyTitle,
-          cv_file_name: cvFile?.name,
-          cv_file_size: cvFile?.size,
           daily_rate_band: dailyRateBand,
           privacy_acknowledged: privacyAcknowledged,
           privacy_version: PRIVACY_VERSION,
@@ -500,17 +499,16 @@ export default function ManagerPage() {
     <main className="min-h-screen bg-slate-50 px-4 py-8 md:py-10">
       <div className="mx-auto max-w-5xl">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-10">
-          <div className="mb-7">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-900">QuickSolve · Management Network</p>
-            <h1 className="mt-3 text-3xl font-bold text-slate-900 md:text-4xl">Crea il tuo profilo manageriale</h1>
-          </div>
+          <div className="mb-7 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-900">QuickSolve · Management Network</p>
+              <h1 className="mt-3 text-3xl font-bold text-slate-900 md:text-4xl">Crea il tuo profilo manageriale</h1>
+            </div>
 
-          <div className="mb-5 flex justify-end">
-            <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500">
+            <div className="mb-1 inline-flex shrink-0 items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-950 shadow-sm">
               <span>Step {currentStep + 1} di 5</span>
-              <span className="rounded-md border border-emerald-100 bg-emerald-50 px-2 py-1 font-bold text-emerald-900">
-                {Math.round(progress)}%
-              </span>
+              <span className="h-4 w-px bg-emerald-200" />
+              <span className="font-bold">{Math.round(progress)}%</span>
             </div>
           </div>
 
@@ -518,18 +516,7 @@ export default function ManagerPage() {
 
           {currentStep === 0 && (
             <section className="space-y-6">
-              <SectionTitle title="Identità, accesso ed esperienza" subtitle="Partiamo dai dati personali, dall'esperienza complessiva e dalla tua area geografica di riferimento." />
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Nome"><input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} onBlur={() => setFirstName(formatPersonName(firstName))} className={inputClass} placeholder="Es. Marco" /></Field>
-                <Field label="Cognome"><input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} onBlur={() => setLastName(formatPersonName(lastName))} className={inputClass} placeholder="Es. Rossi" /></Field>
-                <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="nome@email.com" /></Field>
-                <div />
-                <Field label="Password"><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} placeholder="Minimo 6 caratteri" /></Field>
-                <Field label="Conferma password"><input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass} placeholder="Ripeti la password" /></Field>
-              </div>
-              {password && password.length < 6 && <p className="text-sm text-rose-600">La password deve contenere almeno 6 caratteri.</p>}
-              {confirmPassword && password !== confirmPassword && <p className="text-sm text-rose-600">Le password non coincidono.</p>}
-
+              <SectionTitle title="Esperienza e area geografica" subtitle="" />
               <ChoiceSection title="Anni di esperienza professionale">
                 <div className="grid gap-3 sm:grid-cols-2">{experienceOptions.map((option) => <ChoiceButton key={option} active={experience === option} onClick={() => setExperience(option)}>{option}</ChoiceButton>)}</div>
               </ChoiceSection>
@@ -537,58 +524,155 @@ export default function ManagerPage() {
                 <div className="grid gap-3 sm:grid-cols-3">{managerialExperienceOptions.map((option) => <ChoiceButton key={option} active={managerialExperience === option} onClick={() => setManagerialExperience(option)}>{option}</ChoiceButton>)}</div>
               </ChoiceSection>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Regione"><select value={region} onChange={(e) => { setRegion(e.target.value); setProvince(""); }} className={inputClass}><option value="">Seleziona la regione</option>{regionOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></Field>
-                <Field label="Provincia"><select value={province} disabled={!region} onChange={(e) => setProvince(e.target.value)} className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}><option value="">{region ? "Seleziona la provincia" : "Prima seleziona la regione"}</option>{region && regionProvinceMap[region].map((item) => <option key={item} value={item}>{item}</option>)}</select></Field>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <div className="mb-4">
+                  <h3 className="font-bold text-slate-900">Area geografica</h3>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Regione">
+                    <select
+                      value={region}
+                      onChange={(e) => {
+                        setRegion(e.target.value);
+                        setProvince("");
+                      }}
+                      className={inputClass}
+                    >
+                      <option value="">Seleziona la regione</option>
+                      {regionOptions.map((item) => (
+                        <option key={item} value={item}>{item}</option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field label="Provincia">
+                    <select
+                      value={province}
+                      disabled={!region}
+                      onChange={(e) => {
+                        const selectedProvince = e.target.value;
+                        setProvince("");
+
+                        if (!region || !selectedProvince) return;
+
+                        setSelectedAreas((current) => {
+                          const alreadySelected = current.some(
+                            (area) =>
+                              area.region === region &&
+                              area.province === selectedProvince
+                          );
+
+                          if (alreadySelected) return current;
+
+                          return [
+                            ...current,
+                            { region, province: selectedProvince },
+                          ];
+                        });
+                      }}
+                      className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}
+                    >
+                      <option value="">
+                        {region ? "Seleziona la provincia" : "Prima seleziona la regione"}
+                      </option>
+                      {region &&
+                        regionProvinceMap[region].map((item) => (
+                          <option key={item} value={item}>{item}</option>
+                        ))}
+                    </select>
+                  </Field>
+                </div>
+
+                {selectedAreas.length > 0 && (
+                  <div className="mt-5">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                      Province selezionate
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedAreas.map((area) => (
+                        <div
+                          key={`${area.region}-${area.province}`}
+                          className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700"
+                        >
+                          <span>{area.province}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeProvince(area.region, area.province)}
+                            className="flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-rose-600"
+                            aria-label={`Rimuovi ${area.province}`}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <label className="mt-5 flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={travelAvailable}
+                    onChange={(e) => setTravelAvailable(e.target.checked)}
+                    className="h-5 w-5 rounded border-slate-300 text-emerald-900 focus:ring-emerald-700"
+                  />
+                  <span className="text-sm font-semibold text-slate-800">Disponibile a trasferte</span>
+                </label>
               </div>
             </section>
           )}
 
           {currentStep === 1 && (
             <section className="space-y-7">
-              <SectionTitle title="Ruoli e competenze" subtitle="Definisci il ruolo principale, gli eventuali ruoli secondari e le aree in cui porti valore manageriale." />
+              <SectionTitle title="Ruoli e competenze" subtitle="" />
               <RoleSelector title="Ruolo principale" family={roleFamily} role={primaryRole} otherRole={otherRole} roleOptions={roleOptions} onFamilyChange={(value) => { setRoleFamily(value); setPrimaryRole(""); setOtherRole(""); }} onRoleChange={(value) => { setPrimaryRole(value); if (value !== "Altro") setOtherRole(""); }} onOtherRoleChange={setOtherRole} required />
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <h3 className="font-bold text-slate-900">Ruoli secondari · facoltativi</h3>
-                <p className="mt-1 text-sm text-slate-600">Puoi indicarne al massimo due.</p>
-                <div className="mt-5 space-y-6">
-                  <RoleSelector title="Ruolo secondario 1" family={secondaryRoleFamily1} role={secondaryRole1} otherRole={secondaryOtherRole1} roleOptions={secondaryRoleOptions1} onFamilyChange={(value) => { setSecondaryRoleFamily1(value); setSecondaryRole1(""); setSecondaryOtherRole1(""); }} onRoleChange={(value) => { setSecondaryRole1(value); if (value !== "Altro") setSecondaryOtherRole1(""); }} onOtherRoleChange={setSecondaryOtherRole1} />
-                  <RoleSelector title="Ruolo secondario 2" family={secondaryRoleFamily2} role={secondaryRole2} otherRole={secondaryOtherRole2} roleOptions={secondaryRoleOptions2} onFamilyChange={(value) => { setSecondaryRoleFamily2(value); setSecondaryRole2(""); setSecondaryOtherRole2(""); }} onRoleChange={(value) => { setSecondaryRole2(value); if (value !== "Altro") setSecondaryOtherRole2(""); }} onOtherRoleChange={setSecondaryOtherRole2} />
+                <div className="space-y-6">
+                  <RoleSelector title="Ruolo secondario 1 (facoltativo)" family={secondaryRoleFamily1} role={secondaryRole1} otherRole={secondaryOtherRole1} roleOptions={secondaryRoleOptions1} onFamilyChange={(value) => { setSecondaryRoleFamily1(value); setSecondaryRole1(""); setSecondaryOtherRole1(""); }} onRoleChange={(value) => { setSecondaryRole1(value); if (value !== "Altro") setSecondaryOtherRole1(""); }} onOtherRoleChange={setSecondaryOtherRole1} />
+                  <RoleSelector title="Ruolo secondario 2 (facoltativo)" family={secondaryRoleFamily2} role={secondaryRole2} otherRole={secondaryOtherRole2} roleOptions={secondaryRoleOptions2} onFamilyChange={(value) => { setSecondaryRoleFamily2(value); setSecondaryRole2(""); setSecondaryOtherRole2(""); }} onRoleChange={(value) => { setSecondaryRole2(value); if (value !== "Altro") setSecondaryOtherRole2(""); }} onOtherRoleChange={setSecondaryOtherRole2} />
                 </div>
               </div>
 
-              <MultiSelectSection title="Aree di competenza" subtitle={`Seleziona fino a 5 aree · ${competencies.length}/5`} options={competencyOptions} values={competencies} onToggle={(value) => setCompetencies((current) => toggleInList(value, current, 5))} />
+              <MultiSelectSection title="Aree di competenza" subtitle="" options={competencyOptions} values={competencies} onToggle={(value) => setCompetencies((current) => toggleInList(value, current))} />
               {competencies.includes("Altro") && <Field label="Specifica altra area di competenza"><input value={otherCompetency} onChange={(e) => setOtherCompetency(e.target.value)} className={inputClass} placeholder="Descrivi l'area" /></Field>}
 
-              <MultiSelectSection title="Metodologie e strumenti" subtitle="Puoi selezionare tutte quelle pertinenti." options={methodologyOptions} values={methodologies} onToggle={(value) => setMethodologies((current) => toggleInList(value, current))} />
+              <MultiSelectSection title="Metodologie e strumenti" subtitle="" options={methodologyOptions} values={methodologies} onToggle={(value) => setMethodologies((current) => toggleInList(value, current))} />
               {methodologies.includes("Altro") && <Field label="Specifica altra metodologia o strumento"><input value={otherMethodology} onChange={(e) => setOtherMethodology(e.target.value)} className={inputClass} placeholder="Descrivi metodologia o strumento" /></Field>}
             </section>
           )}
 
           {currentStep === 2 && (
             <section className="space-y-7">
-              <SectionTitle title="Seniority e contesto produttivo" subtitle="Questi dati distinguono il livello reale di responsabilità oltre al semplice titolo professionale." />
+              <SectionTitle title="Seniority e contesto produttivo" subtitle="" />
               <div className="grid gap-4 md:grid-cols-3">
                 <Field label="Fatturato aziende in cui hai operato"><select value={revenueBand} onChange={(e) => setRevenueBand(e.target.value)} className={inputClass}><option value="">Seleziona fascia</option>{revenueBandOptions.map((item) => <option key={item}>{item}</option>)}</select></Field>
                 <Field label="Numero massimo di persone coordinate"><select value={peopleManagedBand} onChange={(e) => setPeopleManagedBand(e.target.value)} className={inputClass}><option value="">Seleziona fascia</option>{peopleManagedOptions.map((item) => <option key={item}>{item}</option>)}</select></Field>
                 <Field label="Budget o P&L gestito"><select value={pnlBand} onChange={(e) => setPnlBand(e.target.value)} className={inputClass}><option value="">Seleziona fascia</option>{pnlBandOptions.map((item) => <option key={item}>{item}</option>)}</select></Field>
               </div>
 
-              <MultiSelectSection title="Tipologia produttiva" subtitle="Seleziona tutti i contesti in cui hai esperienza diretta." options={productionTypeOptions} values={productionTypes} onToggle={(value) => setProductionTypes((current) => toggleInList(value, current))} />
-              <MultiSelectSection title="Settori industriali" subtitle="Manteniamo la stessa classificazione usata nel network Engineering." options={sectorOptions} values={sectors} onToggle={(value) => setSectors((current) => toggleInList(value, current))} />
-              <Field label="Altro settore · facoltativo"><input value={otherSector} onChange={(e) => setOtherSector(e.target.value)} className={inputClass} placeholder="Es. Food & Beverage, Chimico, Farmaceutico..." /></Field>
+              <MultiSelectSection title="Tipologia produttiva" subtitle="" options={productionTypeOptions} values={productionTypes} onToggle={(value) => setProductionTypes((current) => toggleInList(value, current))} />
+              <MultiSelectSection title="Settori industriali" subtitle="" options={sectorOptions} values={sectors} onToggle={(value) => setSectors((current) => toggleInList(value, current))} />
+              <Field label="Altro settore"><input value={otherSector} onChange={(e) => setOtherSector(e.target.value)} className={inputClass} placeholder="Es. Food & Beverage, Chimico, Farmaceutico..." /></Field>
             </section>
           )}
 
           {currentStep === 3 && (
             <section className="space-y-7">
-              <SectionTitle title="Disponibilità e qualifiche" subtitle="Definiamo come puoi lavorare, la mobilità e i requisiti professionali necessari per rapporti B2B." />
-              <MultiSelectSection title="Tipo di incarico" subtitle="Puoi selezionare più modalità." options={assignmentTypeOptions} values={assignmentTypes} onToggle={(value) => setAssignmentTypes((current) => toggleInList(value, current))} />
+              <SectionTitle title="Disponibilità e qualifiche" subtitle="" />
+              <MultiSelectSection title="Tipo di incarico" subtitle="" options={assignmentTypeOptions} values={assignmentTypes} onToggle={(value) => setAssignmentTypes((current) => toggleInList(value, current))} />
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Giorni a settimana disponibili"><select value={daysPerWeek} onChange={(e) => setDaysPerWeek(e.target.value)} className={inputClass}><option value="">Seleziona</option>{[1,2,3,4,5].map((day) => <option key={day} value={day}>{day}</option>)}</select></Field>
                 <Field label="Data di prima disponibilità"><input type="date" value={availableFrom} onChange={(e) => setAvailableFrom(e.target.value)} className={inputClass} /></Field>
-                <Field label="Raggio geografico disponibile"><select value={travelRadiusKm} onChange={(e) => setTravelRadiusKm(e.target.value)} className={inputClass}><option value="">Seleziona</option><option value="25">25 km</option><option value="50">50 km</option><option value="100">100 km</option><option value="200">200 km</option><option value="500">Oltre 200 km / trasferte nazionali</option></select></Field>
-                <Field label="Disponibile a pernottare fuori"><select value={overnightAvailable} onChange={(e) => setOvernightAvailable(e.target.value as "" | "Sì" | "No")} className={inputClass}><option value="">Seleziona</option><option>Sì</option><option>No</option></select></Field>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <Field label="Fascia di tariffa giornaliera">
+                  <select value={dailyRateBand} onChange={(e) => setDailyRateBand(e.target.value)} className={inputClass}>
+                    <option value="">Seleziona fascia</option>
+                    {dailyRateOptions.map((item) => <option key={item}>{item}</option>)}
+                  </select>
+                </Field>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
@@ -602,30 +686,57 @@ export default function ManagerPage() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Certificazioni · facoltativo"><textarea value={certifications} onChange={(e) => setCertifications(e.target.value)} className={`${inputClass} min-h-28 resize-y`} placeholder="Es. Six Sigma Black Belt, PMP, ISO, IATF, PED / EN 13445..." /></Field>
-                <Field label="Lingue e livello · facoltativo"><textarea value={languages} onChange={(e) => setLanguages(e.target.value)} className={`${inputClass} min-h-28 resize-y`} placeholder="Es. Inglese C1, Tedesco B2..." /></Field>
+                <Field label="Certificazioni"><textarea value={certifications} onChange={(e) => setCertifications(e.target.value)} className={`${inputClass} min-h-28 resize-y`} placeholder="Es. Six Sigma Black Belt, PMP, ISO, IATF, PED / EN 13445..." /></Field>
+                <Field label="Lingue e livello"><textarea value={languages} onChange={(e) => setLanguages(e.target.value)} className={`${inputClass} min-h-28 resize-y`} placeholder="Es. Inglese C1, Tedesco B2..." /></Field>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Titolo di studio"><select value={studyTitle} onChange={(e) => { setStudyTitle(e.target.value); if (e.target.value !== "Altro") setOtherStudyTitle(""); }} className={inputClass}><option value="">Seleziona</option>{studyTitleOptions.map((item) => <option key={item}>{item}</option>)}</select></Field>
                 {studyTitle === "Altro" ? <Field label="Specifica titolo di studio"><input value={otherStudyTitle} onChange={(e) => setOtherStudyTitle(e.target.value)} className={inputClass} placeholder="Inserisci titolo" /></Field> : <div />}
-              </div>
-
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5">
-                <p className="font-semibold text-slate-900">Curriculum Vitae · PDF</p>
-                <p className="mt-1 text-sm text-slate-500">Formato PDF, massimo 5 MB.</p>
-                <input type="file" accept="application/pdf,.pdf" onChange={(e) => handleCvChange(e.target.files?.[0] ?? null)} className="mt-4 block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-emerald-900 file:px-4 file:py-2.5 file:font-semibold file:text-white hover:file:bg-emerald-800" />
-                {cvFile && <p className="mt-3 text-sm font-medium text-emerald-800">Selezionato: {cvFile.name}</p>}
-                {cvError && <p className="mt-3 text-sm font-medium text-rose-600">{cvError}</p>}
               </div>
             </section>
           )}
 
           {currentStep === 4 && (
             <section className="space-y-7">
-              <SectionTitle title="Economico, privacy e conferma" subtitle="Ultimo passaggio: fascia economica riservata al backoffice e consensi necessari per il network." />
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <Field label="Fascia di tariffa giornaliera"><select value={dailyRateBand} onChange={(e) => setDailyRateBand(e.target.value)} className={inputClass}><option value="">Seleziona fascia</option>{dailyRateOptions.map((item) => <option key={item}>{item}</option>)}</select></Field>
-                <p className="mt-2 text-sm text-slate-500">Questo dato è riservato al backoffice QuickSolve e non viene mostrato nel profilo anonimo alle aziende.</p>
+              <SectionTitle title="Dati personali e accesso" subtitle="" />
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 pb-5 pt-0">
+<div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <Field label="Nome"><input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} onBlur={() => setFirstName(formatPersonName(firstName))} className={inputClass} placeholder="Es. Marco" /></Field>
+                  <Field label="Cognome"><input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} onBlur={() => setLastName(formatPersonName(lastName))} className={inputClass} placeholder="Es. Rossi" /></Field>
+                  <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="nome@email.com" /></Field>
+                  <Field label="Numero di telefono WhatsApp">
+                    <input
+                      type="tel"
+                      value={whatsappPhone}
+                      onChange={(e) => setWhatsappPhone(e.target.value)}
+                      className={inputClass}
+                      placeholder="+39 333 1234567"
+                    />
+                  </Field>
+
+                  <Field label="Data di nascita">
+                    <input
+                      type="date"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(e.target.value)}
+                      className={inputClass}
+                    />
+                  </Field>
+
+                  <Field label="LinkedIn (opzionale)">
+                    <input
+                      type="url"
+                      value={linkedinUrl}
+                      onChange={(e) => setLinkedinUrl(e.target.value)}
+                      className={inputClass}
+                      placeholder="https://www.linkedin.com/in/..."
+                    />
+                  </Field>
+                  <Field label="Password"><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} placeholder="Minimo 6 caratteri" /></Field>
+                  <Field label="Conferma password"><input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass} placeholder="Ripeti la password" /></Field>
+                </div>
+                {password && password.length < 6 && <p className="mt-3 text-sm text-rose-600">La password deve contenere almeno 6 caratteri.</p>}
+                {confirmPassword && password !== confirmPassword && <p className="mt-3 text-sm text-rose-600">Le password non coincidono.</p>}
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
@@ -635,17 +746,13 @@ export default function ManagerPage() {
                   <label className="flex items-start gap-3"><input type="checkbox" checked={visibilityConsent} onChange={(e) => setVisibilityConsent(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900" /><span>Acconsento separatamente alla visibilità del mio profilo professionale strutturato alle aziende potenzialmente compatibili, inizialmente senza i miei dati di contatto direttamente identificativi.</span></label>
                 </div>
               </div>
-
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-sm leading-6 text-emerald-950">
-                <strong>Profilo completo.</strong> Con la registrazione salvi in un unico flusso identità, esperienza, ruoli, competenze, seniority, contesto produttivo, disponibilità e qualificazioni. Potrai aggiornare i dati successivamente dalla tua area personale.
-              </div>
             </section>
           )}
 
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-between">
             <button type="button" onClick={previousStep} disabled={currentStep === 0 || isSubmitting} className="rounded-2xl border border-slate-300 px-6 py-3.5 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">Indietro</button>
             {currentStep < stepTitles.length - 1 ? (
-              <button type="button" onClick={nextStep} disabled={!canContinue} className="rounded-2xl bg-emerald-900 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40">Continua</button>
+              <button type="button" onClick={nextStep} disabled={!canContinue} className="rounded-2xl bg-emerald-900 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40">Avanti</button>
             ) : (
               <button type="button" onClick={handleSubmit} disabled={!canContinue || isSubmitting} className="rounded-2xl bg-emerald-900 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40">{isSubmitting ? "Registrazione in corso..." : "Crea il profilo manageriale"}</button>
             )}
@@ -691,7 +798,7 @@ function MultiSelectSection({ title, subtitle, options, values, onToggle }: { ti
 function RoleSelector({ title, family, role, otherRole, roleOptions, onFamilyChange, onRoleChange, onOtherRoleChange, required = false }: { title: string; family: RoleFamily | ""; role: string; otherRole: string; roleOptions: string[]; onFamilyChange: (value: RoleFamily | "") => void; onRoleChange: (value: string) => void; onOtherRoleChange: (value: string) => void; required?: boolean }) {
   return (
     <div>
-      <h3 className="font-bold text-slate-900">{title}{required ? "" : " · facoltativo"}</h3>
+      <h3 className="font-bold text-slate-900">{title}{required ? "" : ""}</h3>
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         <Field label="Famiglia professionale"><select value={family} onChange={(e) => onFamilyChange(e.target.value as RoleFamily | "")} className={inputClass}><option value="">{required ? "Seleziona la famiglia" : "Nessuna"}</option>{Object.keys(roleFamilies).map((item) => <option key={item} value={item}>{item}</option>)}</select></Field>
         <Field label="Ruolo"><select value={role} disabled={!family} onChange={(e) => onRoleChange(e.target.value)} className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}><option value="">{family ? "Seleziona il ruolo" : "Prima seleziona la famiglia"}</option>{roleOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></Field>
