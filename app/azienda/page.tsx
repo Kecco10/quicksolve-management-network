@@ -1,71 +1,41 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { getCheckoutDesignerZone } from "@/lib/checkout-location-display";
+import { useMemo, useState } from "react";
 
-type CompanyType =
-  | "Piccola/media impresa"
-  | "Grande azienda"
-  | "Ufficio tecnico"
-  | "Azienda di consulenza"
-  | "Agenzia per il lavoro"
-  | "Altro"
-  | "";
+type ExperienceBand =
+  | "Meno di 6 anni"
+  | "6–10 anni"
+  | "11–20 anni"
+  | "Oltre 20 anni";
 
-type CompanySize =
-  | "1-9 dipendenti"
-  | "10-49 dipendenti"
-  | "50-249 dipendenti"
-  | "250-999 dipendenti"
-  | "Oltre 1000 dipendenti"
-  | "";
+type ManagerialExperienceBand =
+  | "Meno di 3 anni"
+  | "3–10 anni"
+  | "Oltre 10 anni";
 
-type EmploymentType =
-  | "Impiegato full time"
-  | "Impiegato part-time"
-  | "Collaborazione freelance Partita IVA"
-  | "";
+type RoleFamily = keyof typeof roleFamilies;
 
-type ProfileLevel =
-  | "Junior"
-  | "Middle"
-  | "Senior"
-  | "Responsabile ufficio tecnico"
-  | "";
+const stepTitles = [
+  "Azienda",
+  "Esigenza e referente",
+  "Manager ricercato",
+  "Contesto dell'incarico",
+  "Modalità e invio",
+] as const;
 
-type CadSkill = {
-  name: string;
-  selected: boolean;
-};
+const companyTypeOptions = [
+  "Piccola/media impresa",
+  "Grande azienda",
+  "Altro",
+] as const;
 
-
-type MatchDesigner = {
-  id: string;
-  percentage: number;
-  birthDate: string;
-  studyTitle: string;
-  studyTitleOther: string;
-  experience: string;
-  collaborationType: string;
-  budgetRange: string;
-  selectedRegion: string;
-  selectedProvinceEntries: Array<{
-    id?: string;
-    region?: string;
-    province?: string;
-  }>;
-  isRemote: boolean;
-  cadSkills: Array<{ name: string; rating?: number }>;
-  customCadSkills: Array<{ name: string; rating?: number }>;
-  sectors: string[];
-  sectorOther: string;
-};
-
-const COMPANY_PRIVACY_VERSION = "3.0-2026-09-11";
-const COMPANY_TERMS_VERSION = "3.0-2026-09-11";
-const COMPANY_PRIVACY_URL = "/legal/privacy-aziende";
-const COMPANY_TERMS_URL = "/legal/condizioni-aziende";
-
+const companySizeOptions = [
+  "1-9 dipendenti",
+  "10-49 dipendenti",
+  "50-249 dipendenti",
+  "250-999 dipendenti",
+  "Oltre 1000 dipendenti",
+] as const;
 
 const sectorOptions = [
   "Automotive",
@@ -79,45 +49,158 @@ const sectorOptions = [
   "Aerospace",
   "Biomedicale",
   "Railway",
+  "Altro",
+] as const;
+
+const requestReasonOptions = [
+  "Crescita / aumento capacità produttiva",
+  "Miglioramento performance operative",
+  "Riduzione costi",
+  "Riorganizzazione aziendale / operations",
+  "Turnaround / situazione di crisi",
+  "Avvio nuovo stabilimento / linea produttiva",
+  "Trasferimento / rilocalizzazione produttiva",
+  "Implementazione nuovo sistema o processo",
+  "Gestione progetto / commessa",
+  "Sostituzione temporanea di una figura manageriale",
+  "Supporto alla direzione",
+  "Altro",
+] as const;
+
+const roleFamilies = {
+  DIREZIONE: [
+    "General Manager / Direttore Generale",
+    "COO / Direttore Operations",
+    "Plant Manager / Direttore di Stabilimento",
+    "Restructuring Manager / CRO",
+  ],
+  "PRODUZIONE E INDUSTRIALIZZAZIONE": [
+    "Production Manager / Responsabile di Produzione",
+    "Responsabile di Reparto",
+    "Industrialization Manager / Responsabile Industrializzazione",
+    "Process Engineering Manager / Responsabile Tempi e Metodi",
+    "Lean Manager / Continuous Improvement Manager",
+    "Maintenance Manager / Responsabile Manutenzione",
+    "HSE Manager / Responsabile Sicurezza e Ambiente",
+  ],
+  "TECNICO E SVILUPPO PRODOTTO": [
+    "Technical Manager / Responsabile Ufficio Tecnico",
+    "Engineering Manager",
+    "R&D Manager",
+    "Product Manager",
+  ],
+  QUALITÀ: [
+    "Quality Manager",
+    "Responsabile Sistemi di Gestione (ISO / IATF)",
+    "Supplier Quality Manager",
+  ],
+  "SUPPLY CHAIN": [
+    "Supply Chain Manager",
+    "Responsabile Pianificazione e Programmazione della Produzione",
+    "Purchasing Manager / Responsabile Acquisti",
+    "Logistics Manager / Responsabile Logistica e Magazzini",
+    "Materials Manager",
+  ],
+  PROGETTI: ["Project Manager", "Program Manager", "PMO Manager"],
+  "FUNZIONI DI SUPPORTO": [
+    "CFO / Direttore Amministrativo",
+    "Controller Industriale",
+    "IT / Digital Manufacturing Manager",
+    "HR Manager / Direttore del Personale",
+    "Altro",
+  ],
+} as const;
+
+const experienceOptions: ExperienceBand[] = [
+  "Meno di 6 anni",
+  "6–10 anni",
+  "11–20 anni",
+  "Oltre 20 anni",
 ];
 
-const designerSoftwareOptions = [
-  "SolidWorks",
-  "Inventor",
-  "PTC Creo",
-  "CATIA",
-  "AutoCAD",
-  "Solid Edge",
-  "Modeling",
-  "NX",
-  "Fusion 360",
-  "Blender",
-  "Revit",
+const managerialExperienceOptions: ManagerialExperienceBand[] = [
+  "Meno di 3 anni",
+  "3–10 anni",
+  "Oltre 10 anni",
 ];
 
-const companySizeOptions: CompanySize[] = [
-  "1-9 dipendenti",
-  "10-49 dipendenti",
-  "50-249 dipendenti",
-  "250-999 dipendenti",
-  "Oltre 1000 dipendenti",
-];
+const competencyOptions = [
+  "Direzione operations e di stabilimento",
+  "Produzione e industrializzazione",
+  "Pianificazione e programmazione (S&OP, MPS, MRP)",
+  "Supply chain e logistica",
+  "Acquisti e gestione fornitori",
+  "Qualità e sistemi di gestione",
+  "Manutenzione e affidabilità",
+  "Ufficio tecnico e progettazione",
+  "R&S e innovazione di prodotto",
+  "Sicurezza e ambiente (HSE)",
+  "Controllo di gestione industriale e costificazione",
+  "Project e program management",
+  "Organizzazione e people management",
+  "Sistemi informativi industriali (ERP / MES)",
+  "Altro",
+] as const;
 
-const employeeRangeOptions = [
-  "24.000 - 30.000 €",
-  "30.000 - 40.000 €",
-  "40.000 - 50.000 €",
-  "50.000 - 60.000 €",
-  "> 60.000 €",
-];
+const methodologyOptions = [
+  "Lean Manufacturing (VSM, 5S, SMED, Kanban, Kaizen)",
+  "World Class Manufacturing",
+  "TPM",
+  "Six Sigma (Green / Black Belt)",
+  "Theory of Constraints",
+  "Problem solving strutturato (8D, A3, FMEA)",
+  "Cost reduction e make or buy",
+  "Design to Cost / DFMA",
+  "Riprogettazione layout e flussi",
+  "Implementazione o migrazione ERP",
+  "Industria 4.0 / MES / IoT industriale",
+  "Start-up di stabilimento e trasferimenti produttivi",
+  "Turnaround e ristrutturazione operativa",
+  "Post-merger integration",
+  "Relazioni sindacali e gestione del cambiamento",
+  "Gestione commesse ETO / project manufacturing",
+  "Altro",
+] as const;
 
-const freelanceRangeOptions = [
-  "15 - 20 €/h",
-  "20 - 30 €/h",
-  "30 - 40 €/h",
-  "40 - 50 €/h",
-  "> 50 €/h",
-];
+const productionTypeOptions = [
+  "ETO",
+  "MTO",
+  "ATO",
+  "MTS",
+  "Processo continuo",
+] as const;
+
+const peopleManagedOptions = [
+  "Fino a 10 persone",
+  "11–30 persone",
+  "31–70 persone",
+  "71–150 persone",
+  "Oltre 150 persone",
+] as const;
+
+const pnlBandOptions = [
+  "Fino a 1 M€",
+  "1–5 M€",
+  "5–20 M€",
+  "20–50 M€",
+  "Oltre 50 M€",
+  "Non applicabile / non gestito direttamente",
+] as const;
+
+const assignmentTypeOptions = [
+  "Temporary full time",
+  "Fractional a giorni",
+  "Progetto a termine",
+  "Advisory",
+] as const;
+
+const dailyRateOptions = [
+  "Fino a 500 € / giorno",
+  "500–700 € / giorno",
+  "700–900 € / giorno",
+  "900–1.200 € / giorno",
+  "Oltre 1.200 € / giorno",
+] as const;
 
 const regionProvinceMap: Record<string, string[]> = {
   Abruzzo: ["L'Aquila", "Chieti", "Pescara", "Teramo"],
@@ -144,1271 +227,1171 @@ const regionProvinceMap: Record<string, string[]> = {
 
 const regionOptions = Object.keys(regionProvinceMap);
 
-const stepTitles = [
-  "Azienda",
-  "Referente",
-  "Figura richiesta",
-  "Zona di lavoro",
-  "Software richiesti",
-];
+function formatPersonName(value: string) {
+  return value
+    .trim()
+    .toLocaleLowerCase("it-IT")
+    .replace(/(^|[\s'-])\p{L}/gu, (match) =>
+      match.toLocaleUpperCase("it-IT")
+    );
+}
 
-export default function AziendaPage() {
+function toggleInList(value: string, current: string[], max?: number) {
+  if (current.includes(value)) {
+    return current.filter((item) => item !== value);
+  }
+  if (max && current.length >= max) return current;
+  return [...current, value];
+}
+
+export default function CompanyRequestPage() {
   const [currentStep, setCurrentStep] = useState(0);
+
+  // STEP 1 — Azienda
   const [companyName, setCompanyName] = useState("");
-  const [companyType, setCompanyType] = useState<CompanyType>("");
-  const [companyTypeOther, setCompanyTypeOther] = useState("");
-  const [companySize, setCompanySize] = useState<CompanySize>("");
+  const [companyType, setCompanyType] = useState("");
+  const [otherCompanyType, setOtherCompanyType] = useState("");
+  const [companySize, setCompanySize] = useState("");
   const [companySector, setCompanySector] = useState("");
-  const [companySectorOther, setCompanySectorOther] = useState("");
+  const [otherCompanySector, setOtherCompanySector] = useState("");
 
-  const [contactName, setContactName] = useState("");
+  // STEP 2 — Esigenza e referente
+  const [contactFirstName, setContactFirstName] = useState("");
+  const [contactLastName, setContactLastName] = useState("");
   const [contactRole, setContactRole] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [requestReason, setRequestReason] = useState("");
+  const [otherRequestReason, setOtherRequestReason] = useState("");
+  const [requestObjective, setRequestObjective] = useState("");
 
-  const [employmentType, setEmploymentType] = useState<EmploymentType>("");
-  const [experienceLevel, setExperienceLevel] = useState<ProfileLevel>("");
-  const [jobDescription, setJobDescription] = useState("");
+  // STEP 3 — Manager ricercato
+  const [roleFamily, setRoleFamily] = useState<RoleFamily | "">("");
+  const [primaryRole, setPrimaryRole] = useState("");
+  const [otherRole, setOtherRole] = useState("");
 
-  const [employeeEconomicRange, setEmployeeEconomicRange] = useState("");
-  const [freelanceEconomicRange, setFreelanceEconomicRange] = useState("");
+  const [secondaryRoleFamily1, setSecondaryRoleFamily1] =
+    useState<RoleFamily | "">("");
+  const [secondaryRole1, setSecondaryRole1] = useState("");
+  const [secondaryOtherRole1, setSecondaryOtherRole1] = useState("");
 
-  const [experienceSectors, setExperienceSectors] = useState<string[]>([]);
-  const [selectedSectorToAdd, setSelectedSectorToAdd] = useState("");
+  const [secondaryRoleFamily2, setSecondaryRoleFamily2] =
+    useState<RoleFamily | "">("");
+  const [secondaryRole2, setSecondaryRole2] = useState("");
+  const [secondaryOtherRole2, setSecondaryOtherRole2] = useState("");
 
-  const [workModes, setWorkModes] = useState<string[]>(["In presenza"]);
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedProvince, setSelectedProvince] = useState("");
+  const [experience, setExperience] = useState<ExperienceBand | "">("");
+  const [managerialExperience, setManagerialExperience] =
+    useState<ManagerialExperienceBand | "">("");
+  const [peopleManagedBand, setPeopleManagedBand] = useState("");
+  const [pnlBand, setPnlBand] = useState("");
+  const [competencies, setCompetencies] = useState<string[]>([]);
+  const [otherCompetency, setOtherCompetency] = useState("");
 
-  const [cadSkills, setCadSkills] = useState<CadSkill[]>(
-    designerSoftwareOptions.map((name) => ({ name, selected: false }))
+  // STEP 4 — Contesto
+  const [productionTypes, setProductionTypes] = useState<string[]>([]);
+  const [sectors, setSectors] = useState<string[]>([]);
+  const [otherSector, setOtherSector] = useState("");
+  const [methodologies, setMethodologies] = useState<string[]>([]);
+  const [otherMethodology, setOtherMethodology] = useState("");
+  const [region, setRegion] = useState("");
+  const [province, setProvince] = useState("");
+  const [travelRequired, setTravelRequired] = useState(false);
+
+  // STEP 5 — Modalità
+  const [assignmentTypes, setAssignmentTypes] = useState<string[]>([]);
+  const [daysPerWeek, setDaysPerWeek] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [dailyRateBand, setDailyRateBand] = useState("");
+  const [requiredCertifications, setRequiredCertifications] = useState("");
+  const [requiredLanguages, setRequiredLanguages] = useState("");
+  const [finalNotes, setFinalNotes] = useState("");
+  const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const roleOptions = useMemo(
+    () => (roleFamily ? [...roleFamilies[roleFamily]] : []),
+    [roleFamily]
   );
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const [requestCode, setRequestCode] = useState("");
-  const [matchResults, setMatchResults] = useState<MatchDesigner[]>([]);
-  const [isLoadingMatches, setIsLoadingMatches] = useState(false);
-  const [selectedDesignerIds, setSelectedDesignerIds] = useState<string[]>([]);
-  const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [isSendingContactRequest, setIsSendingContactRequest] = useState(false);
-  const [contactRequestError, setContactRequestError] = useState("");
-  const [contactRequestSent, setContactRequestSent] = useState(false);
+  const secondaryRoleOptions1 = useMemo(
+    () =>
+      secondaryRoleFamily1
+        ? [...roleFamilies[secondaryRoleFamily1]]
+        : [],
+    [secondaryRoleFamily1]
+  );
 
-  const totalSteps = stepTitles.length;
-  const progress = ((Math.min(currentStep, totalSteps - 1) + 1) / totalSteps) * 100;
-  const selectedSoftware = cadSkills.filter((skill) => skill.selected);
-  const hasRemote = workModes.includes("Remoto");
-  const isFreelanceRequest = employmentType === "Collaborazione freelance Partita IVA";
+  const secondaryRoleOptions2 = useMemo(
+    () =>
+      secondaryRoleFamily2
+        ? [...roleFamilies[secondaryRoleFamily2]]
+        : [],
+    [secondaryRoleFamily2]
+  );
 
-  const selectedDesignerCount = selectedDesignerIds.length;
+  const normalizedPrimaryRole =
+    primaryRole === "Altro" ? otherRole.trim() : primaryRole;
 
-  const toggleDesignerSelection = (designerId: string) => {
-    if (contactRequestSent) return;
+  const normalizedSecondaryRole1 =
+    secondaryRole1 === "Altro"
+      ? secondaryOtherRole1.trim()
+      : secondaryRole1;
 
-    setSelectedDesignerIds((current) =>
-      current.includes(designerId)
-        ? current.filter((id) => id !== designerId)
-        : [...current, designerId]
-    );
-  };
+  const normalizedSecondaryRole2 =
+    secondaryRole2 === "Altro"
+      ? secondaryOtherRole2.trim()
+      : secondaryRole2;
 
+  const primaryRoleValid = Boolean(roleFamily && normalizedPrimaryRole);
 
-  async function sendContactRequest() {
-    if (
-      selectedDesignerIds.length === 0 ||
-      isSendingContactRequest ||
-      contactRequestSent
-    ) {
-      return;
-    }
+  const secondaryRole1Valid =
+    secondaryRoleFamily1 === "" ||
+    Boolean(secondaryRole1 && normalizedSecondaryRole1);
 
-    setContactRequestError("");
-    setIsSendingContactRequest(true);
+  const secondaryRole2Valid =
+    secondaryRoleFamily2 === "" ||
+    Boolean(secondaryRole2 && normalizedSecondaryRole2);
 
-    try {
-      const response = await fetch("/api/company-contact-requests", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          requestCode: requestCode || null,
-          designerIds: selectedDesignerIds,
-        }),
-      });
+  const competenciesValid =
+    competencies.length > 0 &&
+    (!competencies.includes("Altro") || otherCompetency.trim() !== "");
 
-      const data = await response.json();
+  const methodologiesValid =
+    methodologies.length > 0 &&
+    (!methodologies.includes("Altro") || otherMethodology.trim() !== "");
 
-      if (!response.ok) {
-        throw new Error(
-          data?.error || "Impossibile inoltrare la richiesta."
-        );
-      }
-
-      setContactRequestSent(true);
-    } catch (error) {
-      setContactRequestError(
-        error instanceof Error
-          ? error.message
-          : "Impossibile inoltrare la richiesta."
-      );
-    } finally {
-      setIsSendingContactRequest(false);
-    }
-  }
-
-  const allowedCompanySizes = useMemo(() => {
-    if (companyType === "Piccola/media impresa") return companySizeOptions.slice(0, 3);
-    if (companyType === "Grande azienda") return companySizeOptions.slice(3);
-    return companySizeOptions;
-  }, [companyType]);
-
-  const provinceOptions = useMemo(() => {
-    if (!selectedRegion) return [];
-    return regionProvinceMap[selectedRegion] ?? [];
-  }, [selectedRegion]);
-
-  useEffect(() => {
-    if (companySize && !allowedCompanySizes.includes(companySize)) {
-      setCompanySize("");
-    }
-  }, [companySize, allowedCompanySizes]);
-
-  useEffect(() => {
-    if (employmentType === "Impiegato full time" || employmentType === "Impiegato part-time") {
-      setFreelanceEconomicRange("");
-    }
-    if (employmentType === "Collaborazione freelance Partita IVA") {
-      setEmployeeEconomicRange("");
-    }
-  }, [employmentType]);
-
-  const canGoNext = useMemo(() => {
+  const canContinue = useMemo(() => {
     switch (currentStep) {
       case 0:
         return (
           companyName.trim() !== "" &&
           companyType !== "" &&
-          (companyType !== "Altro" || companyTypeOther.trim() !== "") &&
+          (companyType !== "Altro" || otherCompanyType.trim() !== "") &&
           companySize !== "" &&
           companySector !== "" &&
-          (companySector !== "Altro" || companySectorOther.trim() !== "")
+          (companySector !== "Altro" || otherCompanySector.trim() !== "")
         );
+
       case 1:
         return (
-          contactName.trim() !== "" &&
+          contactFirstName.trim() !== "" &&
+          contactLastName.trim() !== "" &&
           contactRole.trim() !== "" &&
+          contactEmail.trim() !== "" &&
           contactPhone.trim() !== "" &&
-          contactEmail.trim() !== ""
+          requestReason !== "" &&
+          (requestReason !== "Altro" || otherRequestReason.trim() !== "") &&
+          requestObjective.trim() !== ""
         );
-      case 2: {
-        const hasEconomicRange =
-          ((employmentType === "Impiegato full time" || employmentType === "Impiegato part-time") &&
-            employeeEconomicRange !== "") ||
-          (employmentType === "Collaborazione freelance Partita IVA" &&
-            freelanceEconomicRange !== "");
 
+      case 2:
         return (
-          employmentType !== "" &&
-          experienceLevel !== "" &&
-          experienceSectors.length > 0 &&
-          hasEconomicRange &&
-          jobDescription.trim() !== ""
+          primaryRoleValid &&
+          secondaryRole1Valid &&
+          secondaryRole2Valid &&
+          experience !== "" &&
+          managerialExperience !== "" &&
+          peopleManagedBand !== "" &&
+          pnlBand !== "" &&
+          competenciesValid
         );
-      }
+
       case 3:
-        return selectedRegion !== "" && selectedProvince !== "";
+        return (
+          productionTypes.length > 0 &&
+          sectors.length > 0 &&
+          (!sectors.includes("Altro") || otherSector.trim() !== "") &&
+          methodologiesValid &&
+          region !== "" &&
+          province !== ""
+        );
+
       case 4:
         return (
-          selectedSoftware.length > 0 &&
-          privacyAcknowledged &&
-          termsAccepted
+          assignmentTypes.length > 0 &&
+          daysPerWeek !== "" &&
+          startDate !== "" &&
+          dailyRateBand !== "" &&
+          privacyAcknowledged
         );
+
       default:
-        return true;
+        return false;
     }
   }, [
     currentStep,
     companyName,
     companyType,
-    companyTypeOther,
+    otherCompanyType,
     companySize,
     companySector,
-    companySectorOther,
-    contactName,
+    otherCompanySector,
+    contactFirstName,
+    contactLastName,
     contactRole,
-    contactPhone,
     contactEmail,
-    employmentType,
-    experienceLevel,
-    experienceSectors.length,
-    employeeEconomicRange,
-    freelanceEconomicRange,
-    jobDescription,
-    selectedRegion,
-    selectedProvince,
-    selectedSoftware.length,
+    contactPhone,
+    requestReason,
+    otherRequestReason,
+    requestObjective,
+    primaryRoleValid,
+    secondaryRole1Valid,
+    secondaryRole2Valid,
+    experience,
+    managerialExperience,
+    peopleManagedBand,
+    pnlBand,
+    competenciesValid,
+    productionTypes,
+    sectors,
+    otherSector,
+    methodologiesValid,
+    region,
+    province,
+    assignmentTypes,
+    daysPerWeek,
+    startDate,
+    dailyRateBand,
     privacyAcknowledged,
-    termsAccepted,
   ]);
 
+  const progress = ((currentStep + 1) / stepTitles.length) * 100;
+
+  const availableCompanySizeOptions = useMemo(() => {
+    if (companyType === "Piccola/media impresa") {
+      return companySizeOptions.slice(0, 3);
+    }
+    if (companyType === "Grande azienda") {
+      return companySizeOptions.slice(3);
+    }
+    if (companyType === "Altro") {
+      return companySizeOptions;
+    }
+    return [];
+  }, [companyType]);
+
   function nextStep() {
-    if (!canGoNext || isSubmitting) return;
-    setCurrentStep((prev) => Math.min(prev + 1, totalSteps - 1));
+    if (!canContinue) return;
+    setCurrentStep((prev) => Math.min(prev + 1, stepTitles.length - 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function prevStep() {
-    if (isSubmitting) return;
+  function previousStep() {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function renderChoiceButton(
-    option: string,
-    active: boolean,
-    onClick: () => void,
-    disabled = false
-  ) {
+  function handlePreviewSubmit() {
+    if (!canContinue) return;
+
+    // In questa prima versione NON viene ancora effettuata alcuna POST.
+    // Dopo l'approvazione dei campi collegheremo questo wizard
+    // a /api/company-requests e alla tabella Supabase definitiva.
+    setSuccess(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  if (success) {
     return (
-      <button
-        key={option}
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        aria-disabled={disabled}
-        className={`rounded-2xl border px-5 py-4 text-left transition ${
-          disabled
-            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 opacity-70"
-            : active
-            ? "border-emerald-900 bg-emerald-50 text-emerald-950"
-            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-        }`}
-      >
-        <span className="text-base font-semibold">{option}</span>
-      </button>
+      <main className="min-h-screen bg-slate-50 px-4 py-10">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm md:p-12">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl text-emerald-900">
+            ✓
+          </div>
+
+          <h1 className="mt-6 text-3xl font-bold text-slate-900">
+            Anteprima richiesta completata
+          </h1>
+
+          <p className="mx-auto mt-4 max-w-xl text-lg leading-8 text-slate-600">
+            Il wizard è completo. In questa fase di revisione i dati non
+            vengono ancora salvati nel database.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSuccess(false);
+              setCurrentStep(0);
+            }}
+            className="mt-7 rounded-2xl border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Torna al wizard
+          </button>
+        </div>
+      </main>
     );
-  }
-
-  function toggleSoftware(name: string) {
-    setCadSkills((prev) =>
-      prev.map((skill) =>
-        skill.name === name ? { ...skill, selected: !skill.selected } : skill
-      )
-    );
-  }
-
-  function toggleWorkMode(mode: string) {
-    setWorkModes((prev) =>
-      prev.includes(mode) ? prev.filter((item) => item !== mode) : [...prev, mode]
-    );
-  }
-
-  function handleSectorSelect(value: string) {
-    if (!value) return;
-    if (experienceSectors.includes(value)) {
-      setSelectedSectorToAdd("");
-      return;
-    }
-    setExperienceSectors((prev) => [...prev, value]);
-    setSelectedSectorToAdd("");
-  }
-
-  function removeSector(sector: string) {
-    setExperienceSectors((prev) => prev.filter((item) => item !== sector));
-  }
-
-  function calculateAge(birthDate: string) {
-    if (!birthDate) return null;
-
-    const birth = new Date(birthDate);
-    if (Number.isNaN(birth.getTime())) return null;
-
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDifference = today.getMonth() - birth.getMonth();
-
-    if (
-      monthDifference < 0 ||
-      (monthDifference === 0 && today.getDate() < birth.getDate())
-    ) {
-      age -= 1;
-    }
-
-    return age >= 0 ? age : null;
-  }
-
-  function normalizeMatchResults(data: any): MatchDesigner[] {
-    const rawMatches = Array.isArray(data?.matches)
-      ? data.matches
-      : Array.isArray(data?.results)
-      ? data.results
-      : Array.isArray(data?.designers)
-      ? data.designers
-      : [];
-
-    return rawMatches
-      .map((raw: any, index: number): MatchDesigner | null => {
-        const candidate = raw?.candidate ?? raw?.profile ?? raw?.designer ?? raw;
-        const percentage = Number(
-          raw?.percentage ??
-            raw?.matchPercentage ??
-            raw?.score ??
-            raw?.breakdown?.percentage ??
-            candidate?.percentage ??
-            0
-        );
-
-        if (!Number.isFinite(percentage) || percentage < 80) return null;
-
-        return {
-          id: String(candidate?.id ?? candidate?.user_id ?? raw?.id ?? index),
-          percentage: Math.round(percentage),
-          birthDate: String(candidate?.birth_date ?? candidate?.birthDate ?? ""),
-          studyTitle: String(candidate?.study_title ?? candidate?.studyTitle ?? ""),
-          studyTitleOther: String(
-            candidate?.study_title_other ?? candidate?.studyTitleOther ?? ""
-          ),
-          experience: String(candidate?.experience ?? ""),
-          collaborationType: String(
-            candidate?.collaboration_type ?? candidate?.collaborationType ?? ""
-          ),
-          budgetRange: String(
-            candidate?.budget_range ??
-              candidate?.budgetRange ??
-              candidate?.economic_range ??
-              candidate?.economicRange ??
-              raw?.budget_range ??
-              raw?.budgetRange ??
-              raw?.economic_range ??
-              raw?.economicRange ??
-              raw?.breakdown?.budget_range ??
-              raw?.breakdown?.budgetRange ??
-              raw?.breakdown?.budget?.designer ??
-              raw?.breakdown?.budget?.candidate ??
-              ""
-          ),
-          selectedRegion: String(
-            candidate?.selected_region ?? candidate?.selectedRegion ?? ""
-          ),
-          selectedProvinceEntries: Array.isArray(
-            candidate?.selected_province_entries ?? candidate?.selectedProvinceEntries
-          )
-            ? candidate?.selected_province_entries ??
-              candidate?.selectedProvinceEntries
-            : [],
-          isRemote: Boolean(candidate?.is_remote ?? candidate?.isRemote),
-          cadSkills: Array.isArray(candidate?.cad_skills ?? candidate?.cadSkills)
-            ? candidate?.cad_skills ?? candidate?.cadSkills
-            : [],
-          customCadSkills: Array.isArray(
-            candidate?.custom_cad_skills ?? candidate?.customCadSkills
-          )
-            ? candidate?.custom_cad_skills ?? candidate?.customCadSkills
-            : [],
-          sectors: Array.isArray(candidate?.sectors) ? candidate.sectors : [],
-          sectorOther: String(candidate?.sector_other ?? candidate?.sectorOther ?? ""),
-        };
-      })
-      .filter((item: MatchDesigner | null): item is MatchDesigner => item !== null)
-      .sort((a: MatchDesigner, b: MatchDesigner) => b.percentage - a.percentage);
-  }
-
-
-  function getDesignerZone(designer: MatchDesigner) {
-    return getCheckoutDesignerZone({
-      selectedProvinceEntries: designer.selectedProvinceEntries,
-      selectedRegion: designer.selectedRegion,
-      isRemote: designer.isRemote,
-      requestedProvince: selectedProvince,
-    });
-  }
-
-  function getDesignerStudyTitle(designer: MatchDesigner) {
-    if (designer.studyTitle === "Altro" && designer.studyTitleOther.trim()) {
-      return designer.studyTitleOther;
-    }
-
-    return designer.studyTitle || "Non specificato";
-  }
-
-  function getDesignerCad(designer: MatchDesigner) {
-    return [
-      ...designer.cadSkills
-        .filter((skill) => Number(skill.rating ?? 0) > 0)
-        .map((skill) => ({
-          name: skill.name,
-          rating: Math.max(1, Math.min(5, Number(skill.rating ?? 0))),
-        })),
-      ...designer.customCadSkills
-        .filter((skill) => skill.name?.trim() && Number(skill.rating ?? 0) > 0)
-        .map((skill) => ({
-          name: skill.name.trim(),
-          rating: Math.max(1, Math.min(5, Number(skill.rating ?? 0))),
-        })),
-    ];
-  }
-
-  function getDesignerSectors(designer: MatchDesigner) {
-    return [
-      ...designer.sectors,
-      ...(designer.sectorOther.trim() ? [designer.sectorOther.trim()] : []),
-    ];
-  }
-
-  async function submitCompanyRequest() {
-    setSubmitError("");
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/company-requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          companyName,
-          companyType,
-          companyTypeOther,
-          companySize,
-          companySector,
-          companySectorOther,
-          contactName,
-          contactRole,
-          contactPhone,
-          contactEmail,
-          employmentType,
-          experienceLevel,
-          jobDescription,
-          employeeEconomicRange,
-          freelanceEconomicRange,
-          experienceSectors,
-                cadSkills,
-                selectedRegion,
-          selectedProvince,
-          isRemote: hasRemote,
-          workModes,
-          privacyAcknowledged,
-          privacyVersion: COMPANY_PRIVACY_VERSION,
-          termsAccepted,
-          termsVersion: COMPANY_TERMS_VERSION,
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || "Errore durante il salvataggio della richiesta.");
-
-      const createdRequestId = Number(data?.request?.id);
-      setRequestCode(data?.request?.codice ?? "");
-      setMatchResults([]);
-      setCurrentStep(5);
-
-      // LinkedIn Ads - conversione "Richiesta aziendale inviata"
-      if (
-        typeof window !== "undefined" &&
-        typeof (window as any).lintrk === "function"
-      ) {
-        (window as any).lintrk("track", {
-          conversion_id: 29673770,
-        });
-      }
-
-      if (Number.isFinite(createdRequestId)) {
-        setIsLoadingMatches(true);
-
-        try {
-          const matchResponse = await fetch(
-            `/api/matching/company-request/${createdRequestId}`,
-            { cache: "no-store" }
-          );
-
-          const matchData = await matchResponse.json();
-
-          if (matchResponse.ok) {
-            setMatchResults(normalizeMatchResults(matchData));
-          }
-        } catch {
-          setMatchResults([]);
-        } finally {
-          setIsLoadingMatches(false);
-        }
-      }
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "Errore durante l'invio della richiesta."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 md:py-10 [&_button:not(:disabled)]:cursor-pointer">
+    <main className="min-h-screen bg-slate-50 px-4 py-8 md:py-10">
       <div className="mx-auto max-w-5xl">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-10">
-          {currentStep !== 5 && (
-            <div className="mb-8">
-              <div className="mt-4 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm text-slate-500">
-                    Step {currentStep + 1} di {totalSteps}
-                  </p>
-                  <h1 className="mt-1 text-3xl font-bold text-slate-900 md:text-4xl">
-                    {stepTitles[currentStep]}
-                  </h1>
-                </div>
-                <div className="hidden rounded-2xl bg-slate-100 px-4 py-3 text-right md:block">
-                  <p className="text-2xl font-bold text-slate-900">
-                    {Math.round(progress)}%
-                  </p>
-                </div>
-              </div>
-              <div className="mt-6 h-3 w-full overflow-hidden rounded-full bg-slate-200">
-                <div
-                  className="h-full rounded-full bg-emerald-900 transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+          <div className="mb-7 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-900">
+                QuickSolve · Management Network
+              </p>
+              <h1 className="mt-3 text-3xl font-bold text-slate-900 md:text-4xl">
+                Richiedi un manager
+              </h1>
             </div>
-          )}
 
-          {submitError && currentStep !== 5 && (
-            <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {submitError}
+            <div className="mb-1 inline-flex shrink-0 items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-950 shadow-sm">
+              <span>Step {currentStep + 1} di 5</span>
+              <span className="h-4 w-px bg-emerald-200" />
+              <span className="font-bold">{Math.round(progress)}%</span>
             </div>
-          )}
+          </div>
 
           {currentStep === 0 && (
-            <section className="space-y-5">
-              <p className="text-lg text-slate-600">
-                Inserisci i dati principali della tua realtà aziendale.
-              </p>
+            <section className="space-y-7">
+              <SectionTitle
+                title="Azienda"
+                subtitle="Inserisci i dati principali della tua realtà aziendale."
+              />
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
-                  Ragione sociale
-                </label>
+              <Field label="Ragione sociale">
                 <input
                   type="text"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Es. Alfa Engineering Srl"
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-900"
+                  className={inputClass}
+                  placeholder="Inserisci ragione sociale"
                 />
-              </div>
+              </Field>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                {[
-                  "Piccola/media impresa",
-                  "Grande azienda",
-                  "Ufficio tecnico",
-                  "Azienda di consulenza",
-                  "Agenzia per il lavoro",
-                  "Altro",
-                ].map((option) =>
-                  renderChoiceButton(
-                    option,
-                    companyType === option,
-                    () => setCompanyType(option as CompanyType)
-                  )
-                )}
-              </div>
+              <ChoiceSection title="Tipologia azienda">
+                <div className="grid gap-3 md:grid-cols-2">
+                  {companyTypeOptions.map((option) => (
+                    <ChoiceButton
+                      key={option}
+                      active={companyType === option}
+                      onClick={() => {
+                        setCompanyType(option);
+                        setCompanySize("");
+                        if (option !== "Altro") setOtherCompanyType("");
+                      }}
+                    >
+                      {option}
+                    </ChoiceButton>
+                  ))}
+                </div>
+              </ChoiceSection>
 
               {companyType === "Altro" && (
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
-                    Specifica tipologia
-                  </label>
+                <Field label="Specifica tipologia azienda">
                   <input
-                    type="text"
-                    value={companyTypeOther}
-                    onChange={(e) => setCompanyTypeOther(e.target.value)}
-                    placeholder="Es. Studio esterno specializzato"
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-900"
+                    value={otherCompanyType}
+                    onChange={(e) => setOtherCompanyType(e.target.value)}
+                    className={inputClass}
+                    placeholder="Inserisci tipologia"
                   />
-                </div>
+                </Field>
               )}
 
-              <div>
-                <p className="mb-3 text-sm font-medium text-slate-700">
-                  Dimensione azienda
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {companySizeOptions.map((option) =>
-                    renderChoiceButton(
-                      option,
-                      companySize === option,
-                      () => setCompanySize(option),
-                      !allowedCompanySizes.includes(option)
-                    )
-                  )}
-                </div>
-              </div>
+              <ChoiceSection title="Dimensione azienda">
+                {companyType === "" ? (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-500">
+                    Seleziona prima la tipologia azienda.
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {availableCompanySizeOptions.map((option) => (
+                      <ChoiceButton
+                        key={option}
+                        active={companySize === option}
+                        onClick={() => setCompanySize(option)}
+                      >
+                        {option}
+                      </ChoiceButton>
+                    ))}
+                  </div>
+                )}
+              </ChoiceSection>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
-                  Settore
-                </label>
+              <Field label="Settore">
                 <select
                   value={companySector}
-                  onChange={(e) => setCompanySector(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-900"
-                  style={{ color: companySector ? "#0f172a" : "#94a3b8" }}
+                  onChange={(e) => {
+                    setCompanySector(e.target.value);
+                    if (e.target.value !== "Altro") setOtherCompanySector("");
+                  }}
+                  className={inputClass}
                 >
-                  <option value="" disabled style={{ color: "#94a3b8" }}>
-                    Inserisci settore
-                  </option>
-                  {sectorOptions.map((sector) => (
-                    <option key={sector} value={sector} style={{ color: "#0f172a" }}>
-                      {sector}
+                  <option value="">Inserisci settore</option>
+                  {sectorOptions.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
                     </option>
                   ))}
-                  <option value="Altro" style={{ color: "#0f172a" }}>
-                    Altro
-                  </option>
                 </select>
-              </div>
+              </Field>
 
               {companySector === "Altro" && (
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
-                    Specifica settore
-                  </label>
+                <Field label="Specifica settore">
                   <input
-                    type="text"
-                    value={companySectorOther}
-                    onChange={(e) => setCompanySectorOther(e.target.value)}
-                    placeholder="Es. Food, Pharma, Difesa..."
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-900"
+                    value={otherCompanySector}
+                    onChange={(e) => setOtherCompanySector(e.target.value)}
+                    className={inputClass}
+                    placeholder="Inserisci settore"
                   />
-                </div>
+                </Field>
               )}
             </section>
           )}
 
           {currentStep === 1 && (
-            <section className="space-y-5">
-              <p className="text-lg text-slate-600">
-                Inserisci i riferimenti della persona che seguirà la richiesta.
-              </p>
+            <section className="space-y-7">
+              <SectionTitle
+                title="Esigenza e referente"
+                subtitle="Indicaci chi possiamo contattare e il motivo principale della richiesta."
+              />
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
-                  Nome e Cognome
-                </label>
-                <input
-                  type="text"
-                  value={contactName}
-                  onChange={(e) => setContactName(e.target.value)}
-                  placeholder="Es. Mario Rossi"
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-900"
-                />
-              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <h3 className="font-bold text-slate-900">
+                  Referente aziendale
+                </h3>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
-                  Ruolo
-                </label>
-                <input
-                  type="text"
-                  value={contactRole}
-                  onChange={(e) => setContactRole(e.target.value)}
-                  placeholder="Es. Responsabile ufficio tecnico"
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-900"
-                />
-              </div>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <Field label="Nome">
+                    <input
+                      value={contactFirstName}
+                      onChange={(e) => setContactFirstName(e.target.value)}
+                      onBlur={() =>
+                        setContactFirstName(formatPersonName(contactFirstName))
+                      }
+                      className={inputClass}
+                      placeholder="Es. Marco"
+                    />
+                  </Field>
 
-              <div className="grid gap-5 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
-                    Contatto Telefonico
-                  </label>
-                  <input
-                    type="tel"
-                    value={contactPhone}
-                    onChange={(e) => setContactPhone(e.target.value)}
-                    placeholder="+39 333 1234567"
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-900"
-                  />
+                  <Field label="Cognome">
+                    <input
+                      value={contactLastName}
+                      onChange={(e) => setContactLastName(e.target.value)}
+                      onBlur={() =>
+                        setContactLastName(formatPersonName(contactLastName))
+                      }
+                      className={inputClass}
+                      placeholder="Es. Rossi"
+                    />
+                  </Field>
+
+                  <Field label="Ruolo / funzione">
+                    <input
+                      value={contactRole}
+                      onChange={(e) => setContactRole(e.target.value)}
+                      className={inputClass}
+                      placeholder="Es. CEO, HR Director, Operations Director"
+                    />
+                  </Field>
+
+                  <Field label="Email aziendale">
+                    <input
+                      type="email"
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      className={inputClass}
+                      placeholder="nome@azienda.it"
+                    />
+                  </Field>
+
+                  <Field label="Telefono / WhatsApp">
+                    <input
+                      type="tel"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      className={inputClass}
+                      placeholder="+39 333 1234567"
+                    />
+                  </Field>
                 </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={contactEmail}
-                    onChange={(e) => setContactEmail(e.target.value)}
-                    placeholder="nome@azienda.it"
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-900"
-                  />
-                </div>
               </div>
+
+              <ChoiceSection title="Motivo principale della richiesta">
+                <div className="grid gap-3 md:grid-cols-2">
+                  {requestReasonOptions.map((option) => (
+                    <ChoiceButton
+                      key={option}
+                      active={requestReason === option}
+                      onClick={() => {
+                        setRequestReason(option);
+                        if (option !== "Altro") setOtherRequestReason("");
+                      }}
+                    >
+                      {option}
+                    </ChoiceButton>
+                  ))}
+                </div>
+              </ChoiceSection>
+
+              {requestReason === "Altro" && (
+                <Field label="Specifica il motivo">
+                  <input
+                    value={otherRequestReason}
+                    onChange={(e) => setOtherRequestReason(e.target.value)}
+                    className={inputClass}
+                    placeholder="Descrivi brevemente il motivo"
+                  />
+                </Field>
+              )}
+
+              <Field label="Obiettivo dell'incarico">
+                <textarea
+                  value={requestObjective}
+                  onChange={(e) =>
+                    setRequestObjective(e.target.value.slice(0, 1000))
+                  }
+                  className={`${inputClass} min-h-36 resize-y`}
+                  placeholder="Descrivi il risultato che l'azienda vuole ottenere..."
+                />
+                <p className="mt-2 text-right text-xs text-slate-500">
+                  {requestObjective.length}/1000
+                </p>
+              </Field>
             </section>
           )}
 
           {currentStep === 2 && (
-            <section className="space-y-5">
-              <div>
-                <p className="mb-3 text-sm font-medium text-slate-700">
-                  Tipo di impiego
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {[
-                    "Impiegato full time",
-                    "Impiegato part-time",
-                    "Collaborazione freelance Partita IVA",
-                  ].map((option) =>
-                    renderChoiceButton(
-                      option,
-                      employmentType === option,
-                      () => setEmploymentType(option as EmploymentType)
-                    )
-                  )}
-                </div>
-              </div>
+            <section className="space-y-7">
+              <SectionTitle
+                title="Manager ricercato"
+                subtitle="Definisci il profilo professionale e il livello di esperienza richiesto."
+              />
 
-              {employmentType !== "" && (
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 md:p-6">
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                      Finestra economica
-                    </p>
-                    <h3 className="mt-2 text-xl font-bold text-slate-900">
-                      {employmentType === "Collaborazione freelance Partita IVA"
-                        ? "Range tariffa oraria previsto"
-                        : "Range economico previsto"}
-                    </h3>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Seleziona il range economico coerente con la figura che stai cercando.
-                    </p>
-                  </div>
+              <RoleSelector
+                title="Ruolo principale"
+                family={roleFamily}
+                role={primaryRole}
+                otherRole={otherRole}
+                roleOptions={roleOptions}
+                onFamilyChange={(value) => {
+                  setRoleFamily(value);
+                  setPrimaryRole("");
+                  setOtherRole("");
+                }}
+                onRoleChange={(value) => {
+                  setPrimaryRole(value);
+                  if (value !== "Altro") setOtherRole("");
+                }}
+                onOtherRoleChange={setOtherRole}
+                required
+              />
 
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    {(employmentType === "Impiegato full time" ||
-                      employmentType === "Impiegato part-time") &&
-                      employeeRangeOptions.map((option) =>
-                        renderChoiceButton(
-                          option,
-                          employeeEconomicRange === option,
-                          () => setEmployeeEconomicRange(option)
-                        )
-                      )}
-
-                    {employmentType === "Collaborazione freelance Partita IVA" &&
-                      freelanceRangeOptions.map((option) =>
-                        renderChoiceButton(
-                          option,
-                          freelanceEconomicRange === option,
-                          () => setFreelanceEconomicRange(option)
-                        )
-                      )}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
-                  Esperienza richiesta
-                </label>
-                <select
-                  value={experienceLevel}
-                  onChange={(e) => setExperienceLevel(e.target.value as ProfileLevel)}
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-900"
-                  style={{ color: experienceLevel ? "#0f172a" : "#94a3b8" }}
-                >
-                  <option value="" style={{ color: "#94a3b8" }}>Seleziona esperienza</option>
-                  <option value="Junior" style={{ color: "#0f172a" }}>Junior</option>
-                  <option value="Middle" style={{ color: "#0f172a" }}>Middle</option>
-                  <option value="Senior" style={{ color: "#0f172a" }}>Senior</option>
-                  <option value="Responsabile ufficio tecnico" style={{ color: "#0f172a" }}>
-                    Responsabile ufficio tecnico
-                  </option>
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
-                  Settori di esperienza richiesti
-                </label>
-
-                <div className="flex flex-col gap-3">
-                  <select
-                    value={selectedSectorToAdd}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setSelectedSectorToAdd(value);
-                      handleSectorSelect(value);
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <div className="space-y-6">
+                  <RoleSelector
+                    title="Ruolo secondario 1 (facoltativo)"
+                    family={secondaryRoleFamily1}
+                    role={secondaryRole1}
+                    otherRole={secondaryOtherRole1}
+                    roleOptions={secondaryRoleOptions1}
+                    onFamilyChange={(value) => {
+                      setSecondaryRoleFamily1(value);
+                      setSecondaryRole1("");
+                      setSecondaryOtherRole1("");
                     }}
-                    className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-900"
-                    style={{ color: selectedSectorToAdd ? "#0f172a" : "#94a3b8" }}
+                    onRoleChange={(value) => {
+                      setSecondaryRole1(value);
+                      if (value !== "Altro") setSecondaryOtherRole1("");
+                    }}
+                    onOtherRoleChange={setSecondaryOtherRole1}
+                  />
+
+                  <RoleSelector
+                    title="Ruolo secondario 2 (facoltativo)"
+                    family={secondaryRoleFamily2}
+                    role={secondaryRole2}
+                    otherRole={secondaryOtherRole2}
+                    roleOptions={secondaryRoleOptions2}
+                    onFamilyChange={(value) => {
+                      setSecondaryRoleFamily2(value);
+                      setSecondaryRole2("");
+                      setSecondaryOtherRole2("");
+                    }}
+                    onRoleChange={(value) => {
+                      setSecondaryRole2(value);
+                      if (value !== "Altro") setSecondaryOtherRole2("");
+                    }}
+                    onOtherRoleChange={setSecondaryOtherRole2}
+                  />
+                </div>
+              </div>
+
+              <ChoiceSection title="Esperienza professionale richiesta">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {experienceOptions.map((option) => (
+                    <ChoiceButton
+                      key={option}
+                      active={experience === option}
+                      onClick={() => setExperience(option)}
+                    >
+                      {option}
+                    </ChoiceButton>
+                  ))}
+                </div>
+              </ChoiceSection>
+
+              <ChoiceSection title="Esperienza richiesta in ruoli manageriali">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {managerialExperienceOptions.map((option) => (
+                    <ChoiceButton
+                      key={option}
+                      active={managerialExperience === option}
+                      onClick={() => setManagerialExperience(option)}
+                    >
+                      {option}
+                    </ChoiceButton>
+                  ))}
+                </div>
+              </ChoiceSection>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Esperienza nella gestione di team">
+                  <select
+                    value={peopleManagedBand}
+                    onChange={(e) => setPeopleManagedBand(e.target.value)}
+                    className={inputClass}
                   >
-                    <option value="" style={{ color: "#94a3b8" }}>Seleziona settore</option>
-                    {sectorOptions.map((sector) => (
-                      <option key={sector} value={sector} style={{ color: "#0f172a" }}>
-                        {sector}
-                      </option>
+                    <option value="">Seleziona fascia</option>
+                    {peopleManagedOptions.map((item) => (
+                      <option key={item}>{item}</option>
                     ))}
                   </select>
+                </Field>
 
-                  {experienceSectors.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {experienceSectors.map((sector) => (
-                        <div
-                          key={sector}
-                          className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-900"
-                        >
-                          <span>{sector}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeSector(sector)}
-                            className="text-emerald-900 hover:text-emerald-950"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                </div>
+                <Field label="Esperienza nella gestione di budget / P&L">
+                  <select
+                    value={pnlBand}
+                    onChange={(e) => setPnlBand(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">Seleziona fascia</option>
+                    {pnlBandOptions.map((item) => (
+                      <option key={item}>{item}</option>
+                    ))}
+                  </select>
+                </Field>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
-                  Descrizione Job
-                </label>
-                <textarea
-                  rows={6}
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Descrivi brevemente attività richieste, obiettivi e contesto..."
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-900"
-                />
-              </div>
+              <MultiSelectSection
+                title="Aree di competenza richieste"
+                subtitle="Seleziona tutte quelle rilevanti per l'incarico."
+                options={competencyOptions}
+                values={competencies}
+                onToggle={(value) =>
+                  setCompetencies((current) =>
+                    toggleInList(value, current)
+                  )
+                }
+              />
+
+              {competencies.includes("Altro") && (
+                <Field label="Specifica altra area di competenza">
+                  <input
+                    value={otherCompetency}
+                    onChange={(e) => setOtherCompetency(e.target.value)}
+                    className={inputClass}
+                    placeholder="Descrivi l'area"
+                  />
+                </Field>
+              )}
             </section>
           )}
 
           {currentStep === 3 && (
-            <section className="space-y-5">
-              <p className="text-lg text-slate-600">
-                Seleziona la zona di lavoro. La provincia è obbligatoria; Remote è una disponibilità aggiuntiva.
-              </p>
+            <section className="space-y-7">
+              <SectionTitle
+                title="Contesto dell'incarico"
+                subtitle="Descrivi il contesto produttivo, le metodologie rilevanti e la sede dell'intervento."
+              />
 
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 md:p-6">
-                <div className="mb-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                    Zona di lavoro
-                  </p>
-                  <h3 className="mt-2 text-xl font-bold text-slate-900">
-                    Regione e provincia
-                  </h3>
-                </div>
+              <MultiSelectSection
+                title="Tipologia produttiva"
+                subtitle="Seleziona una o più tipologie."
+                options={productionTypeOptions}
+                values={productionTypes}
+                onToggle={(value) =>
+                  setProductionTypes((current) =>
+                    toggleInList(value, current)
+                  )
+                }
+              />
 
-                <div className="grid gap-5 md:grid-cols-2">
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700">
-                      Regione
-                    </label>
-                    <select
-                      value={selectedRegion}
-                      onChange={(e) => {
-                        setSelectedRegion(e.target.value);
-                        setSelectedProvince("");
-                      }}
-                      className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-900"
-                    >
-                      <option value="">Seleziona regione</option>
-                      {regionOptions.map((region) => (
-                        <option key={region} value={region}>
-                          {region}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+              <MultiSelectSection
+                title="Settori industriali rilevanti"
+                subtitle="Indica i settori in cui è richiesta esperienza."
+                options={sectorOptions}
+                values={sectors}
+                onToggle={(value) =>
+                  setSectors((current) => toggleInList(value, current))
+                }
+              />
 
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700">
-                      Provincia
-                    </label>
-                    <select
-                      value={selectedProvince}
-                      onChange={(e) => setSelectedProvince(e.target.value)}
-                      disabled={!selectedRegion}
-                      className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-900 disabled:bg-slate-100"
-                    >
-                      <option value="">Seleziona provincia</option>
-                      {provinceOptions.map((province) => (
-                        <option key={province} value={province}>
-                          {province}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <label className="mt-5 inline-flex cursor-pointer items-center gap-3 text-sm font-medium text-slate-700">
+              {sectors.includes("Altro") && (
+                <Field label="Specifica altro settore">
                   <input
-                    type="checkbox"
-                    checked={hasRemote}
-                    onChange={() => toggleWorkMode("Remoto")}
-                    className="h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900"
+                    value={otherSector}
+                    onChange={(e) => setOtherSector(e.target.value)}
+                    className={inputClass}
+                    placeholder="Es. Food & Beverage, Chimico, Farmaceutico..."
                   />
-                  <span>Remote</span>
-                </label>
-              </div>
+                </Field>
+              )}
+
+              <MultiSelectSection
+                title="Metodologie e strumenti"
+                subtitle="Seleziona le metodologie o gli strumenti rilevanti per l'incarico."
+                options={methodologyOptions}
+                values={methodologies}
+                onToggle={(value) =>
+                  setMethodologies((current) =>
+                    toggleInList(value, current)
+                  )
+                }
+              />
+
+              {methodologies.includes("Altro") && (
+                <Field label="Specifica altra metodologia o strumento">
+                  <input
+                    value={otherMethodology}
+                    onChange={(e) => setOtherMethodology(e.target.value)}
+                    className={inputClass}
+                    placeholder="Descrivi metodologia o strumento"
+                  />
+                </Field>
+              )}
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <p className="text-sm text-slate-700">
-                  Stato selezione:{" "}
-                  <span className="font-semibold text-slate-900">
-                    {selectedProvince || selectedRegion || "Nessuna zona selezionata"}
-                    {hasRemote ? " + Remote" : ""}
+                <h3 className="font-bold text-slate-900">
+                  Sede principale dell'incarico
+                </h3>
+
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <Field label="Regione">
+                    <select
+                      value={region}
+                      onChange={(e) => {
+                        setRegion(e.target.value);
+                        setProvince("");
+                      }}
+                      className={inputClass}
+                    >
+                      <option value="">Seleziona la regione</option>
+                      {regionOptions.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field label="Provincia">
+                    <select
+                      value={province}
+                      disabled={!region}
+                      onChange={(e) => setProvince(e.target.value)}
+                      className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}
+                    >
+                      <option value="">
+                        {region
+                          ? "Seleziona la provincia"
+                          : "Prima seleziona la regione"}
+                      </option>
+
+                      {region &&
+                        regionProvinceMap[region].map((item) => (
+                          <option key={item} value={item}>
+                            {item}
+                          </option>
+                        ))}
+                    </select>
+                  </Field>
+                </div>
+
+                <label className="mt-5 flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={travelRequired}
+                    onChange={(e) => setTravelRequired(e.target.checked)}
+                    className="h-5 w-5 rounded border-slate-300 text-emerald-900 focus:ring-emerald-700"
+                  />
+                  <span className="text-sm font-semibold text-slate-800">
+                    L&apos;incarico può richiedere trasferte
                   </span>
-                </p>
+                </label>
               </div>
             </section>
           )}
 
           {currentStep === 4 && (
-            <section className="space-y-5">
-              <p className="text-lg text-slate-600">
-                Seleziona i software richiesti per la figura o il progetto.
-              </p>
+            <section className="space-y-7">
+              <SectionTitle
+                title="Modalità dell'incarico"
+                subtitle="Definisci disponibilità, impegno previsto e fascia economica."
+              />
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                {cadSkills.map((skill) =>
-                  renderChoiceButton(skill.name, skill.selected, () =>
-                    toggleSoftware(skill.name)
+              <MultiSelectSection
+                title="Tipo di incarico"
+                subtitle="Puoi selezionare più modalità compatibili."
+                options={assignmentTypeOptions}
+                values={assignmentTypes}
+                onToggle={(value) =>
+                  setAssignmentTypes((current) =>
+                    toggleInList(value, current)
                   )
-                )}
+                }
+              />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Giorni a settimana richiesti">
+                  <select
+                    value={daysPerWeek}
+                    onChange={(e) => setDaysPerWeek(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">Seleziona</option>
+                    {[1, 2, 3, 4, 5].map((day) => (
+                      <option key={day} value={day}>
+                        {day}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Data prevista di inizio">
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
               </div>
 
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-900">
-                  Privacy e condizioni
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <Field label="Budget indicativo / tariffa giornaliera">
+                  <select
+                    value={dailyRateBand}
+                    onChange={(e) => setDailyRateBand(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">Seleziona fascia</option>
+                    {dailyRateOptions.map((item) => (
+                      <option key={item}>{item}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Certificazioni richieste (facoltativo)">
+                  <textarea
+                    value={requiredCertifications}
+                    onChange={(e) =>
+                      setRequiredCertifications(e.target.value)
+                    }
+                    className={`${inputClass} min-h-28 resize-y`}
+                    placeholder="Es. Six Sigma Black Belt, PMP, ISO, IATF..."
+                  />
+                </Field>
+
+                <Field label="Lingue richieste (facoltativo)">
+                  <textarea
+                    value={requiredLanguages}
+                    onChange={(e) => setRequiredLanguages(e.target.value)}
+                    className={`${inputClass} min-h-28 resize-y`}
+                    placeholder="Es. Inglese C1, Tedesco B2..."
+                  />
+                </Field>
+              </div>
+
+              <Field label="Note finali (facoltativo)">
+                <textarea
+                  value={finalNotes}
+                  onChange={(e) => setFinalNotes(e.target.value.slice(0, 1500))}
+                  className={`${inputClass} min-h-36 resize-y`}
+                  placeholder="Aggiungi eventuali informazioni utili per comprendere meglio l'incarico..."
+                />
+                <p className="mt-2 text-right text-xs text-slate-500">
+                  {finalNotes.length}/1500
                 </p>
+              </Field>
 
-                <div className="mt-4 space-y-4 text-sm text-slate-700">
-                  <label className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      checked={privacyAcknowledged}
-                      onChange={(e) => setPrivacyAcknowledged(e.target.checked)}
-                      className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900"
-                    />
-                    <span>
-                      Dichiaro di aver letto l&apos;
-                      <a
-                        href={COMPANY_PRIVACY_URL}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-semibold text-emerald-900 underline underline-offset-2"
-                      >
-                        Informativa Privacy Aziende
-                      </a>
-                      .
-                    </span>
-                  </label>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <h2 className="text-xl font-bold text-slate-900">Privacy</h2>
 
-                  <label className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      checked={termsAccepted}
-                      onChange={(e) => setTermsAccepted(e.target.checked)}
-                      className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900"
-                    />
-                    <span>
-                      Accetto le{" "}
-                      <a
-                        href={COMPANY_TERMS_URL}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-semibold text-emerald-900 underline underline-offset-2"
-                      >
-                        Condizioni di utilizzo QuickSolve Engineering Network
-                      </a>
-                      .
-                    </span>
-                  </label>
-                </div>
+                <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={privacyAcknowledged}
+                    onChange={(e) =>
+                      setPrivacyAcknowledged(e.target.checked)
+                    }
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900"
+                  />
 
+                  <span>
+                    Dichiaro di aver letto l&apos;informativa privacy relativa
+                    all&apos;invio della richiesta aziendale.
+                  </span>
+                </label>
+              </div>
+
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+                <strong>Versione di revisione:</strong> il pulsante finale
+                completa solo l&apos;anteprima del wizard. Nessun dato viene
+                ancora inviato a Supabase.
               </div>
             </section>
           )}
 
-          {currentStep === 5 && (
-            <section className="space-y-8">
-              {isLoadingMatches ? (
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center">
-                  <p className="text-lg font-semibold text-slate-900">
-                    Analisi dei profili in corso...
-                  </p>
-                  <p className="mt-2 text-sm text-slate-600">
-                    Stiamo confrontando i requisiti della richiesta con i progettisti
-                    presenti nel network QuickSolve.
-                  </p>
-                </div>
-              ) : matchResults.length > 0 ? (
-                <>
-<div className="space-y-4">
-                  <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
-                    <h2 className="text-2xl font-bold text-slate-900">
-                      Richiesta ricevuta
-                    </h2>
-                    <p className="mt-3 text-sm leading-6 text-slate-700 md:text-base">
-                      La vostra richiesta è stata registrata correttamente. Di seguito potete consultare l&apos;elenco dei progettisti attualmente compatibili con i requisiti indicati.
-                    </p>
-                  </div>
-
-                  <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 md:p-7">
-                    <h2 className="text-2xl font-bold text-emerald-950">
-                      Selezionate i professionisti di vostro interesse
-                    </h2>
-                    <p className="mt-3 text-sm leading-6 text-slate-700 md:text-base">
-                      {isFreelanceRequest ? (
-                        <>
-                          QuickSolve offre un servizio di <strong>visibilità, matching e facilitazione all&apos;avvio della collaborazione</strong> con professionisti freelance della rete compatibili con la vostra richiesta.
-                        </>
-                      ) : (
-                        <>
-                          QuickSolve offre un servizio di <strong>visibilità, matching e facilitazione del contatto</strong> con professionisti della rete compatibili con la vostra ricerca.
-                        </>
-                      )}
-                    </p>
-                    <p className="mt-3 text-sm leading-6 text-slate-700 md:text-base">
-                      Selezionate uno o più profili di vostro interesse e inoltrate la richiesta a QuickSolve.
-                    </p>
-                  </div>
-                </div>
-                  <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {[...matchResults]
-                      .sort((a, b) => b.percentage - a.percentage)
-                      .map((designer) => {
-                      const age = calculateAge(designer.birthDate);
-                      const cad = getDesignerCad(designer);
-                      const sectors = getDesignerSectors(designer);
-                      const isSelected = selectedDesignerIds.includes(designer.id);
-                      const canSelect = !contactRequestSent;
-
-                      return (
-                        <button
-                          key={designer.id}
-                          type="button"
-                          onClick={() => toggleDesignerSelection(designer.id)}
-                          disabled={!canSelect}
-                          className={`relative flex w-full self-start flex-col overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${
-                            !canSelect
-                              ? "cursor-default border-slate-200 opacity-65"
-                              : isSelected
-                              ? "border-emerald-700 bg-emerald-100 shadow-md ring-2 ring-emerald-300"
-                              : "border-slate-200 hover:-translate-y-0.5 hover:border-emerald-700 hover:shadow-md"
-                          }`}
-                        >
-                          <div className="flex items-stretch gap-2 p-3 pb-2">
-                            <div className={`relative flex min-w-0 flex-1 items-center rounded-xl px-3 py-2 ${isSelected ? "bg-emerald-50" : "bg-slate-50"}`}>
-                              <div className="min-w-0">
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                                  Contratto / collaborazione
-                                </p>
-                                <p className="mt-0.5 truncate text-sm font-semibold text-slate-900">
-                                  {designer.collaborationType || "Non specificato"}
-                                </p>
-                                <p className="mt-0.5 truncate text-xs font-medium text-emerald-800">
-                                  {designer.budgetRange || "Range economico non specificato"}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex w-[82px] shrink-0 flex-col items-center justify-center rounded-xl bg-emerald-950 px-2 py-2 text-center text-white">
-                              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-100">
-                                Match
-                              </p>
-                              <p className="mt-0.5 text-xl font-bold">
-                                {designer.percentage}%
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="grid gap-2 px-3 pb-3 sm:grid-cols-2">
-                            <div className={`rounded-xl px-3 py-2.5 ${isSelected ? "bg-emerald-50" : "bg-slate-50"}`}>
-                              <p className="text-xs text-slate-500">Età</p>
-                              <p className="mt-1 font-semibold text-slate-900">
-                                {age !== null ? `${age} anni` : "Non disponibile"}
-                              </p>
-                            </div>
-
-                            <div className={`rounded-xl px-3 py-2.5 ${isSelected ? "bg-emerald-50" : "bg-slate-50"}`}>
-                              <p className="text-xs text-slate-500">Zona operativa</p>
-                              <p className="mt-1 font-semibold text-slate-900">
-                                {getDesignerZone(designer)}
-                              </p>
-                            </div>
-
-                            <div className={`rounded-xl px-3 py-2.5 ${isSelected ? "bg-emerald-50" : "bg-slate-50"}`}>
-                              <p className="text-xs text-slate-500">Titolo di studio</p>
-                              <p className="mt-1 font-semibold text-slate-900">
-                                {getDesignerStudyTitle(designer)}
-                              </p>
-                            </div>
-
-                            <div className={`rounded-xl px-3 py-2.5 ${isSelected ? "bg-emerald-50" : "bg-slate-50"}`}>
-                              <p className="text-xs text-slate-500">Esperienza</p>
-                              <p className="mt-1 font-semibold text-slate-900">
-                                {designer.experience || "Non specificata"}
-                              </p>
-                            </div>
-
-                          </div>
-
-                          <div className="space-y-4 border-t border-slate-100 p-3">
-                            <div>
-                              <p className="text-sm font-semibold text-slate-900">
-                                Software CAD
-                              </p>
-                              <div className="mt-2 grid grid-cols-2 gap-2">
-                                {cad.length > 0 ? (
-                                  cad.map((software) => (
-                                    <div
-                                      key={`${software.name}-${software.rating}`}
-                                      className="rounded-xl bg-emerald-50 px-2.5 py-1.5 text-emerald-950"
-                                    >
-                                      <p className="text-xs font-semibold">
-                                        {software.name}
-                                      </p>
-                                      <p
-                                        className="mt-0.5 whitespace-nowrap text-[11px] tracking-[0.08em] text-amber-500"
-                                        aria-label={`${software.rating} stelle su 5`}
-                                        title={`${software.rating}/5`}
-                                      >
-                                        {"★".repeat(software.rating)}
-                                        <span className="text-slate-300">
-                                          {"★".repeat(5 - software.rating)}
-                                        </span>
-                                      </p>
-                                    </div>
-                                  ))
-                                ) : (
-                                  <span className="text-sm text-slate-500">
-                                    Non specificati
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div>
-                              <p className="text-sm font-semibold text-slate-900">
-                                Settori di esperienza
-                              </p>
-                              <div className="mt-2 grid grid-cols-2 gap-2">
-                                {sectors.length > 0 ? (
-                                  sectors.map((sector) => (
-                                    <span
-                                      key={sector}
-                                      className="rounded-xl bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
-                                    >
-                                      {sector}
-                                    </span>
-                                  ))
-                                ) : (
-                                  <span className="text-sm text-slate-500">
-                                    Non specificati
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="sticky bottom-4 z-20 rounded-3xl border border-emerald-900/10 bg-white/95 p-5 shadow-xl backdrop-blur">
-                    {contactRequestSent ? (
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-emerald-950">
-                          Richiesta inoltrata
-                        </p>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">
-                          La vostra selezione è stata inoltrata correttamente a QuickSolve.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                          <p className="font-semibold text-slate-900">
-                            {selectedDesignerCount} {selectedDesignerCount === 1 ? "profilo selezionato" : "profili selezionati"}
-                          </p>
-                          <p className="mt-1 text-sm text-slate-600">
-                            Selezionate i profili di vostro interesse e inoltrate la richiesta.
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={sendContactRequest}
-                          disabled={selectedDesignerCount === 0 || isSendingContactRequest}
-                          className="rounded-2xl bg-emerald-950 px-6 py-3 font-semibold text-white transition enabled:hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-300"
-                        >
-                          {isSendingContactRequest ? "Invio in corso..." : "Inoltra richiesta"}
-                        </button>
-                      </div>
-                    )}
-
-                    {contactRequestError && (
-                      <p className="mt-3 text-center text-sm font-medium text-red-600">
-                        {contactRequestError}
-                      </p>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center">
-                  <p className="text-lg font-semibold text-slate-900">
-                    Nessun progettista con compatibilità pari o superiore all'80%
-                  </p>
-                  <p className="mt-2 text-sm text-slate-600">
-                    La richiesta è stata registrata correttamente. Al momento non risultano
-                    profili che superano la soglia minima prevista.
-                  </p>
-                </div>
-              )}
-            </section>
-          )}
-
-          {currentStep !== 5 && (
-            <div
-              className={`mt-10 border-t border-slate-200 pt-6 ${
-                currentStep === 0
-                  ? "flex justify-end"
-                  : "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-              }`}
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-between">
+            <button
+              type="button"
+              onClick={previousStep}
+              disabled={currentStep === 0}
+              className="rounded-2xl border border-slate-300 px-6 py-3.5 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {currentStep > 0 && (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  disabled={isSubmitting}
-                  className="rounded-2xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  ← Indietro
-                </button>
-              )}
+              Indietro
+            </button>
 
+            {currentStep < stepTitles.length - 1 ? (
               <button
                 type="button"
-                onClick={currentStep === 4 ? submitCompanyRequest : nextStep}
-                disabled={!canGoNext || isSubmitting}
-                className="rounded-2xl bg-emerald-950 px-5 py-3 font-semibold text-white transition enabled:hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-300"
+                onClick={nextStep}
+                disabled={!canContinue}
+                className="rounded-2xl bg-emerald-900 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Avanti →
+                Avanti
               </button>
-            </div>
-          )}
+            ) : (
+              <button
+                type="button"
+                onClick={handlePreviewSubmit}
+                disabled={!canContinue}
+                className="rounded-2xl bg-emerald-900 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Completa anteprima
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </main>
+  );
+}
+
+const inputClass =
+  "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-900 focus:ring-2 focus:ring-emerald-900/10";
+
+function SectionTitle({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
+      <p className="mt-2 max-w-3xl leading-7 text-slate-600">{subtitle}</p>
+    </div>
+  );
+}
+
+function ChoiceSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <p className="mb-3 text-sm font-semibold text-slate-700">{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium text-slate-700">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function ChoiceButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-2xl border px-5 py-4 text-left font-semibold transition ${
+        active
+          ? "border-emerald-900 bg-emerald-50 text-emerald-950"
+          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function MultiSelectSection({
+  title,
+  subtitle,
+  options,
+  values,
+  onToggle,
+}: {
+  title: string;
+  subtitle: string;
+  options: readonly string[];
+  values: string[];
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <div>
+      <div className="mb-3">
+        <h3 className="font-bold text-slate-900">{title}</h3>
+        <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        {options.map((option) => {
+          const active = values.includes(option);
+
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onToggle(option)}
+              className={`flex items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${
+                active
+                  ? "border-emerald-900 bg-emerald-50 text-emerald-950"
+                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+              }`}
+            >
+              <span
+                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs ${
+                  active
+                    ? "border-emerald-900 bg-emerald-900 text-white"
+                    : "border-slate-300 bg-white"
+                }`}
+              >
+                {active ? "✓" : ""}
+              </span>
+
+              <span>{option}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function RoleSelector({
+  title,
+  family,
+  role,
+  otherRole,
+  roleOptions,
+  onFamilyChange,
+  onRoleChange,
+  onOtherRoleChange,
+  required = false,
+}: {
+  title: string;
+  family: RoleFamily | "";
+  role: string;
+  otherRole: string;
+  roleOptions: string[];
+  onFamilyChange: (value: RoleFamily | "") => void;
+  onRoleChange: (value: string) => void;
+  onOtherRoleChange: (value: string) => void;
+  required?: boolean;
+}) {
+  return (
+    <div>
+      <h3 className="font-bold text-slate-900">{title}</h3>
+
+      <div className="mt-3 grid gap-4 md:grid-cols-2">
+        <Field label="Famiglia professionale">
+          <select
+            value={family}
+            onChange={(e) =>
+              onFamilyChange(e.target.value as RoleFamily | "")
+            }
+            className={inputClass}
+          >
+            <option value="">
+              {required ? "Seleziona la famiglia" : "Nessuna"}
+            </option>
+
+            {Object.keys(roleFamilies).map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Ruolo">
+          <select
+            value={role}
+            disabled={!family}
+            onChange={(e) => onRoleChange(e.target.value)}
+            className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100`}
+          >
+            <option value="">
+              {family
+                ? "Seleziona il ruolo"
+                : "Prima seleziona la famiglia"}
+            </option>
+
+            {roleOptions.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+
+      {role === "Altro" && (
+        <div className="mt-4">
+          <Field label="Specifica il ruolo">
+            <input
+              value={otherRole}
+              onChange={(e) => onOtherRoleChange(e.target.value)}
+              className={inputClass}
+              placeholder="Inserisci il ruolo"
+            />
+          </Field>
+        </div>
+      )}
+    </div>
   );
 }

@@ -16,8 +16,8 @@ export default function Home() {
           {/* LOGIN */}
           <div className="absolute right-3 top-3 z-20 sm:right-5 sm:top-4 md:right-8">
             <Link
-              href="/login"
-              className="inline-flex rounded-xl border border-[#0f3b2e] bg-white px-3.5 py-2 text-xs font-semibold text-[#0f3b2e] transition hover:bg-[#0f3b2e] hover:text-white sm:px-4 sm:text-sm"
+              href="/manager/login"
+              className="inline-flex rounded-xl border border-[#0b2340] bg-white px-3.5 py-2 text-xs font-semibold text-[#0b2340] transition hover:bg-[#0b2340] hover:text-white sm:px-4 sm:text-sm"
             >
               Login
             </Link>
@@ -39,8 +39,8 @@ export default function Home() {
               className="h-auto w-[145px] cursor-pointer transition-opacity group-hover:opacity-80 sm:w-[170px] md:w-[225px]"
             />
 
-            <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.3em] text-slate-500 transition-colors group-hover:text-[#0f3b2e] sm:text-[10px] md:text-xs md:tracking-[0.36em]">
-              Engineering Network
+            <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.3em] text-slate-500 transition-colors group-hover:text-[#0b2340] sm:text-[10px] md:text-xs md:tracking-[0.36em]">
+              Management Network
             </p>
           </a>
         </header>
@@ -49,29 +49,30 @@ export default function Home() {
             HERO
         ====================================================== */}
         <section className="relative">
-          <div className="relative overflow-hidden bg-[#06372e]">
-            {/* BACKGROUND TECNICO */}
-            <div
+          <div className="relative overflow-hidden bg-[#071b33]">
+            {/* BACKGROUND MANAGEMENT
+                L'immagine viene resa come elemento reale, non come background CSS:
+                in questo modo le grafiche laterali restano visibili e non vengono
+                tagliate dal rapporto molto largo dell'hero. */}
+            <img
+              src="/quicksolve-management-hero-bg.png"
+              alt=""
+              aria-hidden="true"
               className="
                 pointer-events-none
                 absolute
                 inset-0
-                bg-cover
-                bg-center
+                h-full
+                w-full
+                object-cover
+                object-center
                 opacity-100
-                max-md:bg-[position:50%_center]
-                md:bg-[position:center_center]
               "
-              style={{
-                backgroundImage: "url('/quicksolve-hero-bg.webp')",
-              }}
             />
 
-            {/* OVERLAY */}
-            <div className="pointer-events-none absolute inset-0 bg-[#06372e]/45 md:bg-[#06372e]/20" />
-
-            {/* GRADIENTE CENTRALE */}
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(10,70,54,0.15),rgba(2,42,34,0.12)_52%,rgba(1,28,24,0.25)_100%)]" />
+            {/* OMBREGGIATURA LEGGERA:
+                scurisce il centro per il testo senza nascondere i lati. */}
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(7,27,51,0.05)_0%,rgba(7,27,51,0.20)_30%,rgba(7,27,51,0.38)_50%,rgba(7,27,51,0.20)_70%,rgba(7,27,51,0.05)_100%)]" />
 
             {/* CONTENUTO HERO */}
             <div
@@ -115,7 +116,7 @@ export default function Home() {
                 Il network italiano
                 <br className="hidden sm:block" />
                 <span className="sm:hidden"> </span>
-                della progettazione meccanica
+                del management industriale
               </h1>
 
               {/* DESCRIZIONE */}
@@ -134,10 +135,9 @@ export default function Home() {
                   md:leading-7
                 "
               >
-                Mettiamo in contatto aziende e progettisti qualificati
-                attraverso un sistema intelligente, sviluppato per individuare
-                rapidamente i profili compatibili con le specifiche esigenze
-                di ogni progetto.
+                Mettiamo in contatto aziende e manager qualificati attraverso un sistema
+                sviluppato per individuare rapidamente i profili compatibili con
+                le specifiche esigenze operative di ogni incarico.
               </p>
 
               {/* CTA */}
@@ -156,7 +156,7 @@ export default function Home() {
               >
                 {/* PROGETTISTA */}
                 <Link
-                  href="/progettista"
+                  href="/manager"
                   className="
                     group
                     flex
@@ -167,8 +167,8 @@ export default function Home() {
                     gap-3
                     rounded-xl
                     border
-                    border-[#55a77d]
-                    bg-[#075038]/80
+                    border-[#5b82ad]
+                    bg-[#0d3158]/80
                     px-5
                     py-3
                     text-sm
@@ -177,7 +177,7 @@ export default function Home() {
                     shadow-lg
                     backdrop-blur-[2px]
                     transition
-                    hover:bg-[#126344]
+                    hover:bg-[#164873]
                     sm:text-base
                   "
                 >
@@ -197,7 +197,7 @@ export default function Home() {
                     <path d="M4 21c1.8-4.2 5-6 8-6s6.2 1.8 8 6" />
                   </svg>
 
-                  <span>Sono un progettista</span>
+                  <span>Sono un manager</span>
 
                   <span className="ml-auto text-xl transition-transform group-hover:translate-x-1">
                     →
@@ -223,10 +223,10 @@ export default function Home() {
                     py-3
                     text-sm
                     font-semibold
-                    text-[#0f3b2e]
+                    text-[#0b2340]
                     shadow-lg
                     transition
-                    hover:bg-[#eef5f2]
+                    hover:bg-[#eef3f8]
                     sm:text-base
                   "
                 >
@@ -290,37 +290,37 @@ export default function Home() {
         <section className="mx-auto w-full max-w-7xl bg-white px-4 pb-5 pt-3 sm:px-6 md:px-8 md:pb-6 md:pt-4">
           <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
             {/* PROGETTISTI */}
-            <div className="rounded-2xl border border-[#d7e6df] bg-[#eef5f2] p-4 shadow-sm sm:p-5">
-              <h3 className="text-base font-bold text-[#0f3b2e] sm:text-lg">
-                👷 Progettisti
+            <div className="rounded-2xl border border-[#d7e1ec] bg-[#eef3f8] p-4 shadow-sm sm:p-5">
+              <h3 className="text-base font-bold text-[#0b2340] sm:text-lg">
+                👔 Manager
               </h3>
 
               <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
-                Registrati gratuitamente in pochi secondi e ricevi opportunità
-                in linea con le tue competenze.
+                Crea il tuo profilo ed entra nel network per ricevere opportunità in linea con
+                la tua esperienza e le tue competenze.
               </p>
             </div>
 
             {/* AZIENDE */}
-            <div className="rounded-2xl border border-[#d7e6df] bg-[#eef5f2] p-4 shadow-sm sm:p-5">
-              <h3 className="text-base font-bold text-[#0f3b2e] sm:text-lg">
+            <div className="rounded-2xl border border-[#d7e1ec] bg-[#eef3f8] p-4 shadow-sm sm:p-5">
+              <h3 className="text-base font-bold text-[#0b2340] sm:text-lg">
                 🏭 Aziende
               </h3>
 
               <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
-                Inserisci il tuo progetto e individua rapidamente il
-                progettista più adatto.
+                Inserisci la tua esigenza e individua rapidamente il manager più adatto al
+                contesto e agli obiettivi dell'incarico.
               </p>
             </div>
 
             {/* MATCHING */}
-            <div className="rounded-2xl border border-[#d7e6df] bg-[#eef5f2] p-4 shadow-sm sm:p-5">
-              <h3 className="text-base font-bold text-[#0f3b2e] sm:text-lg">
+            <div className="rounded-2xl border border-[#d7e1ec] bg-[#eef3f8] p-4 shadow-sm sm:p-5">
+              <h3 className="text-base font-bold text-[#0b2340] sm:text-lg">
                 🧠 Matching
               </h3>
 
               <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
-                Il sistema confronta la richiesta con i profili attivi nella rete e individua subito quelli compatibili.
+                Il sistema confronta la richiesta aziendale con i profili manageriali attivi nel network e individua quelli più compatibili.
               </p>
             </div>
           </div>
@@ -339,7 +339,7 @@ export default function Home() {
               w-full
               cursor-pointer
               rounded-2xl
-              bg-[#0f3b2e]
+              bg-[#0b2340]
               px-5
               py-5
               text-center
@@ -347,13 +347,13 @@ export default function Home() {
               shadow-sm
               transition
               duration-300
-              hover:bg-[#14503f]
+              hover:bg-[#12385f]
               hover:shadow-md
               sm:px-6
             "
           >
             <p className="text-sm font-extrabold uppercase tracking-[0.14em] sm:text-base md:tracking-[0.18em]">
-              250+ progettisti nel network
+              QuickSolve Management Network
             </p>
 
             <p className="mt-1.5 text-base font-semibold sm:text-lg">
@@ -374,13 +374,13 @@ export default function Home() {
             style={{ fontFamily: "Arial, sans-serif" }}
           >
             <p className="flex items-center">
-              <span>QuickSolve Engineering Network · P.IVA IT04285011203</span>
+              <span>QuickSolve Management Network · P.IVA IT04285011203</span>
               <span className="mx-2" aria-hidden="true">·</span>
               <a
                 href="https://www.linkedin.com/company/quicksolve-engineering-network/?viewAsMember=true"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="LinkedIn QuickSolve Engineering Network"
+                aria-label="LinkedIn QuickSolve Management Network"
                 className="inline-flex items-center align-middle transition hover:opacity-80"
               >
                 <svg
@@ -403,7 +403,7 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <Link
                 href="/legal/privacy-policy"
-                className="transition hover:text-[#0f3b2e]"
+                className="transition hover:text-[#0b2340]"
               >
                 Privacy Policy
               </Link>
@@ -412,7 +412,7 @@ export default function Home() {
 
               <Link
                 href="/cookie-policy"
-                className="transition hover:text-[#0f3b2e]"
+                className="transition hover:text-[#0b2340]"
               >
                 Cookie Policy
               </Link>
@@ -421,7 +421,7 @@ export default function Home() {
 
               <Link
                 href="/legal/condizioni-vendita"
-                className="transition hover:text-[#0f3b2e]"
+                className="transition hover:text-[#0b2340]"
               >
                 Condizioni di vendita
               </Link>
@@ -433,7 +433,7 @@ export default function Home() {
                 onClick={() =>
                   window.dispatchEvent(new Event("qs-open-cookie-settings"))
                 }
-                className="transition hover:text-[#0f3b2e]"
+                className="transition hover:text-[#0b2340]"
               >
                 Gestisci cookie
               </button>
@@ -490,8 +490,8 @@ export default function Home() {
             {/* CTA SOTTO IL VIDEO */}
             <div className="flex flex-col items-center justify-between gap-3 bg-white px-5 py-4 text-center sm:flex-row sm:text-left">
               <div>
-                <p className="font-bold text-[#0f3b2e]">
-                  Hai bisogno di un progettista?
+                <p className="font-bold text-[#0b2340]">
+                  Hai bisogno di un manager?
                 </p>
 
                 <p className="text-sm text-slate-600">
@@ -502,7 +502,7 @@ export default function Home() {
               <Link
                 href="/azienda"
                 onClick={() => setOpenVideo(false)}
-                className="cursor-pointer rounded-xl bg-[#0f3b2e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#14503f]"
+                className="cursor-pointer rounded-xl bg-[#0b2340] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#12385f]"
               >
                 Inserisci una richiesta →
               </Link>
