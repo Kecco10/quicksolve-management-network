@@ -4,21 +4,17 @@ import "./globals.css";
 import CookieConsent from "./components/CookieConsent";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://engineering.quicksolve.it"),
+  metadataBase: new URL("https://management.quicksolve.it"),
 
   title: {
-    default: "QuickSolve Engineering Network | Progettazione Meccanica",
-    template: "%s | QuickSolve Engineering Network",
+    default: "QuickSolve Management Network | Management Industriale",
+    template: "%s | QuickSolve Management Network",
   },
 
   description:
-    "QuickSolve Engineering Network mette in contatto aziende e progettisti meccanici qualificati attraverso un sistema sviluppato per individuare i profili compatibili con le esigenze di ogni progetto.",
+    "QuickSolve Management Network mette in contatto aziende e manager qualificati attraverso un sistema sviluppato per individuare rapidamente i profili compatibili con le specifiche esigenze operative di ogni incarico.",
 
-  applicationName: "QuickSolve Engineering Network",
-
-  verification: {
-    google: "2TgoGhAkwolL_jvKy3UQhKWImUPaJvO31xw5iYI2MSM",
-  },
+  applicationName: "QuickSolve Management Network",
 
   robots: {
     index: true,
@@ -35,18 +31,18 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "it_IT",
-    url: "https://engineering.quicksolve.it",
-    siteName: "QuickSolve Engineering Network",
-    title: "QuickSolve Engineering Network | Progettazione Meccanica",
+    url: "https://management.quicksolve.it",
+    siteName: "QuickSolve Management Network",
+    title: "QuickSolve Management Network | Management Industriale",
     description:
-      "Il network italiano che mette in contatto aziende e progettisti meccanici qualificati.",
+      "Il network italiano del management industriale che mette in contatto aziende e manager qualificati.",
   },
 
   twitter: {
     card: "summary",
-    title: "QuickSolve Engineering Network | Progettazione Meccanica",
+    title: "QuickSolve Management Network | Management Industriale",
     description:
-      "Il network italiano che mette in contatto aziende e progettisti meccanici qualificati.",
+      "Il network italiano del management industriale che mette in contatto aziende e manager qualificati.",
   },
 };
 
