@@ -528,7 +528,7 @@ export default function CompanyRequestPage() {
     <main className="min-h-screen bg-slate-50 px-4 py-8 md:py-10">
       <div className="mx-auto max-w-5xl">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-10">
-          <div className="mb-7 flex items-end justify-between gap-4">
+          <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-900">
                 QuickSolve · Management Network
@@ -538,7 +538,7 @@ export default function CompanyRequestPage() {
               </h1>
             </div>
 
-            <div className="mb-1 inline-flex shrink-0 items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-950 shadow-sm">
+            <div className="inline-flex w-fit shrink-0 items-center gap-3 self-start rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-950 shadow-sm sm:mb-1 sm:self-auto">
               <span>Step {currentStep + 1} di 5</span>
               <span className="h-4 w-px bg-emerald-200" />
               <span className="font-bold">{Math.round(progress)}%</span>
