@@ -496,7 +496,7 @@ export default function CompanyRequestPage() {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10">
         <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm md:p-12">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl text-emerald-900">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e8f0f8] text-4xl text-[#0b2340]">
             ✓
           </div>
 
@@ -530,7 +530,7 @@ export default function CompanyRequestPage() {
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-10">
           <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-900">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#0b2340]">
                 QuickSolve · Management Network
               </p>
               <h1 className="mt-3 text-3xl font-bold text-slate-900 md:text-4xl">
@@ -538,9 +538,9 @@ export default function CompanyRequestPage() {
               </h1>
             </div>
 
-            <div className="inline-flex w-fit shrink-0 items-center gap-3 self-start rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-950 shadow-sm sm:mb-1 sm:self-auto">
+            <div className="inline-flex w-fit shrink-0 items-center gap-3 self-start rounded-xl border border-[#d7e1ec] bg-[#eef3f8] px-4 py-2.5 text-sm font-semibold text-[#071b33] shadow-sm sm:mb-1 sm:self-auto">
               <span>Step {currentStep + 1} di 5</span>
-              <span className="h-4 w-px bg-emerald-200" />
+              <span className="h-4 w-px bg-[#d7e1ec]" />
               <span className="font-bold">{Math.round(progress)}%</span>
             </div>
           </div>
@@ -1016,7 +1016,7 @@ export default function CompanyRequestPage() {
                     type="checkbox"
                     checked={travelRequired}
                     onChange={(e) => setTravelRequired(e.target.checked)}
-                    className="h-5 w-5 rounded border-slate-300 text-emerald-900 focus:ring-emerald-700"
+                    className="h-5 w-5 rounded border-slate-300 text-[#0b2340] focus:ring-[#164873]"
                   />
                   <span className="text-sm font-semibold text-slate-800">
                     L&apos;incarico può richiedere trasferte
@@ -1130,7 +1130,7 @@ export default function CompanyRequestPage() {
                     onChange={(e) =>
                       setPrivacyAcknowledged(e.target.checked)
                     }
-                    className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900"
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]"
                   />
 
                   <span>
@@ -1163,7 +1163,7 @@ export default function CompanyRequestPage() {
                 type="button"
                 onClick={nextStep}
                 disabled={!canContinue}
-                className="rounded-2xl bg-emerald-900 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-2xl bg-[#0b2340] px-7 py-3.5 font-semibold text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Avanti
               </button>
@@ -1172,7 +1172,7 @@ export default function CompanyRequestPage() {
                 type="button"
                 onClick={handlePreviewSubmit}
                 disabled={!canContinue}
-                className="rounded-2xl bg-emerald-900 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-2xl bg-[#0b2340] px-7 py-3.5 font-semibold text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Completa anteprima
               </button>
@@ -1185,7 +1185,7 @@ export default function CompanyRequestPage() {
 }
 
 const inputClass =
-  "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-900 focus:ring-2 focus:ring-emerald-900/10";
+  "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-[#0b2340] focus:ring-2 focus:ring-[#0b2340]/10";
 
 function SectionTitle({
   title,
@@ -1249,7 +1249,7 @@ function ChoiceButton({
       onClick={onClick}
       className={`rounded-2xl border px-5 py-4 text-left font-semibold transition ${
         active
-          ? "border-emerald-900 bg-emerald-50 text-emerald-950"
+          ? "border-[#0b2340] bg-[#eef3f8] text-[#071b33]"
           : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
       }`}
     >
@@ -1289,14 +1289,14 @@ function MultiSelectSection({
               onClick={() => onToggle(option)}
               className={`flex items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${
                 active
-                  ? "border-emerald-900 bg-emerald-50 text-emerald-950"
+                  ? "border-[#0b2340] bg-[#eef3f8] text-[#071b33]"
                   : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
               }`}
             >
               <span
                 className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs ${
                   active
-                    ? "border-emerald-900 bg-emerald-900 text-white"
+                    ? "border-[#0b2340] bg-[#0b2340] text-white"
                     : "border-slate-300 bg-white"
                 }`}
               >

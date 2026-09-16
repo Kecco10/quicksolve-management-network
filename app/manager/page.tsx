@@ -485,7 +485,7 @@ export default function ManagerPage() {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10">
         <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm md:p-12">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl text-emerald-900">✓</div>
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e8f0f8] text-4xl text-[#0b2340]">✓</div>
           <h1 className="mt-6 text-3xl font-bold text-slate-900">Registrazione completata</h1>
           <p className="mx-auto mt-4 max-w-xl text-lg leading-8 text-slate-600">
             Il tuo profilo QuickSolve Management Network è stato registrato. Potrai aggiornarlo dalla tua area personale quando cambieranno disponibilità, competenze o informazioni professionali.
@@ -501,13 +501,13 @@ export default function ManagerPage() {
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-10">
           <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-900">QuickSolve · Management Network</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#0b2340]">QuickSolve · Management Network</p>
               <h1 className="mt-3 text-3xl font-bold text-slate-900 md:text-4xl">Crea il tuo profilo manageriale</h1>
             </div>
 
-            <div className="inline-flex w-fit shrink-0 items-center gap-3 self-start rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-950 shadow-sm sm:mb-1 sm:self-auto">
+            <div className="inline-flex w-fit shrink-0 items-center gap-3 self-start rounded-xl border border-[#d7e1ec] bg-[#eef3f8] px-4 py-2.5 text-sm font-semibold text-[#071b33] shadow-sm sm:mb-1 sm:self-auto">
               <span>Step {currentStep + 1} di 5</span>
-              <span className="h-4 w-px bg-emerald-200" />
+              <span className="h-4 w-px bg-[#d7e1ec]" />
               <span className="font-bold">{Math.round(progress)}%</span>
             </div>
           </div>
@@ -593,7 +593,7 @@ export default function ManagerPage() {
                       {selectedAreas.map((area) => (
                         <div
                           key={`${area.region}-${area.province}`}
-                          className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700"
+                          className="inline-flex items-center gap-2 rounded-full border border-[#d7e1ec] bg-white px-3 py-2 text-sm font-semibold text-slate-700"
                         >
                           <span>{area.province}</span>
                           <button
@@ -615,7 +615,7 @@ export default function ManagerPage() {
                     type="checkbox"
                     checked={travelAvailable}
                     onChange={(e) => setTravelAvailable(e.target.checked)}
-                    className="h-5 w-5 rounded border-slate-300 text-emerald-900 focus:ring-emerald-700"
+                    className="h-5 w-5 rounded border-slate-300 text-[#0b2340] focus:ring-[#164873]"
                   />
                   <span className="text-sm font-semibold text-slate-800">Disponibile a trasferte</span>
                 </label>
@@ -742,8 +742,8 @@ export default function ManagerPage() {
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                 <h2 className="text-xl font-bold text-slate-900">Privacy e visibilità</h2>
                 <div className="mt-4 space-y-4 text-sm leading-6 text-slate-700">
-                  <label className="flex items-start gap-3"><input type="checkbox" checked={privacyAcknowledged} onChange={(e) => setPrivacyAcknowledged(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900" /><span>Dichiaro di aver letto l&apos;<a href={PRIVACY_URL} target="_blank" rel="noreferrer" className="font-semibold text-emerald-900 underline underline-offset-2">Informativa Privacy Management Network</a>.</span></label>
-                  <label className="flex items-start gap-3"><input type="checkbox" checked={visibilityConsent} onChange={(e) => setVisibilityConsent(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-900 focus:ring-emerald-900" /><span>Acconsento separatamente alla visibilità del mio profilo professionale strutturato alle aziende potenzialmente compatibili, inizialmente senza i miei dati di contatto direttamente identificativi.</span></label>
+                  <label className="flex items-start gap-3"><input type="checkbox" checked={privacyAcknowledged} onChange={(e) => setPrivacyAcknowledged(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]" /><span>Dichiaro di aver letto l&apos;<a href={PRIVACY_URL} target="_blank" rel="noreferrer" className="font-semibold text-[#0b2340] underline underline-offset-2">Informativa Privacy Management Network</a>.</span></label>
+                  <label className="flex items-start gap-3"><input type="checkbox" checked={visibilityConsent} onChange={(e) => setVisibilityConsent(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]" /><span>Acconsento separatamente alla visibilità del mio profilo professionale strutturato alle aziende potenzialmente compatibili, inizialmente senza i miei dati di contatto direttamente identificativi.</span></label>
                 </div>
               </div>
             </section>
@@ -752,9 +752,9 @@ export default function ManagerPage() {
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-between">
             <button type="button" onClick={previousStep} disabled={currentStep === 0 || isSubmitting} className="rounded-2xl border border-slate-300 px-6 py-3.5 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">Indietro</button>
             {currentStep < stepTitles.length - 1 ? (
-              <button type="button" onClick={nextStep} disabled={!canContinue} className="rounded-2xl bg-emerald-900 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40">Avanti</button>
+              <button type="button" onClick={nextStep} disabled={!canContinue} className="rounded-2xl bg-[#0b2340] px-7 py-3.5 font-semibold text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40">Avanti</button>
             ) : (
-              <button type="button" onClick={handleSubmit} disabled={!canContinue || isSubmitting} className="rounded-2xl bg-emerald-900 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40">{isSubmitting ? "Registrazione in corso..." : "Crea il profilo manageriale"}</button>
+              <button type="button" onClick={handleSubmit} disabled={!canContinue || isSubmitting} className="rounded-2xl bg-[#0b2340] px-7 py-3.5 font-semibold text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40">{isSubmitting ? "Registrazione in corso..." : "Crea il profilo manageriale"}</button>
             )}
           </div>
         </div>
@@ -763,7 +763,7 @@ export default function ManagerPage() {
   );
 }
 
-const inputClass = "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-900 focus:ring-2 focus:ring-emerald-900/10";
+const inputClass = "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-[#0b2340] focus:ring-2 focus:ring-[#0b2340]/10";
 
 function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
   return <div><h2 className="text-2xl font-bold text-slate-900">{title}</h2><p className="mt-2 max-w-3xl leading-7 text-slate-600">{subtitle}</p></div>;
@@ -778,7 +778,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function ChoiceButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return <button type="button" onClick={onClick} className={`rounded-2xl border px-5 py-4 text-left font-semibold transition ${active ? "border-emerald-900 bg-emerald-50 text-emerald-950" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"}`}>{children}</button>;
+  return <button type="button" onClick={onClick} className={`rounded-2xl border px-5 py-4 text-left font-semibold transition ${active ? "border-[#0b2340] bg-[#eef3f8] text-[#071b33]" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"}`}>{children}</button>;
 }
 
 function MultiSelectSection({ title, subtitle, options, values, onToggle }: { title: string; subtitle: string; options: readonly string[]; values: string[]; onToggle: (value: string) => void }) {
@@ -788,7 +788,7 @@ function MultiSelectSection({ title, subtitle, options, values, onToggle }: { ti
       <div className="grid gap-3 md:grid-cols-2">
         {options.map((option) => {
           const active = values.includes(option);
-          return <button key={option} type="button" onClick={() => onToggle(option)} className={`flex items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${active ? "border-emerald-900 bg-emerald-50 text-emerald-950" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"}`}><span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs ${active ? "border-emerald-900 bg-emerald-900 text-white" : "border-slate-300 bg-white"}`}>{active ? "✓" : ""}</span><span>{option}</span></button>;
+          return <button key={option} type="button" onClick={() => onToggle(option)} className={`flex items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${active ? "border-[#0b2340] bg-[#eef3f8] text-[#071b33]" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"}`}><span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs ${active ? "border-[#0b2340] bg-[#0b2340] text-white" : "border-slate-300 bg-white"}`}>{active ? "✓" : ""}</span><span>{option}</span></button>;
         })}
       </div>
     </div>
