@@ -116,7 +116,7 @@ export default function CookieConsent() {
           LinkedIn Insight Tag per misurare le campagne.{" "}
           <a
             href="/cookie-policy"
-            className="font-medium text-[#0f3b2e] underline underline-offset-2"
+            className="font-medium text-[#0b2340] underline underline-offset-2"
           >
             Cookie Policy
           </a>
@@ -134,7 +134,7 @@ export default function CookieConsent() {
           <button
             type="button"
             onClick={() => choose("accepted")}
-            className="rounded-lg bg-[#0f3b2e] px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-[#14503f]"
+            className="rounded-lg bg-[#0b2340] px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-[#12385f]"
           >
             Accetta
           </button>
