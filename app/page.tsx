@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 
 export default function Home() {
-  const [openVideo, setOpenVideo] = useState(false);
-
   return (
     <>
       <main className="min-h-screen overflow-x-hidden bg-white text-slate-900">
@@ -328,16 +325,13 @@ export default function Home() {
 
         {/* =====================================================
             BANDA VIDEO
-            STESSA LARGHEZZA DELLE CARD
+            Temporaneamente non cliccabile: il video Management
+            verrà collegato quando sarà disponibile.
         ====================================================== */}
         <section className="mx-auto w-full max-w-7xl px-4 pb-6 sm:px-6 md:px-8 md:pb-8">
-          <button
-            type="button"
-            onClick={() => setOpenVideo(true)}
+          <div
             className="
-              group
               w-full
-              cursor-pointer
               rounded-2xl
               bg-[#0b2340]
               px-5
@@ -345,10 +339,6 @@ export default function Home() {
               text-center
               text-white
               shadow-sm
-              transition
-              duration-300
-              hover:bg-[#12385f]
-              hover:shadow-md
               sm:px-6
             "
           >
@@ -358,11 +348,8 @@ export default function Home() {
 
             <p className="mt-1.5 text-base font-semibold sm:text-lg">
               Sei un&apos;azienda? Scopri QuickSolve in 30 secondi
-              <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
-                →
-              </span>
             </p>
-          </button>
+          </div>
         </section>
 
         {/* =====================================================
@@ -442,74 +429,6 @@ export default function Home() {
         </footer>
       </main>
 
-      {/* =====================================================
-          MODAL VIDEO
-          MOBILE: GRANDE
-          DESKTOP: PIÙ COMPATTO
-      ====================================================== */}
-      {openVideo && (
-        <div
-          className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-4"
-          onClick={() => setOpenVideo(false)}
-        >
-          <div
-            className="
-              relative
-              w-full
-              cursor-default
-              overflow-hidden
-              rounded-2xl
-              bg-black
-              shadow-2xl
-              md:max-w-3xl
-            "
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* CHIUDI */}
-            <button
-              type="button"
-              onClick={() => setOpenVideo(false)}
-              className="absolute right-3 top-3 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-black/70 text-2xl font-light text-white transition hover:bg-black"
-              aria-label="Chiudi video"
-            >
-              ×
-            </button>
-
-            {/* VIDEO */}
-            <video
-              src="/quicksolve-engineering.mp4"
-              controls
-              autoPlay
-              playsInline
-              preload="metadata"
-              className="aspect-video w-full bg-black object-contain"
-            >
-              Il tuo browser non supporta la riproduzione video.
-            </video>
-
-            {/* CTA SOTTO IL VIDEO */}
-            <div className="flex flex-col items-center justify-between gap-3 bg-white px-5 py-4 text-center sm:flex-row sm:text-left">
-              <div>
-                <p className="font-bold text-[#0b2340]">
-                  Hai bisogno di un manager?
-                </p>
-
-                <p className="text-sm text-slate-600">
-                  Inserisci gratuitamente la tua richiesta.
-                </p>
-              </div>
-
-              <Link
-                href="/azienda"
-                onClick={() => setOpenVideo(false)}
-                className="cursor-pointer rounded-xl bg-[#0b2340] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#12385f]"
-              >
-                Inserisci una richiesta →
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
