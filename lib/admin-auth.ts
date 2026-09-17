@@ -1,92 +1,73 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import type { NextRequest } from "next/server";
 
-export const ADMIN_COOKIE_NAME = "qs_admin_auth";
-export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 8;
+export const ADMIN_COOKIE_NAME = "qmn_admin_session";
+export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 12;
 
-const encoder = new TextEncoder();
+function getSecret() {
+  const secret = process.env.ADMIN_SESSION_SECRET;
 
-function getAdminSecret() {
-  const username = process.env.ADMIN_USERNAME;
-  const password = process.env.ADMIN_PASSWORD;
-
-  if (!username || !password) {
-    throw new Error("Credenziali admin non configurate.");
+  if (!secret) {
+    throw new Error("ADMIN_SESSION_SECRET non configurata.");
   }
 
-  return `${username}:${password}`;
+  return secret;
 }
 
-async function getSigningKey() {
-  return crypto.subtle.importKey(
-    "raw",
-    encoder.encode(getAdminSecret()),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign", "verify"]
-  );
-}
-
-function bytesToHex(bytes: Uint8Array) {
-  return Array.from(bytes)
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-function hexToBytes(hex: string) {
-  if (!/^[0-9a-f]+$/i.test(hex) || hex.length % 2 !== 0) {
-    return null;
-  }
-
-  const bytes = new Uint8Array(hex.length / 2);
-
-  for (let i = 0; i < bytes.length; i += 1) {
-    bytes[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16);
-  }
-
-  return bytes;
+function sign(payload: string) {
+  return createHmac("sha256", getSecret())
+    .update(payload)
+    .digest("base64url");
 }
 
 export async function createAdminSessionToken() {
-  const expiresAt = Math.floor(Date.now() / 1000) + ADMIN_SESSION_MAX_AGE;
-  const payload = `v1.${expiresAt}`;
-  const key = await getSigningKey();
+  const payload = Buffer.from(
+    JSON.stringify({
+      exp: Math.floor(Date.now() / 1000) + ADMIN_SESSION_MAX_AGE,
+      scope: "qmn-admin",
+    })
+  ).toString("base64url");
 
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    encoder.encode(payload)
-  );
-
-  return `${payload}.${bytesToHex(new Uint8Array(signature))}`;
+  return `${payload}.${sign(payload)}`;
 }
 
-export async function verifyAdminSessionToken(token: string | undefined) {
+export function verifyAdminSessionToken(token?: string | null) {
   if (!token) return false;
 
-  const parts = token.split(".");
-  if (parts.length !== 3) return false;
+  const [payload, signature] = token.split(".");
 
-  const [version, expiresAtRaw, signatureHex] = parts;
+  if (!payload || !signature) {
+    return false;
+  }
 
-  if (version !== "v1") return false;
+  const expected = sign(payload);
 
-  const expiresAt = Number(expiresAtRaw);
+  const receivedBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
 
-  if (!Number.isInteger(expiresAt)) return false;
-  if (expiresAt <= Math.floor(Date.now() / 1000)) return false;
+  if (
+    receivedBuffer.length !== expectedBuffer.length ||
+    !timingSafeEqual(receivedBuffer, expectedBuffer)
+  ) {
+    return false;
+  }
 
-  const signature = hexToBytes(signatureHex);
-  if (!signature) return false;
+  try {
+    const parsed = JSON.parse(
+      Buffer.from(payload, "base64url").toString("utf8")
+    ) as {
+      exp?: number;
+      scope?: string;
+    };
 
-  const payload = `${version}.${expiresAtRaw}`;
-  const key = await getSigningKey();
-
-  return crypto.subtle.verify(
-    "HMAC",
-    key,
-    signature,
-    encoder.encode(payload)
-  );
+    return (
+      parsed.scope === "qmn-admin" &&
+      typeof parsed.exp === "number" &&
+      parsed.exp > Math.floor(Date.now() / 1000)
+    );
+  } catch {
+    return false;
+  }
 }
 
 export async function isAdminAuthenticated(request: NextRequest) {

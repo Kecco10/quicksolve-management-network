@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const baseUrl = "https://engineering.quicksolve.it";
+const baseUrl = "https://management.quicksolve.it";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -11,7 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/progettista`,
+      url: `${baseUrl}/manager`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,

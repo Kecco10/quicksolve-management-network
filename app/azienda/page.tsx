@@ -308,6 +308,9 @@ export default function CompanyRequestPage() {
   const [finalNotes, setFinalNotes] = useState("");
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requestCode, setRequestCode] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const roleOptions = useMemo(
     () => (roleFamily ? [...roleFamilies[roleFamily]] : []),
@@ -482,14 +485,109 @@ export default function CompanyRequestPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function handlePreviewSubmit() {
-    if (!canContinue) return;
+  async function handleSubmit() {
+    if (!canContinue || isSubmitting) return;
 
-    // In questa prima versione NON viene ancora effettuata alcuna POST.
-    // Dopo l'approvazione dei campi collegheremo questo wizard
-    // a /api/company-requests e alla tabella Supabase definitiva.
-    setSuccess(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    const secondaryRoles = [
+      secondaryRoleFamily1 && secondaryRole1
+        ? {
+            family: secondaryRoleFamily1,
+            role: secondaryRole1,
+            other_role:
+              secondaryRole1 === "Altro" ? secondaryOtherRole1.trim() : null,
+          }
+        : null,
+      secondaryRoleFamily2 && secondaryRole2
+        ? {
+            family: secondaryRoleFamily2,
+            role: secondaryRole2,
+            other_role:
+              secondaryRole2 === "Altro" ? secondaryOtherRole2.trim() : null,
+          }
+        : null,
+    ].filter(Boolean);
+
+    try {
+      const response = await fetch("/api/company-requests", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          company_name: companyName.trim(),
+          company_type: companyType,
+          other_company_type:
+            companyType === "Altro" ? otherCompanyType.trim() : "",
+          company_size: companySize,
+          company_sector: companySector,
+          other_company_sector:
+            companySector === "Altro" ? otherCompanySector.trim() : "",
+
+          contact_first_name: contactFirstName.trim(),
+          contact_last_name: contactLastName.trim(),
+          contact_role: contactRole.trim(),
+          contact_email: contactEmail.trim(),
+          contact_phone: contactPhone.trim(),
+          request_reason: requestReason,
+          other_request_reason:
+            requestReason === "Altro" ? otherRequestReason.trim() : "",
+          request_objective: requestObjective.trim(),
+
+          role_family: roleFamily,
+          primary_role: primaryRole,
+          other_role: primaryRole === "Altro" ? otherRole.trim() : "",
+          secondary_roles: secondaryRoles,
+          experience_band: experience,
+          managerial_experience_band: managerialExperience,
+          people_managed_band: peopleManagedBand,
+          pnl_band: pnlBand,
+          competencies,
+          other_competency:
+            competencies.includes("Altro") ? otherCompetency.trim() : "",
+
+          production_types: productionTypes,
+          sectors,
+          other_sector: sectors.includes("Altro") ? otherSector.trim() : "",
+          methodologies,
+          other_methodology:
+            methodologies.includes("Altro") ? otherMethodology.trim() : "",
+          region,
+          province,
+          travel_required: travelRequired,
+
+          assignment_types: assignmentTypes,
+          days_per_week: Number(daysPerWeek),
+          start_date: startDate,
+          daily_rate_band: dailyRateBand,
+          required_certifications: requiredCertifications.trim(),
+          required_languages: requiredLanguages.trim(),
+          final_notes: finalNotes.trim(),
+          privacy_acknowledged: privacyAcknowledged,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Impossibile inviare la richiesta.");
+      }
+
+      setRequestCode(data.request?.request_code ?? "");
+      setSuccess(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) {
+      console.error("Errore invio richiesta aziendale:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Impossibile inviare la richiesta. Riprova."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   if (success) {
@@ -501,21 +599,29 @@ export default function CompanyRequestPage() {
           </div>
 
           <h1 className="mt-6 text-3xl font-bold text-slate-900">
-            Anteprima richiesta completata
+            Richiesta inviata
           </h1>
 
           <p className="mx-auto mt-4 max-w-xl text-lg leading-8 text-slate-600">
-            Il wizard è completo. In questa fase di revisione i dati non
-            vengono ancora salvati nel database.
+            Abbiamo ricevuto la richiesta. Il team QuickSolve potrà ora
+            prenderla in carico dal CRM Management Network.
           </p>
+
+          {requestCode && (
+            <div className="mt-5 inline-flex rounded-xl bg-[#eef3f8] px-4 py-2 text-sm font-bold text-[#0b2340]">
+              Codice richiesta: {requestCode}
+            </div>
+          )}
 
           <button
             type="button"
             onClick={() => {
               setSuccess(false);
               setCurrentStep(0);
+              setRequestCode("");
+              setSubmitError("");
             }}
-            className="mt-7 rounded-2xl border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="mt-7 block w-full rounded-2xl border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 sm:mx-auto sm:w-fit"
           >
             Torna al wizard
           </button>
@@ -1140,11 +1246,11 @@ export default function CompanyRequestPage() {
                 </label>
               </div>
 
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-                <strong>Versione di revisione:</strong> il pulsante finale
-                completa solo l&apos;anteprima del wizard. Nessun dato viene
-                ancora inviato a Supabase.
-              </div>
+              {submitError && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+                  {submitError}
+                </div>
+              )}
             </section>
           )}
 
@@ -1170,11 +1276,11 @@ export default function CompanyRequestPage() {
             ) : (
               <button
                 type="button"
-                onClick={handlePreviewSubmit}
-                disabled={!canContinue}
+                onClick={handleSubmit}
+                disabled={!canContinue || isSubmitting}
                 className="rounded-2xl bg-[#0b2340] px-7 py-3.5 font-semibold text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Completa anteprima
+                {isSubmitting ? "Invio in corso..." : "Invia richiesta"}
               </button>
             )}
           </div>

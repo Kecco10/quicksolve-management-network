@@ -3,13 +3,27 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 const mobileAdminLinks = [
-  { href: "/admin/progettisti", label: "Progettisti" },
-  { href: "/admin/richieste", label: "Richieste" },
-  { href: "/admin/matching", label: "Matching" },
+  {
+    href: "/admin/manager",
+    label: "Manager",
+  },
+  {
+    href: "/admin/richieste",
+    label: "Richieste",
+  },
+  {
+    href: "/admin/matching",
+    label: "Matching",
+  },
+  {
+    href: "/admin/crm",
+    label: "Statistiche",
+  },
 ];
 
 export default function AdminLayoutClient({
@@ -18,20 +32,23 @@ export default function AdminLayoutClient({
   children: ReactNode;
 }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/admin";
+
+  const isLoginPage =
+    pathname === "/admin";
 
   if (isLoginPage) {
     return (
-      <div className="min-h-screen bg-[#f7f6f2] text-neutral-900">
+      <div className="min-h-screen bg-[#f5f7fa] text-neutral-900">
         {children}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#f7f6f2] text-neutral-900">
+    <div className="min-h-screen overflow-x-hidden bg-[#f5f7fa] text-neutral-900">
       <div className="flex min-h-screen">
-        {/* Desktop: sidebar originale, invariata */}
+
+        {/* SIDEBAR DESKTOP */}
         <div className="hidden lg:block">
           <AdminSidebar />
         </div>
@@ -39,26 +56,33 @@ export default function AdminLayoutClient({
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
           <AdminHeader />
 
-          {/* Mobile: navigazione compatta. Da lg in su non esiste visivamente. */}
-          <nav className="border-b border-neutral-200 bg-white lg:hidden">
+          {/* NAVIGAZIONE MOBILE */}
+          <nav className="border-b border-slate-200 bg-white lg:hidden">
             <div className="flex w-full gap-2 overflow-x-auto px-3 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {mobileAdminLinks.map((item) => {
-                const active = pathname.startsWith(item.href);
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                      active
-                        ? "bg-teal-700 text-white"
-                        : "border border-neutral-200 bg-white text-neutral-700"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
+              {mobileAdminLinks.map(
+                (item) => {
+                  const active =
+                    pathname.startsWith(
+                      item.href
+                    );
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                        active
+                          ? "bg-[#0b2340] text-white"
+                          : "border border-slate-200 bg-white text-slate-700"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                }
+              )}
+
             </div>
           </nav>
 

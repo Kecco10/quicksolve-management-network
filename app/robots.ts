@@ -4,16 +4,15 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/progettista", "/azienda"],
+      allow: ["/", "/manager", "/azienda"],
       disallow: [
         "/admin/",
         "/api/",
-        "/dashboard/",
-        "/login",
-        "/forgot-password",
+        "/manager/dashboard/",
+        "/manager/login",
       ],
     },
-    sitemap: "https://engineering.quicksolve.it/sitemap.xml",
-    host: "https://engineering.quicksolve.it",
+    sitemap: "https://management.quicksolve.it/sitemap.xml",
+    host: "https://management.quicksolve.it",
   };
 }

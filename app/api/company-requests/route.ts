@@ -1,493 +1,688 @@
-import { NextRequest, NextResponse } from "next/server";
+import {
+  NextRequest,
+  NextResponse,
+} from "next/server";
+
 import { createClient } from "@supabase/supabase-js";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-  throw new Error("Missing Supabase environment variables.");
-}
+function getSupabaseAdmin() {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-type RatedCad = {
-  nome: string;
-  livello: number;
-};
-
-type CreateCompanyRequestPayload = {
-  companyName?: string;
-  companyType?: string;
-  companyTypeOther?: string;
-  companySize?: string;
-  companySector?: string;
-  companySectorOther?: string;
-  contactName?: string;
-  contactRole?: string;
-  contactPhone?: string;
-  contactEmail?: string;
-  employmentType?: string;
-  experienceLevel?: string;
-  jobDescription?: string;
-  employeeEconomicRange?: string;
-  freelanceEconomicRange?: string;
-  experienceSectors?: string[];
-  otherSectorText?: string;
-  cadSkills?: { name?: string; selected?: boolean }[];
-  otherSoftwareText?: string;
-  selectedRegion?: string;
-  selectedProvince?: string;
-  isRemote?: boolean;
-  workModes?: string[];
-  note?: string;
-  privacyAcknowledged?: boolean;
-  privacyVersion?: string;
-  termsAccepted?: boolean;
-  termsVersion?: string;
-};
-
-function cleanString(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function toBoolean(value: unknown) {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    if (["true", "1", "si", "sì", "yes"].includes(normalized)) return true;
-    if (["false", "0", "no"].includes(normalized)) return false;
-  }
-  if (typeof value === "number") return value === 1;
-  return false;
-}
-
-function normalizeTipologia(value: unknown) {
-  const normalized = cleanString(value).toLowerCase();
-  if (normalized.includes("freelance") || normalized.includes("partita iva")) return "Freelancer";
-  if (normalized.includes("part-time") || normalized.includes("part time")) return "Part-time";
-  return "Full time";
-}
-
-function normalizeEsperienza(value: unknown) {
-  const normalized = cleanString(value).toLowerCase();
-  if (normalized.includes("responsabile ufficio tecnico") || normalized.includes("resp. ufficio tecnico")) return "Resp. ufficio tecnico";
-  if (normalized.includes("senior")) return "Senior";
-  if (normalized.includes("middle")) return "Middle";
-  return "Junior";
-}
-
-function normalizeCompanySize(value: unknown) {
-  const normalized = cleanString(value).toLowerCase();
-  if (normalized.includes("grande") || normalized.includes("250-999") || normalized.includes("oltre 1000")) return "Grande impresa";
-  if (normalized.includes("media") || normalized.includes("50-249")) return "Media impresa";
-  if (normalized.includes("piccola") || normalized.includes("1-9") || normalized.includes("10-49")) return "Piccola impresa";
-  return "Piccola impresa";
-}
-
-function normalizeCadSkills(value: unknown): RatedCad[] {
-  if (!Array.isArray(value)) return [];
-
-  const normalized = value
-    .map((item) => {
-      if (typeof item === "string") {
-        const nome = cleanString(item);
-        return nome ? { nome, livello: 5 } : null;
-      }
-
-      if (!item || typeof item !== "object") return null;
-
-      const source = item as Record<string, unknown>;
-      // Some older payloads may omit "selected" because the array already
-      // contains only the selected CADs. Treat those entries as selected.
-      if (source.selected !== undefined && !toBoolean(source.selected)) return null;
-
-      const nome = cleanString(source.name ?? source.nome ?? source.label ?? source.software ?? source.cad);
-      const livelloRaw = source.livello ?? source.level ?? source.rating ?? source.valore ?? 5;
-      const livello = typeof livelloRaw === "number" ? livelloRaw : Number(livelloRaw);
-
-      if (!nome) return null;
-      return { nome, livello: Number.isFinite(livello) ? livello : 5 };
-    })
-    .filter((item): item is RatedCad => Boolean(item));
-
-  return normalized.filter(
-    (item, index, array) =>
-      array.findIndex((candidate) => candidate.nome.toLowerCase() === item.nome.toLowerCase()) === index
-  );
-}
-
-function normalizeRatedCadList(value: unknown): RatedCad[] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => {
-      if (!item || typeof item !== "object") return null;
-      const source = item as Record<string, unknown>;
-      const nome = cleanString(source.nome ?? source.name ?? source.label ?? source.software ?? source.cad);
-      const livelloRaw = source.livello ?? source.level ?? source.rating ?? source.valore ?? 5;
-      const livello = typeof livelloRaw === "number" ? livelloRaw : typeof livelloRaw === "string" ? Number(livelloRaw) : 5;
-      if (!nome) return null;
-      return { nome, livello: Number.isFinite(livello) ? livello : 5 };
-    })
-    .filter((item): item is RatedCad => Boolean(item));
-}
-
-function normalizeBudgetRange(value: unknown) {
-  const normalized = cleanString(value);
-  if (!normalized) return "";
-
-  const aliases: Record<string, string> = {
-    "60.000+ €": "> 60.000 €",
-    "50+ €/h": "> 50 €/h",
-  };
-
-  return aliases[normalized] ?? normalized;
-}
-
-function pickBudgetRange(body: CreateCompanyRequestPayload, tipologia: string) {
-  if (tipologia === "Freelancer") {
-    return normalizeBudgetRange(body.freelanceEconomicRange) || normalizeBudgetRange(body.employeeEconomicRange);
-  }
-  return normalizeBudgetRange(body.employeeEconomicRange) || normalizeBudgetRange(body.freelanceEconomicRange);
-}
-
-function buildZonaOperativa(isRemote: boolean, regione: string, provincia: string) {
-  const presence = provincia || regione;
-  if (isRemote && presence) return `Remoto + Presenza (${presence})`;
-  if (isRemote) return "Remoto";
-  return presence;
-}
-
-function buildNextRequestCode(currentRequests: { codice: string | null }[]) {
-  const maxNumber = currentRequests.reduce((max, item) => {
-    const current = Number(String(item.codice ?? "").replace(/\D/g, ""));
-    return Number.isFinite(current) && current > max ? current : max;
-  }, 0);
-  return `RQ-${String(maxNumber + 1).padStart(3, "0")}`;
-}
-
-function adminUnauthorized() {
-  return NextResponse.json(
-    { error: "Accesso amministratore non autorizzato." },
-    { status: 401 }
-  );
-}
-
-export async function GET(request: NextRequest) {
-  if (!(await isAdminAuthenticated(request))) {
-    return adminUnauthorized();
-  }
-
-  const { data, error } = await supabase
-    .from("company_requests")
-    .select("*")
-    .order("id", { ascending: false });
-
-  if (error) {
-    return NextResponse.json(
-      { error: "Errore nel caricamento delle richieste.", details: error.message },
-      { status: 500 }
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "Configurazione Supabase mancante."
     );
   }
 
-  const requests = data ?? [];
-  const requestIds = requests
-    .map((item) => Number(item.id))
-    .filter((id) => Number.isFinite(id));
+  return createClient(
+    supabaseUrl,
+    serviceRoleKey,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+}
 
-  if (requestIds.length === 0) {
-    return NextResponse.json({ requests: [] });
+function normalizeText(
+  value: unknown
+) {
+  return typeof value === "string"
+    ? value.trim()
+    : "";
+}
+
+function normalizeStringArray(
+  value: unknown
+) {
+  if (!Array.isArray(value)) {
+    return [];
   }
 
-  const { data: paidPurchases, error: paidPurchasesError } = await supabase
-    .from("purchases")
-    .select(
-      "id, request_id, plan_id, selected_count, paid_at, stripe_checkout_session_id, pdf_storage_path"
+  return value
+    .filter(
+      (
+        item
+      ): item is string =>
+        typeof item === "string"
     )
-    .eq("status", "paid")
-    .in("request_id", requestIds)
-    .order("paid_at", { ascending: false });
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
 
-  if (paidPurchasesError) {
+function normalizeSecondaryRoles(
+  value: unknown
+) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(
+      (
+        item
+      ): item is Record<
+        string,
+        unknown
+      > =>
+        Boolean(item) &&
+        typeof item === "object"
+    )
+    .map((item) => ({
+      family:
+        normalizeText(item.family),
+
+      role:
+        normalizeText(item.role),
+
+      other_role:
+        normalizeText(
+          item.other_role
+        ) || null,
+    }))
+    .filter(
+      (item) =>
+        item.family &&
+        item.role
+    )
+    .slice(0, 2);
+}
+
+function createRequestCode() {
+  const date = new Date()
+    .toISOString()
+    .slice(0, 10)
+    .replaceAll("-", "");
+
+  const randomCode =
+    crypto.randomUUID()
+      .slice(0, 6)
+      .toUpperCase();
+
+  return `QMN-${date}-${randomCode}`;
+}
+
+/* ============================================================
+   GET — CRM
+   ============================================================ */
+
+export async function GET(
+  request: NextRequest
+) {
+  const isAdmin =
+    await isAdminAuthenticated(request);
+
+  if (!isAdmin) {
     return NextResponse.json(
       {
-        error: "Errore nel caricamento dello stato pagamenti.",
-        details: paidPurchasesError.message,
+        error: "Non autorizzato",
       },
-      { status: 500 }
+      {
+        status: 401,
+      }
     );
   }
 
-  const latestPaidPurchaseByRequest = new Map<number, Record<string, unknown>>();
+  try {
+    const supabase =
+      getSupabaseAdmin();
 
-  for (const purchase of paidPurchases ?? []) {
-    const requestId = Number(purchase.request_id);
-    if (!Number.isFinite(requestId) || latestPaidPurchaseByRequest.has(requestId)) {
-      continue;
+    const { data, error } =
+      await supabase
+        .from(
+          "management_company_requests"
+        )
+        .select("*")
+        .order("created_at", {
+          ascending: false,
+        });
+
+    if (error) {
+      throw error;
     }
 
-    latestPaidPurchaseByRequest.set(requestId, purchase as Record<string, unknown>);
-  }
-
-  const enrichedRequests = requests.map((item) => {
-    const paidPurchase = latestPaidPurchaseByRequest.get(Number(item.id));
-    const stripeSessionId = cleanString(
-      paidPurchase?.stripe_checkout_session_id
+    return NextResponse.json({
+      requests: data ?? [],
+    });
+  } catch (error) {
+    console.error(
+      "GET management company requests:",
+      error
     );
 
-    return {
-      ...item,
-      completed: Boolean(paidPurchase),
-      completed_at: paidPurchase?.paid_at ?? null,
-      completed_purchase_id: paidPurchase?.id ?? null,
-      completed_plan_id: paidPurchase?.plan_id ?? null,
-      completed_selected_count: paidPurchase?.selected_count ?? null,
-      pdf_storage_path: paidPurchase?.pdf_storage_path ?? null,
-      purchase_pdf_url: stripeSessionId
-        ? `/api/purchases/pdf?session_id=${encodeURIComponent(stripeSessionId)}`
-        : null,
-    };
-  });
-
-  return NextResponse.json({ requests: enrichedRequests });
+    return NextResponse.json(
+      {
+        error:
+          "Impossibile caricare le richieste.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }
 
-export async function POST(request: NextRequest) {
+/* ============================================================
+   POST — FORM AZIENDA
+   ============================================================ */
+
+export async function POST(
+  request: NextRequest
+) {
   try {
-    const body = (await request.json()) as CreateCompanyRequestPayload;
-
-    const companyName = cleanString(body.companyName);
-    const companyType = cleanString(body.companyType);
-    const companyTypeOther = cleanString(body.companyTypeOther);
-    const companySize = normalizeCompanySize(body.companySize);
-    const companySector = cleanString(body.companySector);
-    const companySectorOther = cleanString(body.companySectorOther);
-    const contactName = cleanString(body.contactName);
-    const contactRole = cleanString(body.contactRole);
-    const contactPhone = cleanString(body.contactPhone);
-    const contactEmail = cleanString(body.contactEmail);
-    const employmentType = cleanString(body.employmentType);
-    const tipologia = normalizeTipologia(employmentType);
-    const esperienza = normalizeEsperienza(body.experienceLevel);
-    const employeeRange = cleanString(body.employeeEconomicRange);
-    const freelanceRange = cleanString(body.freelanceEconomicRange);
-    const budgetRange = pickBudgetRange(body, tipologia);
-    const jobDescription = cleanString(body.jobDescription);
-    const regione = cleanString(body.selectedRegion);
-    const provincia = cleanString(body.selectedProvince);
-    const isRemote = toBoolean(body.isRemote) || (Array.isArray(body.workModes) && body.workModes.includes("Remoto"));
-    const zonaOperativa = buildZonaOperativa(isRemote, regione, provincia);
-    const selectedSectors = Array.isArray(body.experienceSectors)
-      ? body.experienceSectors.map(cleanString).filter(Boolean)
-      : [];
-
-    const companySectorValue = cleanString(body.companySector);
-    const companySectorOtherValue = cleanString(body.companySectorOther);
-    const otherSectorValue = cleanString(body.otherSectorText);
-
-    // These are two different fields in the request form:
-    // 1) companySector = the company's own sector
-    // 2) experienceSectors/otherSectorText = sectors requested for the profile
-    const settorePrincipale =
-      companySectorValue === "Altro"
-        ? companySectorOtherValue || "Altro"
-        : companySectorValue || "Non indicato";
-
-    const requestedSectors = [
-      ...selectedSectors,
-      otherSectorValue,
-    ]
-      .map(cleanString)
-      .filter(Boolean)
-      .filter((value, index, array) => array.indexOf(value) === index);
-    const cadRichiesti = normalizeCadSkills(body.cadSkills);
-    const altroCad = normalizeRatedCadList(body.otherSoftwareText ? [{ nome: body.otherSoftwareText, livello: 5 }] : []);
-    const note = cleanString(body.note) || null;
-    const privacyAcknowledged = body.privacyAcknowledged === true;
-    const privacyVersion = cleanString(body.privacyVersion);
-    const termsAccepted = body.termsAccepted === true;
-    const termsVersion = cleanString(body.termsVersion);
-
-    if (!privacyAcknowledged || !privacyVersion || !termsAccepted || !termsVersion) {
-      return NextResponse.json(
-        {
-          error: "Privacy e Condizioni di utilizzo non accettate.",
-          details: "È necessario prendere visione dell'Informativa Privacy e accettare le Condizioni di utilizzo prima dell'invio.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!companyName || !contactName || !contactEmail || !contactPhone || !employmentType || !jobDescription) {
-      return NextResponse.json(
-        {
-          error: "Campi obbligatori mancanti.",
-          details: "companyName, contactName, contactEmail, contactPhone, employmentType e jobDescription sono obbligatori.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(contactEmail)) {
-      return NextResponse.json(
-        {
-          error: "Email referente non valida.",
-          details: "Inserisci un indirizzo email valido prima di inviare la richiesta.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const { data: currentRequests, error: codeError } = await supabase
-      .from("company_requests")
-      .select("codice")
-      .not("codice", "is", null);
-
-    if (codeError) {
-      return NextResponse.json(
-        { error: "Errore nella generazione del codice richiesta.", details: codeError.message },
-        { status: 500 }
-      );
-    }
+    const body =
+      (await request.json()) as Record<
+        string,
+        unknown
+      >;
 
     const payload = {
-      codice: buildNextRequestCode((currentRequests ?? []) as { codice: string | null }[]),
-      azienda: companyName,
-      referente: contactName,
-      email: contactEmail,
-      telefono: contactPhone,
-      linkedin: null,
-      datarichiesta: new Date().toISOString(),
-      jobtitle: cleanString(body.contactRole) || "Figura tecnica richiesta",
-      tipologia,
-      budgetrange: budgetRange,
-      esperienza,
-      regione,
-      provincia,
-      isremote: isRemote,
-      zonaoperativa: zonaOperativa,
-      // Company sector and requested experience sectors are intentionally separate.
-      settoreprincipale: settorePrincipale,
-      altrosettore:
-        companySectorValue === "Altro" ? companySectorOtherValue || null : null,
-      experience_sectors: requestedSectors,
-      cadrichiesti: cadRichiesti,
-      altrocad: altroCad,
-      companysize: companySize,
-      employeerange: cleanString(body.companySize) || null,
-      jobdescription: jobDescription,
-      note,
-      archived: false,
-      privacy_version: privacyVersion,
-      privacy_acknowledged_at: new Date().toISOString(),
-      terms_version: termsVersion,
-      terms_accepted_at: new Date().toISOString(),
+      request_code:
+        createRequestCode(),
+
+      company_name:
+        normalizeText(
+          body.company_name
+        ),
+
+      company_type:
+        normalizeText(
+          body.company_type
+        ),
+
+      other_company_type:
+        normalizeText(
+          body.other_company_type
+        ) || null,
+
+      company_size:
+        normalizeText(
+          body.company_size
+        ),
+
+      company_sector:
+        normalizeText(
+          body.company_sector
+        ),
+
+      other_company_sector:
+        normalizeText(
+          body.other_company_sector
+        ) || null,
+
+      contact_first_name:
+        normalizeText(
+          body.contact_first_name
+        ),
+
+      contact_last_name:
+        normalizeText(
+          body.contact_last_name
+        ),
+
+      contact_role:
+        normalizeText(
+          body.contact_role
+        ),
+
+      contact_email:
+        normalizeText(
+          body.contact_email
+        ).toLowerCase(),
+
+      contact_phone:
+        normalizeText(
+          body.contact_phone
+        ),
+
+      request_reason:
+        normalizeText(
+          body.request_reason
+        ),
+
+      other_request_reason:
+        normalizeText(
+          body.other_request_reason
+        ) || null,
+
+      request_objective:
+        normalizeText(
+          body.request_objective
+        ),
+
+      role_family:
+        normalizeText(
+          body.role_family
+        ),
+
+      primary_role:
+        normalizeText(
+          body.primary_role
+        ),
+
+      other_role:
+        normalizeText(
+          body.other_role
+        ) || null,
+
+      secondary_roles:
+        normalizeSecondaryRoles(
+          body.secondary_roles
+        ),
+
+      experience_band:
+        normalizeText(
+          body.experience_band
+        ),
+
+      managerial_experience_band:
+        normalizeText(
+          body.managerial_experience_band
+        ),
+
+      people_managed_band:
+        normalizeText(
+          body.people_managed_band
+        ),
+
+      pnl_band:
+        normalizeText(
+          body.pnl_band
+        ),
+
+      competencies:
+        normalizeStringArray(
+          body.competencies
+        ),
+
+      other_competency:
+        normalizeText(
+          body.other_competency
+        ) || null,
+
+      production_types:
+        normalizeStringArray(
+          body.production_types
+        ),
+
+      sectors:
+        normalizeStringArray(
+          body.sectors
+        ),
+
+      other_sector:
+        normalizeText(
+          body.other_sector
+        ) || null,
+
+      methodologies:
+        normalizeStringArray(
+          body.methodologies
+        ),
+
+      other_methodology:
+        normalizeText(
+          body.other_methodology
+        ) || null,
+
+      region:
+        normalizeText(
+          body.region
+        ),
+
+      province:
+        normalizeText(
+          body.province
+        ),
+
+      travel_required:
+        body.travel_required === true,
+
+      assignment_types:
+        normalizeStringArray(
+          body.assignment_types
+        ),
+
+      days_per_week:
+        Number(
+          body.days_per_week
+        ),
+
+      start_date:
+        normalizeText(
+          body.start_date
+        ),
+
+      daily_rate_band:
+        normalizeText(
+          body.daily_rate_band
+        ),
+
+      required_certifications:
+        normalizeText(
+          body.required_certifications
+        ) || null,
+
+      required_languages:
+        normalizeText(
+          body.required_languages
+        ) || null,
+
+      final_notes:
+        normalizeText(
+          body.final_notes
+        ) || null,
+
+      privacy_acknowledged:
+        body.privacy_acknowledged ===
+        true,
+
+      status: "new",
     };
 
-    const { data, error } = await supabase
-      .from("company_requests")
-      .insert(payload)
-      .select("*")
-      .single();
+    const requiredStrings = [
+      payload.company_name,
+      payload.company_type,
+      payload.company_size,
+      payload.company_sector,
+      payload.contact_first_name,
+      payload.contact_last_name,
+      payload.contact_role,
+      payload.contact_email,
+      payload.contact_phone,
+      payload.request_reason,
+      payload.request_objective,
+      payload.role_family,
+      payload.primary_role,
+      payload.experience_band,
+      payload.managerial_experience_band,
+      payload.people_managed_band,
+      payload.pnl_band,
+      payload.region,
+      payload.province,
+      payload.start_date,
+      payload.daily_rate_band,
+    ];
 
-    if (error) {
+    const invalid =
+      requiredStrings.some(
+        (value) => !value
+      ) ||
+      payload.competencies.length ===
+        0 ||
+      payload.production_types.length ===
+        0 ||
+      payload.sectors.length === 0 ||
+      payload.methodologies.length ===
+        0 ||
+      payload.assignment_types.length ===
+        0 ||
+      !Number.isInteger(
+        payload.days_per_week
+      ) ||
+      payload.days_per_week < 1 ||
+      payload.days_per_week > 5 ||
+      !payload.privacy_acknowledged;
+
+    if (invalid) {
       return NextResponse.json(
-        { error: "Errore nel salvataggio della richiesta.", details: error.message, payload },
-        { status: 500 }
+        {
+          error:
+            "Compila tutti i campi obbligatori.",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    return NextResponse.json({ request: data }, { status: 201 });
-  } catch (error) {
+    const supabase =
+      getSupabaseAdmin();
+
+    const { data, error } =
+      await supabase
+        .from(
+          "management_company_requests"
+        )
+        .insert(payload)
+        .select(
+          `
+          id,
+          request_code,
+          status,
+          created_at
+        `
+        )
+        .single();
+
+    if (error) {
+      throw error;
+    }
+
     return NextResponse.json(
       {
-        error: "Errore nella creazione della richiesta.",
-        details: error instanceof Error ? error.message : "Unknown error",
+        ok: true,
+        request: data,
       },
-      { status: 500 }
+      {
+        status: 201,
+      }
+    );
+  } catch (error) {
+    console.error(
+      "POST management company request:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          "Impossibile salvare la richiesta.",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
 
-export async function PATCH(request: NextRequest) {
-  if (!(await isAdminAuthenticated(request))) {
-    return adminUnauthorized();
+/* ============================================================
+   PATCH — STATO CRM
+   ============================================================ */
+
+export async function PATCH(
+  request: NextRequest
+) {
+  const isAdmin =
+    await isAdminAuthenticated(request);
+
+  if (!isAdmin) {
+    return NextResponse.json(
+      {
+        error: "Non autorizzato",
+      },
+      {
+        status: 401,
+      }
+    );
   }
 
   try {
-    const body = await request.json();
-    const ids = Array.isArray(body?.ids)
-      ? body.ids.map((value: unknown) => Number(value)).filter((value: number) => Number.isFinite(value))
-      : [];
-    const archived = toBoolean(body?.archived);
+    const body =
+      (await request.json()) as Record<
+        string,
+        unknown
+      >;
 
-    if (ids.length === 0) {
-      return NextResponse.json({ error: "Nessun ID valido ricevuto." }, { status: 400 });
-    }
+    const id = Number(body.id);
 
-    const { data, error } = await supabase
-      .from("company_requests")
-      .update({ archived })
-      .in("id", ids)
-      .select("id, archived");
+    const status =
+      normalizeText(body.status);
 
-    if (error) {
+    const allowedStatuses =
+      new Set([
+        "new",
+        "in_review",
+        "matched",
+        "closed",
+        "archived",
+      ]);
+
+    if (
+      !Number.isInteger(id) ||
+      id <= 0 ||
+      !allowedStatuses.has(status)
+    ) {
       return NextResponse.json(
-        { error: "Errore durante l'aggiornamento delle richieste.", details: error.message },
-        { status: 500 }
+        {
+          error: "Dati non validi.",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    return NextResponse.json({ success: true, updated: data ?? [] });
+    const supabase =
+      getSupabaseAdmin();
+
+    const { data, error } =
+      await supabase
+        .from(
+          "management_company_requests"
+        )
+        .update({
+          status,
+          updated_at:
+            new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select("*")
+        .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.json({
+      request: data,
+    });
   } catch (error) {
+    console.error(
+      "PATCH management company request:",
+      error
+    );
+
     return NextResponse.json(
       {
-        error: "Errore durante l'aggiornamento delle richieste.",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error:
+          "Impossibile aggiornare la richiesta.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
 
-export async function DELETE(request: NextRequest) {
-  if (!(await isAdminAuthenticated(request))) {
-    return adminUnauthorized();
+/* ============================================================
+   DELETE — CRM
+   ============================================================ */
+
+export async function DELETE(
+  request: NextRequest
+) {
+  const isAdmin =
+    await isAdminAuthenticated(request);
+
+  if (!isAdmin) {
+    return NextResponse.json(
+      {
+        error: "Non autorizzato",
+      },
+      {
+        status: 401,
+      }
+    );
   }
 
   try {
-    const body = await request.json();
-    const ids = Array.isArray(body?.ids)
-      ? body.ids.map((value: unknown) => Number(value)).filter((value: number) => Number.isFinite(value))
-      : [];
+    const body =
+      (await request.json()) as {
+        ids?: unknown[];
+      };
+
+    const ids = [
+      ...new Set(
+        (
+          Array.isArray(body.ids)
+            ? body.ids
+            : []
+        )
+          .map(Number)
+          .filter(
+            (value) =>
+              Number.isInteger(value) &&
+              value > 0
+          )
+      ),
+    ];
 
     if (ids.length === 0) {
-      return NextResponse.json({ error: "Nessun ID valido ricevuto." }, { status: 400 });
-    }
-
-    const { error } = await supabase.from("company_requests").delete().in("id", ids);
-
-    if (error) {
       return NextResponse.json(
-        { error: "Errore durante l'eliminazione delle richieste.", details: error.message },
-        { status: 500 }
+        {
+          error:
+            "Nessuna richiesta selezionata.",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    return NextResponse.json({ success: true, deletedIds: ids });
+    const supabase =
+      getSupabaseAdmin();
+
+    const { error } =
+      await supabase
+        .from(
+          "management_company_requests"
+        )
+        .delete()
+        .in("id", ids);
+
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.json({
+      ok: true,
+      deletedIds: ids,
+    });
   } catch (error) {
+    console.error(
+      "DELETE management company requests:",
+      error
+    );
+
     return NextResponse.json(
       {
-        error: "Errore durante l'eliminazione delle richieste.",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error:
+          "Impossibile eliminare le richieste.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

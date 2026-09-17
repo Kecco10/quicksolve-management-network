@@ -1,88 +1,180 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import {
+  FormEvent,
+  useState,
+} from "react";
+
 import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  const [username, setUsername] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  const [error, setError] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
     setError("");
     setLoading(true);
 
-    const res = await fetch("/api/admin-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const response = await fetch(
+        "/api/admin-login",
+        {
+          method: "POST",
 
-    setLoading(false);
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      setError(data?.message || "Credenziali non valide");
-      return;
+          body: JSON.stringify({
+            username,
+            password,
+          }),
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "Accesso non riuscito."
+        );
+      }
+
+      router.replace(
+        "/admin/manager"
+      );
+
+      router.refresh();
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Accesso non riuscito."
+      );
+    } finally {
+      setLoading(false);
     }
-
-    router.push("/admin/crm");
-    router.refresh();
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#f7f6f2] px-4">
-      <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
-        <h1 className="text-3xl font-bold text-neutral-900">Accesso CRM</h1>
-        <p className="mt-2 text-sm text-neutral-600">
-          Area riservata QuickSolve Engineering
-        </p>
+    <main className="flex min-h-screen items-center justify-center px-4 py-10">
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-neutral-700">
-              Username
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full rounded-xl border border-neutral-300 px-4 py-3 outline-none focus:border-neutral-500"
-              placeholder="Inserisci username"
-              required
-            />
-          </div>
+      <div className="grid w-full max-w-4xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl md:grid-cols-[0.9fr_1.1fr]">
 
-          <div>
-            <label className="mb-1 block text-sm font-medium text-neutral-700">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-neutral-300 px-4 py-3 outline-none focus:border-neutral-500"
-              placeholder="Inserisci password"
-              required
-            />
-          </div>
+        <section className="bg-[#071b33] p-8 text-white md:p-10">
 
-          {error ? (
-            <p className="text-sm text-red-600">{error}</p>
-          ) : null}
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#9ebbd8]">
+            QuickSolve
+          </p>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-neutral-900 px-4 py-3 text-white transition hover:bg-neutral-800 disabled:opacity-60"
+          <h1 className="mt-5 text-3xl font-bold">
+            Management Network
+          </h1>
+
+          <p className="mt-4 leading-7 text-slate-300">
+            CRM interno per la gestione
+            di manager, richieste aziende
+            e matching.
+          </p>
+
+        </section>
+
+        <section className="p-8 md:p-10">
+
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#164873]">
+            Area riservata
+          </p>
+
+          <h2 className="mt-3 text-3xl font-bold text-slate-900">
+            Accesso CRM
+          </h2>
+
+          <form
+            onSubmit={handleSubmit}
+            className="mt-8 space-y-5"
           >
-            {loading ? "Accesso in corso..." : "Entra nel CRM"}
-          </button>
-        </form>
+
+            <label className="block">
+
+              <span className="mb-2 block text-sm font-semibold text-slate-700">
+                Username
+              </span>
+
+              <input
+                value={username}
+                onChange={(event) =>
+                  setUsername(
+                    event.target.value
+                  )
+                }
+                required
+                autoComplete="username"
+                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:border-[#0b2340] focus:ring-2 focus:ring-[#0b2340]/10"
+              />
+
+            </label>
+
+            <label className="block">
+
+              <span className="mb-2 block text-sm font-semibold text-slate-700">
+                Password
+              </span>
+
+              <input
+                type="password"
+                value={password}
+                onChange={(event) =>
+                  setPassword(
+                    event.target.value
+                  )
+                }
+                required
+                autoComplete="current-password"
+                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:border-[#0b2340] focus:ring-2 focus:ring-[#0b2340]/10"
+              />
+
+            </label>
+
+            {error && (
+              <div className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-2xl bg-[#0b2340] px-5 py-3.5 font-bold text-white transition hover:bg-[#12385f] disabled:opacity-50"
+            >
+              {loading
+                ? "Accesso..."
+                : "Accedi"}
+            </button>
+
+          </form>
+
+        </section>
+
       </div>
+
     </main>
   );
 }

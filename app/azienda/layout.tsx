@@ -2,20 +2,20 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "Cerchi un Progettista Meccanico?",
+  title: "Cerchi un Temporary Manager?",
   description:
-    "Inserisci la tua richiesta su QuickSolve Engineering Network e individua progettisti meccanici compatibili con le esigenze tecniche e operative del tuo progetto.",
+    "Inserisci la tua richiesta su QuickSolve Management Network e descrivi il profilo manageriale, il contesto aziendale e le esigenze dell'incarico.",
 
   alternates: {
-    canonical: "https://engineering.quicksolve.it/azienda",
+    canonical: "https://management.quicksolve.it/azienda",
   },
 
   openGraph: {
     title:
-      "Cerchi un Progettista Meccanico? | QuickSolve Engineering Network",
+      "Cerchi un Temporary Manager? | QuickSolve Management Network",
     description:
-      "QuickSolve Engineering Network aiuta le aziende a individuare progettisti meccanici compatibili con le esigenze del progetto.",
-    url: "https://engineering.quicksolve.it/azienda",
+      "QuickSolve Management Network aiuta le aziende a individuare manager compatibili con le esigenze organizzative, operative e strategiche dell'incarico.",
+    url: "https://management.quicksolve.it/azienda",
     type: "website",
   },
 };

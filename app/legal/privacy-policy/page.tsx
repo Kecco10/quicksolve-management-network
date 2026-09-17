@@ -1,240 +1,349 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Privacy Policy | QuickSolve Engineering Network",
-  description: "Informativa sul trattamento dei dati personali di QuickSolve Engineering Network.",
+  title: "Privacy Policy | QuickSolve Management Network",
+  description:
+    "Informativa generale sul trattamento dei dati personali di QuickSolve Management Network.",
 };
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-[#f7faf8] px-4 py-10 text-slate-800 sm:px-6">
-      <article className="mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-9">
-        <Link href="/" className="text-sm font-semibold text-[#0f3b2e] hover:underline">
+    <main className="min-h-screen bg-[#eef3f8] px-4 py-10 text-slate-800 sm:px-6">
+      <article className="mx-auto max-w-4xl rounded-2xl border border-[#d7e1ec] bg-white p-6 shadow-sm sm:p-9">
+        <Link
+          href="/"
+          className="text-sm font-semibold text-[#164873] hover:underline"
+        >
           ← Torna alla home
         </Link>
 
-        <h1 className="mt-6 text-3xl font-extrabold text-[#0f3b2e]">Privacy Policy</h1>
-        <p className="mt-2 text-sm text-slate-500">Ultimo aggiornamento: 11 settembre 2026</p>
+        <h1 className="mt-6 text-3xl font-extrabold text-[#071b33]">
+          Privacy Policy
+        </h1>
 
-        <div className="mt-8 space-y-7 text-sm leading-7 sm:text-base">
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          Informativa generale sul trattamento dei dati personali nell&apos;ambito
+          di QuickSolve Management Network.
+        </p>
+
+        <div className="mt-8 space-y-8 text-sm leading-7 text-slate-700">
           <section>
-            <h2 className="text-xl font-bold text-[#0f3b2e]">1. Titolare del trattamento</h2>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              1. Titolare del trattamento
+            </h2>
+
             <p className="mt-2">
-              Il Titolare del trattamento è Francesco Nanni, titolare di QuickSolve Engineering Network,
-              P.IVA IT04285011203, con sede in Via Matteotti 30/a, Dozza (BO).
+              Il Titolare del trattamento è Francesco Nanni, P.IVA
+              IT04285011203, gestore di QuickSolve Management Network.
             </p>
-            <p>
-              Per richieste relative alla protezione dei dati personali:{" "}
-              <a
-                className="font-medium text-[#0f3b2e] hover:underline"
-                href="mailto:francesco.nanni@quicksolve.it"
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              2. Ambito dell&apos;informativa
+            </h2>
+
+            <p className="mt-2">
+              La presente Privacy Policy descrive in termini generali le
+              modalità con cui vengono trattati i dati personali degli utenti
+              che visitano o utilizzano QuickSolve Management Network.
+            </p>
+
+            <p className="mt-2">
+              Per specifiche categorie di utenti o funzionalità possono essere
+              disponibili informative dedicate, che integrano la presente
+              informativa generale.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              3. Categorie di dati trattati
+            </h2>
+
+            <p className="mt-2">
+              In funzione delle modalità di utilizzo del servizio possono
+              essere trattati dati identificativi e di contatto, dati relativi
+              all&apos;azienda o all&apos;attività professionale, informazioni
+              relative a richieste aziendali, profili professionali dei
+              manager, esperienze, competenze, disponibilità e altre
+              informazioni fornite direttamente dagli utenti.
+            </p>
+
+            <p className="mt-2">
+              Possono inoltre essere trattati dati tecnici connessi
+              all&apos;utilizzo del sito, alla sicurezza, alle sessioni di
+              autenticazione e al corretto funzionamento della piattaforma.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              4. Finalità del trattamento
+            </h2>
+
+            <p className="mt-2">
+              I dati personali possono essere trattati per consentire
+              l&apos;utilizzo del sito e delle sue funzionalità; gestire la
+              registrazione e l&apos;accesso dei manager; gestire e aggiornare
+              i profili professionali; ricevere e gestire le richieste delle
+              aziende; valutare la possibile coerenza tra esigenze aziendali e
+              profili presenti nel network; gestire eventuali contatti e
+              introduzioni tra le parti; fornire assistenza e garantire la
+              sicurezza del servizio.
+            </p>
+
+            <p className="mt-2">
+              I dati possono inoltre essere trattati per adempiere a obblighi
+              amministrativi, fiscali, contabili o di legge quando tali
+              obblighi risultino applicabili.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              5. Base giuridica
+            </h2>
+
+            <p className="mt-2">
+              A seconda della finalità e del contesto, il trattamento può
+              essere basato sull&apos;esecuzione di un contratto o di misure
+              precontrattuali richieste dall&apos;interessato, sul rispetto di
+              obblighi di legge, sul perseguimento di un legittimo interesse
+              del Titolare oppure sul consenso dell&apos;interessato quando
+              questo sia richiesto dalla normativa applicabile.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              6. Dati dei manager
+            </h2>
+
+            <p className="mt-2">
+              I manager che si registrano al network possono fornire dati
+              identificativi e di contatto, informazioni relative alla propria
+              esperienza professionale e manageriale, ruoli ricoperti,
+              competenze, settori di esperienza, responsabilità gestite,
+              disponibilità, preferenze relative agli incarichi e altre
+              informazioni necessarie alla creazione e alla gestione del
+              profilo.
+            </p>
+
+            <p className="mt-2">
+              Tali informazioni possono essere utilizzate per gestire il
+              profilo del manager e per valutare la possibile coerenza con
+              richieste provenienti dalle aziende.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              7. Dati delle aziende e dei referenti
+            </h2>
+
+            <p className="mt-2">
+              Le aziende possono fornire informazioni relative alla propria
+              organizzazione, ai referenti incaricati e alle caratteristiche
+              del profilo manageriale ricercato e dell&apos;incarico.
+            </p>
+
+            <p className="mt-2">
+              Per maggiori informazioni è disponibile l&apos;{" "}
+              <Link
+                href="/legal/privacy-aziende"
+                className="font-semibold text-[#164873] hover:underline"
               >
-                francesco.nanni@quicksolve.it
-              </a>.
+                Informativa Privacy Aziende
+              </Link>
+              .
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-[#0f3b2e]">2. Dati trattati</h2>
-            <p className="mt-2">Attraverso il sito possono essere trattati, a seconda del servizio utilizzato:</p>
-            <ul className="mt-2 list-disc space-y-1 pl-6">
-              <li>dati identificativi e di contatto, quali nome, cognome, e-mail e telefono;</li>
-              <li>dati relativi all&apos;account e all&apos;autenticazione;</li>
-              <li>
-                informazioni professionali fornite dai progettisti, quali esperienza, competenze, software
-                utilizzati, settori, disponibilità geografica, modalità di collaborazione e fascia economica;
-              </li>
-              <li>
-                dati forniti dalle aziende nelle richieste, inclusi dati aziendali, dati del referente,
-                caratteristiche professionali ricercate e descrizione della richiesta;
-              </li>
-              <li>
-                dati relativi alla selezione dei profili e alla gestione del processo di verifica
-                dell&apos;interesse e di introduzione tra Azienda e Professionista;
-              </li>
-              <li>
-                dati amministrativi e fiscali necessari alla gestione di eventuali servizi a pagamento;
-              </li>
-              <li>dati tecnici e di utilizzo necessari al funzionamento, alla sicurezza e alla gestione del sito;</li>
-              <li>
-                dati relativi all&apos;interazione con il sito raccolti tramite strumenti di tracciamento,
-                ove utilizzati e previo consenso quando richiesto.
-              </li>
-            </ul>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              8. Valutazione delle richieste e dei profili
+            </h2>
+
             <p className="mt-2">
-              Si invita a non inserire nei campi liberi dati personali non necessari o categorie particolari
-              di dati personali non richieste dal servizio.
+              Le informazioni relative alle richieste aziendali e ai profili
+              professionali possono essere utilizzate per individuare
+              potenziali corrispondenze tra le esigenze espresse dalle aziende
+              e le caratteristiche dei manager presenti nel network.
+            </p>
+
+            <p className="mt-2">
+              Le modalità tecniche e organizzative utilizzate a supporto di
+              tali valutazioni possono evolvere con lo sviluppo del servizio.
+              L&apos;eventuale individuazione di una corrispondenza non
+              costituisce una garanzia di idoneità professionale né determina
+              automaticamente la conclusione di un rapporto tra le parti.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-[#0f3b2e]">3. Finalità e basi giuridiche</h2>
-            <div className="mt-3 overflow-x-auto">
-              <table className="w-full min-w-[620px] border-collapse text-left text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="py-2 pr-4">Finalità</th>
-                    <th className="py-2 pr-4">Base giuridica</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-slate-100">
-                    <td className="py-3 pr-4">Registrazione, autenticazione e gestione dell&apos;account</td>
-                    <td className="py-3 pr-4">Esecuzione del servizio richiesto e misure precontrattuali</td>
-                  </tr>
-                  <tr className="border-b border-slate-100">
-                    <td className="py-3 pr-4">Gestione dei profili professionali e delle richieste aziendali</td>
-                    <td className="py-3 pr-4">Esecuzione del servizio richiesto e misure precontrattuali</td>
-                  </tr>
-                  <tr className="border-b border-slate-100">
-                    <td className="py-3 pr-4">
-                      Confronto dei parametri, generazione del livello di compatibilità e visualizzazione dei profili anonimi
-                    </td>
-                    <td className="py-3 pr-4">Esecuzione delle funzionalità richieste dall&apos;utente</td>
-                  </tr>
-                  <tr className="border-b border-slate-100">
-                    <td className="py-3 pr-4">
-                      Gestione delle selezioni, verifica di disponibilità e interesse e facilitazione dell&apos;introduzione
-                    </td>
-                    <td className="py-3 pr-4">
-                      Esecuzione del servizio richiesto, misure precontrattuali e, ove applicabile, rapporto contrattuale
-                    </td>
-                  </tr>
-                  <tr className="border-b border-slate-100">
-                    <td className="py-3 pr-4">Gestione amministrativa, fiscale e contrattuale dei servizi a pagamento</td>
-                    <td className="py-3 pr-4">Esecuzione del contratto e obblighi di legge</td>
-                  </tr>
-                  <tr className="border-b border-slate-100">
-                    <td className="py-3 pr-4">Sicurezza, prevenzione abusi e tutela dei diritti</td>
-                    <td className="py-3 pr-4">Legittimo interesse del Titolare e, ove applicabile, obbligo di legge</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 pr-4">Misurazione pubblicitaria e marketing tramite strumenti non necessari</td>
-                    <td className="py-3 pr-4">Consenso, quando richiesto dalla normativa applicabile</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              9. Modalità del trattamento e sicurezza
+            </h2>
 
-          <section>
-            <h2 className="text-xl font-bold text-[#0f3b2e]">4. Matching, selezione e introduzione</h2>
             <p className="mt-2">
-              QuickSolve utilizza le caratteristiche inserite dagli utenti per confrontare i requisiti delle
-              richieste aziendali con i profili professionali presenti nel network e calcolare un livello di
-              compatibilità.
-            </p>
-            <p className="mt-2">
-              In una prima fase, i profili compatibili possono essere mostrati all&apos;azienda in forma anonima,
-              senza rendere disponibili i dati di contatto direttamente identificativi del professionista.
-            </p>
-            <p className="mt-2">
-              Se l&apos;azienda seleziona uno o più professionisti, QuickSolve può contattarli per verificarne
-              disponibilità e interesse rispetto alla specifica opportunità. In caso di interesse reciproco,
-              QuickSolve può comunicare alle parti i dati necessari per consentire il contatto e facilitare
-              l&apos;introduzione.
-            </p>
-            <p className="mt-2">
-              Il risultato del matching ha funzione di supporto alla ricerca e non costituisce una garanzia
-              sull&apos;idoneità del professionista, sulla sua disponibilità futura o sull&apos;esito di un eventuale
-              rapporto tra le parti.
+              I dati sono trattati prevalentemente mediante strumenti
+              informatici e con misure tecniche e organizzative finalizzate a
+              proteggerli da accessi non autorizzati, perdita, alterazione,
+              divulgazione o utilizzi non compatibili con le finalità del
+              trattamento.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-[#0f3b2e]">5. Modalità del trattamento e sicurezza</h2>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              10. Destinatari dei dati
+            </h2>
+
             <p className="mt-2">
-              I dati sono trattati con strumenti informatici e misure organizzative e tecniche volte a
-              proteggerli da accessi non autorizzati, perdita, divulgazione o modifica indebita. L&apos;accesso
-              ai dati è limitato ai soggetti che ne hanno necessità per le finalità indicate.
+              I dati possono essere trattati dal Titolare, da soggetti
+              autorizzati e da fornitori necessari al funzionamento del
+              servizio, quali fornitori di infrastruttura tecnologica, hosting,
+              database, autenticazione, sicurezza e altri servizi tecnici.
+            </p>
+
+            <p className="mt-2">
+              Nell&apos;ambito della gestione delle opportunità professionali,
+              determinate informazioni possono inoltre essere comunicate alle
+              aziende o ai manager interessati nella misura necessaria a
+              verificare interesse e disponibilità e a gestire eventuali
+              successive fasi di introduzione.
+            </p>
+
+            <p className="mt-2">
+              I dati possono essere comunicati alle autorità o ad altri
+              soggetti quando ciò sia richiesto dalla legge.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-[#0f3b2e]">6. Destinatari e fornitori</h2>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              11. Trasferimenti di dati
+            </h2>
+
             <p className="mt-2">
-              I dati possono essere trattati da fornitori tecnici utilizzati per l&apos;erogazione e la gestione
-              del servizio, inclusi servizi di hosting, infrastruttura, database, autenticazione, sicurezza,
-              strumenti di misurazione e, ove applicabile, servizi di pagamento. QuickSolve utilizza in
-              particolare infrastrutture tecnologiche di Vercel e Supabase.
+              Alcuni fornitori tecnologici utilizzati dal servizio possono
+              trattare dati attraverso infrastrutture situate anche al di fuori
+              dello Spazio Economico Europeo.
             </p>
+
             <p className="mt-2">
-              LinkedIn può ricevere dati tecnici quando viene attivato il relativo Insight Tag, secondo le
-              scelte di consenso applicabili.
-            </p>
-            <p className="mt-2">
-              Nell&apos;ambito del servizio, le informazioni pertinenti alla specifica opportunità possono essere
-              comunicate ai professionisti selezionati per verificarne disponibilità e interesse. Quando il
-              processo prosegue verso l&apos;introduzione, i dati identificativi e di contatto necessari possono
-              essere comunicati tra Azienda e Professionista per consentire la messa in contatto professionale.
-            </p>
-            <p className="mt-2">
-              I dati possono inoltre essere comunicati a consulenti o autorità quando necessario per obblighi
-              di legge, tutela dei diritti o richieste legittime. I dati non vengono diffusi indiscriminatamente.
+              Quando applicabile, tali trasferimenti sono gestiti utilizzando
+              gli strumenti e le garanzie previsti dalla normativa in materia
+              di protezione dei dati personali.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-[#0f3b2e]">7. Trasferimenti di dati fuori dallo SEE</h2>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              12. Conservazione
+            </h2>
+
             <p className="mt-2">
-              Alcuni fornitori tecnologici possono comportare il trattamento di dati al di fuori dello Spazio
-              Economico Europeo. In tali casi il trasferimento viene gestito sulla base degli strumenti previsti
-              dal GDPR, quali decisioni di adeguatezza o garanzie appropriate applicabili al fornitore e al
-              trattamento interessato.
+              I dati sono conservati per il periodo necessario al perseguimento
+              delle finalità per cui sono stati raccolti e, quando necessario,
+              per periodi ulteriori richiesti dalla legge, dalla tutela dei
+              diritti del Titolare o da esigenze amministrative e di
+              sicurezza.
+            </p>
+
+            <p className="mt-2">
+              I tempi di conservazione possono differire in funzione della
+              categoria dei dati e del rapporto dell&apos;utente con il
+              servizio.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-[#0f3b2e]">8. Conservazione</h2>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              13. Diritti degli interessati
+            </h2>
+
             <p className="mt-2">
-              I dati vengono conservati per il tempo necessario a fornire il servizio e gestire l&apos;account,
-              le richieste aziendali, le selezioni, le introduzioni e gli eventuali rapporti contrattuali con
-              QuickSolve, nonché per gli ulteriori periodi necessari all&apos;adempimento di obblighi di legge
-              o alla tutela dei diritti del Titolare.
+              Nei casi previsti dalla normativa, gli interessati possono
+              richiedere l&apos;accesso ai propri dati personali, la rettifica,
+              la cancellazione, la limitazione del trattamento e la
+              portabilità, nonché opporsi al trattamento quando ne ricorrono i
+              presupposti.
             </p>
+
             <p className="mt-2">
-              I dati basati sul consenso sono trattati fino alla revoca del consenso, salvo gli eventuali dati
-              che debbano essere conservati per obblighi di legge o sulla base di ulteriori basi giuridiche.
-              I tempi relativi ai singoli cookie e strumenti di tracciamento sono indicati nella Cookie Policy
-              o nelle informazioni rese dai rispettivi fornitori.
+              Quando il trattamento è basato sul consenso, l&apos;interessato
+              può revocarlo in qualsiasi momento, senza pregiudicare la
+              liceità del trattamento effettuato prima della revoca.
+            </p>
+
+            <p className="mt-2">
+              L&apos;interessato ha inoltre il diritto di proporre reclamo
+              all&apos;Autorità Garante per la protezione dei dati personali
+              qualora ritenga che il trattamento avvenga in violazione della
+              normativa applicabile.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-[#0f3b2e]">9. Diritti dell&apos;interessato</h2>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              14. Cookie
+            </h2>
+
             <p className="mt-2">
-              Nei casi previsti dal GDPR, l&apos;interessato può chiedere accesso ai propri dati, rettifica,
-              cancellazione, limitazione del trattamento, portabilità, opposizione e revoca del consenso senza
-              pregiudicare la liceità del trattamento precedente alla revoca.
-            </p>
-            <p className="mt-2">
-              Le richieste possono essere inviate a{" "}
-              <a
-                className="font-medium text-[#0f3b2e] hover:underline"
-                href="mailto:francesco.nanni@quicksolve.it"
+              Le informazioni relative all&apos;utilizzo di cookie e tecnologie
+              analoghe sono disponibili nella{" "}
+              <Link
+                href="/cookie-policy"
+                className="font-semibold text-[#164873] hover:underline"
               >
-                francesco.nanni@quicksolve.it
-              </a>. È inoltre possibile proporre reclamo al Garante per la protezione dei dati personali.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold text-[#0f3b2e]">10. Cookie e strumenti di tracciamento</h2>
-            <p className="mt-2">
-              Per informazioni sui cookie e sugli altri strumenti di tracciamento utilizzati dal sito consulta la{" "}
-              <Link className="font-medium text-[#0f3b2e] hover:underline" href="/cookie-policy">
                 Cookie Policy
-              </Link>.
+              </Link>
+              .
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-[#0f3b2e]">11. Aggiornamenti</h2>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              15. Contatti
+            </h2>
+
             <p className="mt-2">
-              La presente informativa può essere aggiornata per riflettere modifiche normative, tecniche o
-              relative ai servizi offerti. La data dell&apos;ultimo aggiornamento è indicata in apertura.
+              Per richieste relative al trattamento dei dati personali è
+              possibile utilizzare i canali di contatto messi a disposizione
+              da QuickSolve Management Network.
             </p>
           </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-[#0b2340]">
+              16. Aggiornamenti
+            </h2>
+
+            <p className="mt-2">
+              La presente Privacy Policy può essere aggiornata per riflettere
+              modifiche normative, tecniche, organizzative o funzionali del
+              servizio. La versione pubblicata su questa pagina è quella
+              disponibile agli utenti al momento della consultazione.
+            </p>
+          </section>
+        </div>
+
+        <div className="mt-10 flex flex-wrap gap-3 border-t border-[#d7e1ec] pt-6">
+          <Link
+            href="/"
+            className="inline-flex rounded-xl bg-[#0b2340] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#12385f]"
+          >
+            Torna a QuickSolve Management Network
+          </Link>
+
+          <Link
+            href="/legal/privacy-aziende"
+            className="inline-flex rounded-xl border border-[#d7e1ec] bg-white px-5 py-3 text-sm font-bold text-[#0b2340] transition hover:bg-[#eef3f8]"
+          >
+            Privacy Aziende
+          </Link>
         </div>
       </article>
     </main>

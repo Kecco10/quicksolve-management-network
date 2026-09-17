@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 
@@ -151,7 +151,7 @@ export default function Home() {
                   md:mt-7
                 "
               >
-                {/* PROGETTISTA */}
+                {/* MANAGER */}
                 <Link
                   href="/manager"
                   className="
@@ -197,7 +197,7 @@ export default function Home() {
                   <span>Sono un manager</span>
 
                   <span className="ml-auto text-xl transition-transform group-hover:translate-x-1">
-                    →
+                    â†’
                   </span>
                 </Link>
 
@@ -250,7 +250,7 @@ export default function Home() {
                   <span>Sono un&apos;azienda</span>
 
                   <span className="ml-auto text-xl transition-transform group-hover:translate-x-1">
-                    →
+                    â†’
                   </span>
                 </Link>
               </div>
@@ -286,14 +286,14 @@ export default function Home() {
         ====================================================== */}
         <section className="mx-auto w-full max-w-7xl bg-white px-4 pb-5 pt-3 sm:px-6 md:px-8 md:pb-6 md:pt-4">
           <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
-            {/* PROGETTISTI */}
+            {/* MANAGER */}
             <div className="rounded-2xl border border-[#d7e1ec] bg-[#eef3f8] p-4 shadow-sm sm:p-5">
               <h3 className="text-base font-bold text-[#0b2340] sm:text-lg">
-                👔 Manager
+                ðŸ‘” Manager
               </h3>
 
               <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
-                Crea il tuo profilo ed entra nel network per ricevere opportunità in linea con
+                Crea il tuo profilo ed entra nel network per ricevere opportunitÃ  in linea con
                 la tua esperienza e le tue competenze.
               </p>
             </div>
@@ -301,11 +301,11 @@ export default function Home() {
             {/* AZIENDE */}
             <div className="rounded-2xl border border-[#d7e1ec] bg-[#eef3f8] p-4 shadow-sm sm:p-5">
               <h3 className="text-base font-bold text-[#0b2340] sm:text-lg">
-                🏭 Aziende
+                ðŸ­ Aziende
               </h3>
 
               <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
-                Inserisci la tua esigenza e individua rapidamente il manager più adatto al
+                Inserisci la tua esigenza e individua rapidamente il manager piÃ¹ adatto al
                 contesto e agli obiettivi dell'incarico.
               </p>
             </div>
@@ -313,11 +313,11 @@ export default function Home() {
             {/* MATCHING */}
             <div className="rounded-2xl border border-[#d7e1ec] bg-[#eef3f8] p-4 shadow-sm sm:p-5">
               <h3 className="text-base font-bold text-[#0b2340] sm:text-lg">
-                🧠 Matching
+                ðŸ§  Matching
               </h3>
 
               <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
-                Il sistema confronta la richiesta aziendale con i profili manageriali attivi nel network e individua quelli più compatibili.
+                Il sistema confronta la richiesta aziendale con i profili manageriali attivi nel network e individua quelli piÃ¹ compatibili.
               </p>
             </div>
           </div>
@@ -326,7 +326,7 @@ export default function Home() {
         {/* =====================================================
             BANDA VIDEO
             Temporaneamente non cliccabile: il video Management
-            verrà collegato quando sarà disponibile.
+            verrÃ  collegato quando sarÃ  disponibile.
         ====================================================== */}
         <section className="mx-auto w-full max-w-7xl px-4 pb-6 sm:px-6 md:px-8 md:pb-8">
           <div
@@ -361,8 +361,8 @@ export default function Home() {
             style={{ fontFamily: "Arial, sans-serif" }}
           >
             <p className="flex items-center">
-              <span>QuickSolve Management Network · P.IVA IT04285011203</span>
-              <span className="mx-2" aria-hidden="true">·</span>
+              <span>QuickSolve Management Network Â· P.IVA IT04285011203</span>
+              <span className="mx-2" aria-hidden="true">Â·</span>
               <a
                 href="https://www.linkedin.com/company/quicksolve-engineering-network/?viewAsMember=true"
                 target="_blank"
@@ -395,7 +395,7 @@ export default function Home() {
                 Privacy Policy
               </Link>
 
-              <span aria-hidden="true">·</span>
+              <span aria-hidden="true">Â·</span>
 
               <Link
                 href="/cookie-policy"
@@ -404,7 +404,7 @@ export default function Home() {
                 Cookie Policy
               </Link>
 
-              <span aria-hidden="true">·</span>
+              <span aria-hidden="true">Â·</span>
 
               <Link
                 href="/legal/condizioni-vendita"
@@ -413,7 +413,7 @@ export default function Home() {
                 Condizioni di vendita
               </Link>
 
-              <span aria-hidden="true">·</span>
+              <span aria-hidden="true">Â·</span>
 
               <button
                 type="button"
