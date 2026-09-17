@@ -48,8 +48,8 @@ type CompanyRequest = Record<string, any> & {
   days_per_week?: number;
   start_date?: string;
   daily_rate_band?: string;
-  required_certifications?: string[];
-  required_languages?: string[];
+  required_certifications?: string[] | string;
+  required_languages?: string[] | string;
   final_notes?: string;
 
   status: string;
@@ -59,8 +59,12 @@ type CompanyRequest = Record<string, any> & {
 const statusLabels: Record<string, string> = {
   new: "Nuova",
   in_review: "In lavorazione",
-  matched: "Matching",
-  closed: "Chiusa",
+  completed: "Completata",
+
+  // Compatibilità con eventuali vecchie richieste
+  matched: "Completata",
+  closed: "Completata",
+
   archived: "Archiviata",
 };
 
@@ -82,8 +86,15 @@ function show(value: unknown) {
     return value.length
       ? value
           .map((item) => {
-            if (item && typeof item === "object") {
-              const record = item as Record<string, unknown>;
+            if (
+              item &&
+              typeof item === "object"
+            ) {
+              const record =
+                item as Record<
+                  string,
+                  unknown
+                >;
 
               return [
                 record.family,
@@ -101,7 +112,10 @@ function show(value: unknown) {
       : "—";
   }
 
-  if (value && typeof value === "object") {
+  if (
+    value &&
+    typeof value === "object"
+  ) {
     return JSON.stringify(value);
   }
 
@@ -112,11 +126,16 @@ function show(value: unknown) {
 }
 
 function formatDate(value: unknown) {
-  if (!value || typeof value !== "string") {
+  if (
+    !value ||
+    typeof value !== "string"
+  ) {
     return "—";
   }
 
-  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const match = value.match(
+    /^(\d{4})-(\d{2})-(\d{2})/
+  );
 
   if (match) {
     return `${match[3]}/${match[2]}/${match[1]}`;
@@ -128,26 +147,41 @@ function formatDate(value: unknown) {
     return value;
   }
 
-  return date.toLocaleDateString("it-IT");
+  return date.toLocaleDateString(
+    "it-IT"
+  );
 }
 
-function formatExperience(value: unknown) {
+function formatExperience(
+  value: unknown
+) {
   if (!value) return "—";
 
   const normalized = String(value);
 
-  return experienceLabels[normalized] ?? normalized;
+  return (
+    experienceLabels[normalized] ??
+    normalized
+  );
 }
 
-function formatManagerialExperience(value: unknown) {
+function formatManagerialExperience(
+  value: unknown
+) {
   if (!value) return "—";
 
   const normalized = String(value);
 
-  return managerialExperienceLabels[normalized] ?? normalized;
+  return (
+    managerialExperienceLabels[
+      normalized
+    ] ?? normalized
+  );
 }
 
-function formatCompanyType(request: CompanyRequest) {
+function formatCompanyType(
+  request: CompanyRequest
+) {
   if (
     request.company_type === "Altro" &&
     request.other_company_type
@@ -158,7 +192,9 @@ function formatCompanyType(request: CompanyRequest) {
   return show(request.company_type);
 }
 
-function formatCompanySector(request: CompanyRequest) {
+function formatCompanySector(
+  request: CompanyRequest
+) {
   if (
     request.company_sector === "Altro" &&
     request.other_company_sector
@@ -169,7 +205,9 @@ function formatCompanySector(request: CompanyRequest) {
   return show(request.company_sector);
 }
 
-function formatRequestReason(request: CompanyRequest) {
+function formatRequestReason(
+  request: CompanyRequest
+) {
   if (
     request.request_reason === "Altro" &&
     request.other_request_reason
@@ -180,7 +218,9 @@ function formatRequestReason(request: CompanyRequest) {
   return show(request.request_reason);
 }
 
-function formatRole(request: CompanyRequest) {
+function formatRole(
+  request: CompanyRequest
+) {
   if (
     request.primary_role === "Altro" &&
     request.other_role
@@ -191,12 +231,30 @@ function formatRole(request: CompanyRequest) {
   return show(request.primary_role);
 }
 
-function formatArea(request: CompanyRequest) {
-  return show(request.province || request.region);
+function formatArea(
+  request: CompanyRequest
+) {
+  return show(
+    request.province || request.region
+  );
 }
 
-function formatSectors(request: CompanyRequest) {
-  const sectors = Array.isArray(request.sectors)
+function getAreaValue(
+  request: CompanyRequest
+) {
+  return (
+    request.province ||
+    request.region ||
+    ""
+  );
+}
+
+function getSectorValues(
+  request: CompanyRequest
+) {
+  const sectors = Array.isArray(
+    request.sectors
+  )
     ? [...request.sectors]
     : [];
 
@@ -204,7 +262,47 @@ function formatSectors(request: CompanyRequest) {
     sectors.push(request.other_sector);
   }
 
-  return show(sectors);
+  return sectors;
+}
+
+function formatSectors(
+  request: CompanyRequest
+) {
+  return show(getSectorValues(request));
+}
+
+function normalizeVisibleStatus(
+  status: string
+) {
+  if (
+    status === "matched" ||
+    status === "closed"
+  ) {
+    return "completed";
+  }
+
+  return status;
+}
+
+function uniqueSorted(
+  values: Array<
+    string | null | undefined
+  >
+) {
+  return [
+    ...new Set(
+      values
+        .map((value) =>
+          value?.trim()
+        )
+        .filter(
+          (value): value is string =>
+            Boolean(value)
+        )
+    ),
+  ].sort((a, b) =>
+    a.localeCompare(b, "it")
+  );
 }
 
 function DetailCard({
@@ -234,36 +332,81 @@ function DetailCard({
 }
 
 export default function RequestsAdminPage() {
-  const [items, setItems] = useState<CompanyRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [areaFilter, setAreaFilter] = useState("all");
-  const [sectorFilter, setSectorFilter] = useState("all");
-  const [rateFilter, setRateFilter] = useState("all");
+  const [items, setItems] =
+    useState<CompanyRequest[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const [query, setQuery] =
+    useState("");
+
+  const [roleFilter, setRoleFilter] =
+    useState("");
+
+  const [areaFilter, setAreaFilter] =
+    useState("");
+
+  const [
+    sectorFilter,
+    setSectorFilter,
+  ] = useState("");
+
+  const [rateFilter, setRateFilter] =
+    useState("");
+
   const [selected, setSelected] =
-    useState<CompanyRequest | null>(null);
+    useState<CompanyRequest | null>(
+      null
+    );
+
+  const [
+    selectedActiveIds,
+    setSelectedActiveIds,
+  ] = useState<number[]>([]);
+
+  const [
+    selectedArchivedIds,
+    setSelectedArchivedIds,
+  ] = useState<number[]>([]);
+
+  const [
+    archiveOpen,
+    setArchiveOpen,
+  ] = useState(false);
+
+  const [
+    actionLoading,
+    setActionLoading,
+  ] = useState(false);
 
   async function loadRequests() {
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch("/api/company-requests", {
-        cache: "no-store",
-      });
+      const response = await fetch(
+        "/api/company-requests",
+        {
+          cache: "no-store",
+        }
+      );
 
       if (response.status === 401) {
         window.location.href = "/admin";
         return;
       }
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
-          data.error || "Errore durante il caricamento."
+          data.error ||
+            "Errore durante il caricamento."
         );
       }
 
@@ -283,191 +426,578 @@ export default function RequestsAdminPage() {
     void loadRequests();
   }, []);
 
+  const activeRequests =
+    useMemo(
+      () =>
+        items.filter(
+          (request) =>
+            request.status !==
+            "archived"
+        ),
+      [items]
+    );
+
+  const archivedRequests =
+    useMemo(
+      () =>
+        items.filter(
+          (request) =>
+            request.status ===
+            "archived"
+        ),
+      [items]
+    );
+
   const roleOptions = useMemo(
     () =>
-      [...new Set(items.map((item) => formatRole(item)).filter((value) => value !== "—"))].sort(),
-    [items]
+      uniqueSorted(
+        activeRequests.map(
+          (request) =>
+            request.primary_role ===
+              "Altro" &&
+            request.other_role
+              ? request.other_role
+              : request.primary_role
+        )
+      ),
+    [activeRequests]
   );
 
   const areaOptions = useMemo(
     () =>
-      [
-        ...new Set(
-          items.map((item) => item.province || item.region).filter(Boolean)
-        ),
-      ].sort(),
-    [items]
+      uniqueSorted(
+        activeRequests.map(
+          getAreaValue
+        )
+      ),
+    [activeRequests]
   );
 
   const sectorOptions = useMemo(
     () =>
-      [
-        ...new Set(
-          items.flatMap((item) => [
-            ...(item.sectors ?? []),
-            ...(item.other_sector ? [item.other_sector] : []),
-          ])
-        ),
-      ].sort(),
-    [items]
+      uniqueSorted(
+        activeRequests.flatMap(
+          getSectorValues
+        )
+      ),
+    [activeRequests]
   );
 
   const rateOptions = useMemo(
     () =>
-      [...new Set(items.map((item) => item.daily_rate_band).filter(Boolean))].sort(),
-    [items]
+      uniqueSorted(
+        activeRequests.map(
+          (request) =>
+            request.daily_rate_band
+        )
+      ),
+    [activeRequests]
   );
 
-  const filteredRequests = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+  const filteredRequests =
+    useMemo(() => {
+      const normalizedQuery =
+        query
+          .trim()
+          .toLowerCase();
 
-    return items.filter((request) => {
-      const companyName = (request.company_name ?? "").toLowerCase();
-      const area = request.province || request.region || "";
-      const sectors = [
-        ...(request.sectors ?? []),
-        ...(request.other_sector ? [request.other_sector] : []),
-      ];
+      return activeRequests.filter(
+        (request) => {
+          const companyName =
+            request.company_name
+              ?.toLowerCase() ?? "";
 
-      const matchesQuery =
-        !normalizedQuery || companyName.includes(normalizedQuery);
-      const matchesRole =
-        roleFilter === "all" || formatRole(request) === roleFilter;
-      const matchesArea = areaFilter === "all" || area === areaFilter;
-      const matchesSector =
-        sectorFilter === "all" || sectors.includes(sectorFilter);
-      const matchesRate =
-        rateFilter === "all" || request.daily_rate_band === rateFilter;
+          const requestRole =
+            request.primary_role ===
+              "Altro" &&
+            request.other_role
+              ? request.other_role
+              : request.primary_role ??
+                "";
 
-      return (
-        matchesQuery &&
-        matchesRole &&
-        matchesArea &&
-        matchesSector &&
-        matchesRate
+          const requestArea =
+            getAreaValue(request);
+
+          const requestSectors =
+            getSectorValues(request);
+
+          const matchesQuery =
+            !normalizedQuery ||
+            companyName.includes(
+              normalizedQuery
+            );
+
+          const matchesRole =
+            !roleFilter ||
+            requestRole === roleFilter;
+
+          const matchesArea =
+            !areaFilter ||
+            requestArea === areaFilter;
+
+          const matchesSector =
+            !sectorFilter ||
+            requestSectors.includes(
+              sectorFilter
+            );
+
+          const matchesRate =
+            !rateFilter ||
+            request.daily_rate_band ===
+              rateFilter;
+
+          return (
+            matchesQuery &&
+            matchesRole &&
+            matchesArea &&
+            matchesSector &&
+            matchesRate
+          );
+        }
       );
-    });
-  }, [items, query, roleFilter, areaFilter, sectorFilter, rateFilter]);
+    }, [
+      activeRequests,
+      query,
+      roleFilter,
+      areaFilter,
+      sectorFilter,
+      rateFilter,
+    ]);
+
+  function toggleActiveSelection(
+    id: number
+  ) {
+    setSelectedActiveIds(
+      (current) =>
+        current.includes(id)
+          ? current.filter(
+              (item) => item !== id
+            )
+          : [...current, id]
+    );
+  }
+
+  function toggleArchivedSelection(
+    id: number
+  ) {
+    setSelectedArchivedIds(
+      (current) =>
+        current.includes(id)
+          ? current.filter(
+              (item) => item !== id
+            )
+          : [...current, id]
+    );
+  }
+
+  function toggleAllVisible() {
+    const visibleIds =
+      filteredRequests.map(
+        (request) => request.id
+      );
+
+    const allSelected =
+      visibleIds.length > 0 &&
+      visibleIds.every((id) =>
+        selectedActiveIds.includes(id)
+      );
+
+    if (allSelected) {
+      setSelectedActiveIds(
+        (current) =>
+          current.filter(
+            (id) =>
+              !visibleIds.includes(id)
+          )
+      );
+    } else {
+      setSelectedActiveIds(
+        (current) => [
+          ...new Set([
+            ...current,
+            ...visibleIds,
+          ]),
+        ]
+      );
+    }
+  }
+
+  function toggleAllArchived() {
+    const archivedIds =
+      archivedRequests.map(
+        (request) => request.id
+      );
+
+    const allSelected =
+      archivedIds.length > 0 &&
+      archivedIds.every((id) =>
+        selectedArchivedIds.includes(
+          id
+        )
+      );
+
+    if (allSelected) {
+      setSelectedArchivedIds([]);
+    } else {
+      setSelectedArchivedIds(
+        archivedIds
+      );
+    }
+  }
 
   async function changeStatus(
     request: CompanyRequest,
     nextStatus: string
   ) {
-    const response = await fetch("/api/company-requests", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: request.id,
-        status: nextStatus,
-      }),
-    });
+    const response = await fetch(
+      "/api/company-requests",
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          id: request.id,
+          status: nextStatus,
+        }),
+      }
+    );
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
     if (!response.ok) {
-      alert(data.error || "Aggiornamento non riuscito.");
+      alert(
+        data.error ||
+          "Aggiornamento non riuscito."
+      );
+      return;
+    }
+
+    const updatedRequest =
+      data.requests?.[0] ??
+      data.request;
+
+    if (!updatedRequest) {
       return;
     }
 
     setItems((current) =>
       current.map((item) =>
-        item.id === request.id ? data.request : item
+        item.id === request.id
+          ? updatedRequest
+          : item
       )
     );
 
-    if (selected?.id === request.id) {
-      setSelected(data.request);
+    if (
+      selected?.id === request.id
+    ) {
+      setSelected(updatedRequest);
     }
   }
 
-  async function deleteRequest(request: CompanyRequest) {
-    const confirmed = window.confirm(
-      `Eliminare definitivamente la richiesta ${request.request_code} di ${request.company_name}?`
-    );
-
-    if (!confirmed) return;
-
-    const response = await fetch("/api/company-requests", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ids: [request.id],
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data.error || "Eliminazione non riuscita.");
+  async function archiveSelected() {
+    if (
+      selectedActiveIds.length === 0
+    ) {
       return;
     }
 
-    setItems((current) =>
-      current.filter((item) => item.id !== request.id)
-    );
+    const confirmed =
+      window.confirm(
+        `Archiviare ${
+          selectedActiveIds.length
+        } ${
+          selectedActiveIds.length ===
+          1
+            ? "richiesta"
+            : "richieste"
+        }?`
+      );
 
-    if (selected?.id === request.id) {
-      setSelected(null);
+    if (!confirmed) return;
+
+    setActionLoading(true);
+
+    try {
+      const response = await fetch(
+        "/api/company-requests",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            ids: selectedActiveIds,
+            status: "archived",
+          }),
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Archiviazione non riuscita."
+        );
+      }
+
+      const selectedSet = new Set(
+        selectedActiveIds
+      );
+
+      setItems((current) =>
+        current.map((request) =>
+          selectedSet.has(request.id)
+            ? {
+                ...request,
+                status: "archived",
+              }
+            : request
+        )
+      );
+
+      if (
+        selected &&
+        selectedSet.has(selected.id)
+      ) {
+        setSelected(null);
+      }
+
+      setSelectedActiveIds([]);
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Archiviazione non riuscita."
+      );
+    } finally {
+      setActionLoading(false);
     }
   }
 
+  async function restoreSelected() {
+    if (
+      selectedArchivedIds.length === 0
+    ) {
+      return;
+    }
+
+    const confirmed =
+      window.confirm(
+        `Ripristinare ${
+          selectedArchivedIds.length
+        } ${
+          selectedArchivedIds.length ===
+          1
+            ? "richiesta"
+            : "richieste"
+        }?`
+      );
+
+    if (!confirmed) return;
+
+    setActionLoading(true);
+
+    try {
+      const response = await fetch(
+        "/api/company-requests",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            ids: selectedArchivedIds,
+            status: "completed",
+          }),
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Ripristino non riuscito."
+        );
+      }
+
+      const selectedSet = new Set(
+        selectedArchivedIds
+      );
+
+      setItems((current) =>
+        current.map((request) =>
+          selectedSet.has(request.id)
+            ? {
+                ...request,
+                status: "completed",
+              }
+            : request
+        )
+      );
+
+      setSelectedArchivedIds([]);
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Ripristino non riuscito."
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  const allVisibleSelected =
+    filteredRequests.length > 0 &&
+    filteredRequests.every(
+      (request) =>
+        selectedActiveIds.includes(
+          request.id
+        )
+    );
+
+  const allArchivedSelected =
+    archivedRequests.length > 0 &&
+    archivedRequests.every(
+      (request) =>
+        selectedArchivedIds.includes(
+          request.id
+        )
+    );
+
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
+      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center">
         <input
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) =>
+            setQuery(event.target.value)
+          }
           placeholder="Nome azienda"
-          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-[#0b2340]"
+          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-[#0b2340] lg:w-44"
         />
 
         <select
           value={roleFilter}
-          onChange={(event) => setRoleFilter(event.target.value)}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+          onChange={(event) =>
+            setRoleFilter(
+              event.target.value
+            )
+          }
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:w-44"
         >
-          <option value="all">Ruolo</option>
-          {roleOptions.map((value) => (
-            <option key={value} value={value}>{value}</option>
+          <option value="">
+            Ruolo
+          </option>
+
+          {roleOptions.map((role) => (
+            <option
+              key={role}
+              value={role}
+            >
+              {role}
+            </option>
           ))}
         </select>
 
         <select
           value={areaFilter}
-          onChange={(event) => setAreaFilter(event.target.value)}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+          onChange={(event) =>
+            setAreaFilter(
+              event.target.value
+            )
+          }
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:w-40"
         >
-          <option value="all">Area</option>
-          {areaOptions.map((value) => (
-            <option key={value} value={value}>{value}</option>
+          <option value="">
+            Area
+          </option>
+
+          {areaOptions.map((area) => (
+            <option
+              key={area}
+              value={area}
+            >
+              {area}
+            </option>
           ))}
         </select>
 
         <select
           value={sectorFilter}
-          onChange={(event) => setSectorFilter(event.target.value)}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+          onChange={(event) =>
+            setSectorFilter(
+              event.target.value
+            )
+          }
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:w-44"
         >
-          <option value="all">Settori</option>
-          {sectorOptions.map((value) => (
-            <option key={value} value={value}>{value}</option>
-          ))}
+          <option value="">
+            Settori
+          </option>
+
+          {sectorOptions.map(
+            (sector) => (
+              <option
+                key={sector}
+                value={sector}
+              >
+                {sector}
+              </option>
+            )
+          )}
         </select>
 
         <select
           value={rateFilter}
-          onChange={(event) => setRateFilter(event.target.value)}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+          onChange={(event) =>
+            setRateFilter(
+              event.target.value
+            )
+          }
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:w-44"
         >
-          <option value="all">Tariffa</option>
-          {rateOptions.map((value) => (
-            <option key={value} value={value}>{value}</option>
+          <option value="">
+            Tariffa
+          </option>
+
+          {rateOptions.map((rate) => (
+            <option
+              key={rate}
+              value={rate}
+            >
+              {rate}
+            </option>
           ))}
         </select>
+
+        <div className="lg:ml-auto">
+          <button
+            type="button"
+            disabled={
+              selectedActiveIds.length ===
+                0 || actionLoading
+            }
+            onClick={() =>
+              void archiveSelected()
+            }
+            className="rounded-xl bg-[#0b2340] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {selectedActiveIds.length > 0
+              ? `Archivia (${selectedActiveIds.length})`
+              : "Archivia"}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -481,152 +1011,420 @@ export default function RequestsAdminPage() {
           Caricamento richieste...
         </p>
       ) : (
-        <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1100px] text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-5 py-4">Azienda</th>
-                  <th className="px-5 py-4">Ruolo</th>
-                  <th className="px-5 py-4">Area</th>
-                  <th className="px-5 py-4">Settori</th>
-                  <th className="px-5 py-4">Tariffa</th>
-                  <th className="px-5 py-4">Stato</th>
+        <>
+          <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1150px] text-left text-sm">
+                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="w-12 px-4 py-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={
+                          allVisibleSelected
+                        }
+                        onChange={
+                          toggleAllVisible
+                        }
+                        aria-label="Seleziona tutte le richieste visibili"
+                        className="h-4 w-4 cursor-pointer accent-[#0b2340]"
+                      />
+                    </th>
 
-                  <th
-                    className="w-12 px-3 py-4"
-                    aria-label="Elimina"
-                  />
-                </tr>
-              </thead>
+                    <th className="px-5 py-4">
+                      Azienda
+                    </th>
 
-              <tbody className="divide-y divide-slate-100">
-                {filteredRequests.map((request) => (
-                  <tr
-                    key={request.id}
-                    onClick={() => setSelected(request)}
-                    className="cursor-pointer transition hover:bg-slate-50/70"
-                  >
-                    <td className="px-5 py-4">
-                      <div className="font-bold text-slate-900">
-                        {request.company_name}
-                      </div>
+                    <th className="px-5 py-4">
+                      Ruolo
+                    </th>
 
-                      <div className="mt-1 text-xs font-medium text-slate-500">
-                        {request.request_code}
-                      </div>
-                    </td>
+                    <th className="px-5 py-4">
+                      Area
+                    </th>
 
-                    <td className="px-5 py-4">
-                      <div className="font-semibold text-slate-900">
-                        {formatRole(request)}
-                      </div>
+                    <th className="px-5 py-4">
+                      Settori
+                    </th>
 
-                      <div className="text-xs text-slate-500">
-                        {show(request.role_family)}
-                      </div>
-                    </td>
+                    <th className="px-5 py-4">
+                      Tariffa
+                    </th>
 
-                    <td className="px-5 py-4">
-                      {formatArea(request)}
-                    </td>
+                    <th className="px-5 py-4">
+                      Stato
+                    </th>
+                  </tr>
+                </thead>
 
-                    <td className="px-5 py-4">
-                      <div className="max-w-[230px] leading-relaxed">
-                        {formatSectors(request)}
-                      </div>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <div className="font-semibold text-slate-900">
-                        {show(request.daily_rate_band)}
-                      </div>
-                    </td>
-
-                    <td
-                      className="px-5 py-4"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      <select
-                        value={request.status}
-                        onChange={(event) =>
-                          void changeStatus(
-                            request,
-                            event.target.value
+                <tbody className="divide-y divide-slate-100">
+                  {filteredRequests.map(
+                    (request) => (
+                      <tr
+                        key={request.id}
+                        onClick={() =>
+                          setSelected(
+                            request
                           )
                         }
-                        className="rounded-xl border border-slate-300 bg-white px-3 py-2 font-semibold"
+                        className="cursor-pointer transition hover:bg-slate-50/70"
                       >
-                        <option value="new">Nuova</option>
-                        <option value="in_review">
-                          In lavorazione
-                        </option>
-                        <option value="matched">Matching</option>
-                        <option value="closed">Chiusa</option>
-                        <option value="archived">
-                          Archiviata
-                        </option>
-                      </select>
-                    </td>
+                        <td
+                          className="px-4 py-4 text-center"
+                          onClick={(
+                            event
+                          ) =>
+                            event.stopPropagation()
+                          }
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedActiveIds.includes(
+                              request.id
+                            )}
+                            onChange={() =>
+                              toggleActiveSelection(
+                                request.id
+                              )
+                            }
+                            aria-label={`Seleziona ${request.company_name}`}
+                            className="h-4 w-4 cursor-pointer accent-[#0b2340]"
+                          />
+                        </td>
 
-                    <td
-                      className="px-3 py-4 text-right align-top"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void deleteRequest(request)
-                        }
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold text-slate-400 transition hover:bg-red-50 hover:text-red-700"
-                        aria-label={`Elimina richiesta ${request.request_code}`}
-                        title="Elimina richiesta"
+                        <td className="px-5 py-4">
+                          <div className="font-bold text-slate-900">
+                            {
+                              request.company_name
+                            }
+                          </div>
+
+                          <div className="mt-1 text-xs font-medium text-slate-500">
+                            {
+                              request.request_code
+                            }
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <div className="font-semibold text-slate-900">
+                            {formatRole(
+                              request
+                            )}
+                          </div>
+
+                          <div className="text-xs text-slate-500">
+                            {show(
+                              request.role_family
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          {formatArea(
+                            request
+                          )}
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <div className="max-w-[230px] leading-relaxed">
+                            {formatSectors(
+                              request
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <div className="font-semibold text-slate-900">
+                            {show(
+                              request.daily_rate_band
+                            )}
+                          </div>
+                        </td>
+
+                        <td
+                          className="px-5 py-4"
+                          onClick={(
+                            event
+                          ) =>
+                            event.stopPropagation()
+                          }
+                        >
+                          <select
+                            value={normalizeVisibleStatus(
+                              request.status
+                            )}
+                            onChange={(
+                              event
+                            ) =>
+                              void changeStatus(
+                                request,
+                                event.target
+                                  .value
+                              )
+                            }
+                            className="rounded-xl border border-slate-300 bg-white px-3 py-2 font-semibold"
+                          >
+                            <option value="new">
+                              Nuova
+                            </option>
+
+                            <option value="in_review">
+                              In lavorazione
+                            </option>
+
+                            <option value="completed">
+                              Completata
+                            </option>
+                          </select>
+                        </td>
+                      </tr>
+                    )
+                  )}
+
+                  {filteredRequests.length ===
+                    0 && (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-5 py-10 text-center text-slate-500"
                       >
-                        ×
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-
-                {filteredRequests.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-5 py-10 text-center text-slate-500"
-                    >
-                      Nessuna richiesta trovata.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                        Nessuna richiesta
+                        trovata.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          <div className="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <button
+              type="button"
+              onClick={() =>
+                setArchiveOpen(
+                  (current) =>
+                    !current
+                )
+              }
+              className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition hover:bg-slate-50"
+            >
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-slate-900">
+                  Richieste archiviate
+                </span>
+
+                <span className="rounded-full bg-[#eef3f8] px-2.5 py-1 text-xs font-bold text-[#071b33]">
+                  {
+                    archivedRequests.length
+                  }
+                </span>
+              </div>
+
+              <span className="text-xl text-slate-500">
+                {archiveOpen
+                  ? "⌃"
+                  : "⌄"}
+              </span>
+            </button>
+
+            {archiveOpen && (
+              <div className="border-t border-slate-200">
+                <div className="flex justify-end border-b border-slate-100 px-5 py-3">
+                  <button
+                    type="button"
+                    disabled={
+                      selectedArchivedIds.length ===
+                        0 ||
+                      actionLoading
+                    }
+                    onClick={() =>
+                      void restoreSelected()
+                    }
+                    className="rounded-xl border border-[#0b2340] px-4 py-2 text-sm font-bold text-[#0b2340] transition hover:bg-[#eef3f8] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {selectedArchivedIds.length >
+                    0
+                      ? `Ripristina (${selectedArchivedIds.length})`
+                      : "Ripristina"}
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[1050px] text-left text-sm">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                      <tr>
+                        <th className="w-12 px-4 py-4 text-center">
+                          <input
+                            type="checkbox"
+                            checked={
+                              allArchivedSelected
+                            }
+                            onChange={
+                              toggleAllArchived
+                            }
+                            aria-label="Seleziona tutte le richieste archiviate"
+                            className="h-4 w-4 cursor-pointer accent-[#0b2340]"
+                          />
+                        </th>
+
+                        <th className="px-5 py-4">
+                          Azienda
+                        </th>
+
+                        <th className="px-5 py-4">
+                          Ruolo
+                        </th>
+
+                        <th className="px-5 py-4">
+                          Area
+                        </th>
+
+                        <th className="px-5 py-4">
+                          Settori
+                        </th>
+
+                        <th className="px-5 py-4">
+                          Tariffa
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody className="divide-y divide-slate-100">
+                      {archivedRequests.map(
+                        (request) => (
+                          <tr
+                            key={
+                              request.id
+                            }
+                            onClick={() =>
+                              setSelected(
+                                request
+                              )
+                            }
+                            className="cursor-pointer transition hover:bg-slate-50/70"
+                          >
+                            <td
+                              className="px-4 py-4 text-center"
+                              onClick={(
+                                event
+                              ) =>
+                                event.stopPropagation()
+                              }
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedArchivedIds.includes(
+                                  request.id
+                                )}
+                                onChange={() =>
+                                  toggleArchivedSelection(
+                                    request.id
+                                  )
+                                }
+                                aria-label={`Seleziona ${request.company_name}`}
+                                className="h-4 w-4 cursor-pointer accent-[#0b2340]"
+                              />
+                            </td>
+
+                            <td className="px-5 py-4">
+                              <div className="font-bold text-slate-900">
+                                {
+                                  request.company_name
+                                }
+                              </div>
+
+                              <div className="mt-1 text-xs font-medium text-slate-500">
+                                {
+                                  request.request_code
+                                }
+                              </div>
+                            </td>
+
+                            <td className="px-5 py-4">
+                              {formatRole(
+                                request
+                              )}
+                            </td>
+
+                            <td className="px-5 py-4">
+                              {formatArea(
+                                request
+                              )}
+                            </td>
+
+                            <td className="px-5 py-4">
+                              {formatSectors(
+                                request
+                              )}
+                            </td>
+
+                            <td className="px-5 py-4">
+                              {show(
+                                request.daily_rate_band
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      )}
+
+                      {archivedRequests.length ===
+                        0 && (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="px-5 py-8 text-center text-slate-500"
+                          >
+                            Nessuna
+                            richiesta
+                            archiviata.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {selected && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-0 sm:items-center sm:p-5"
-          onMouseDown={() => setSelected(null)}
+          onMouseDown={() =>
+            setSelected(null)
+          }
         >
           <div
             className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl md:p-8"
-            onMouseDown={(event) => event.stopPropagation()}
+            onMouseDown={(event) =>
+              event.stopPropagation()
+            }
           >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-bold text-[#164873]">
-                  {statusLabels[selected.status] || selected.status}
+                  {statusLabels[
+                    selected.status
+                  ] ||
+                    selected.status}
                 </p>
 
                 <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                  {selected.company_name}
+                  {
+                    selected.company_name
+                  }
                 </h2>
               </div>
 
               <button
                 type="button"
-                onClick={() => setSelected(null)}
+                onClick={() =>
+                  setSelected(null)
+                }
                 className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold transition hover:bg-slate-50"
               >
                 Chiudi
@@ -637,14 +1435,18 @@ export default function RequestsAdminPage() {
               <span>
                 Codice richiesta:{" "}
                 <strong className="text-slate-700">
-                  {selected.request_code}
+                  {
+                    selected.request_code
+                  }
                 </strong>
               </span>
 
               <span>
                 Ricevuta il:{" "}
                 <strong className="text-slate-700">
-                  {formatDate(selected.created_at)}
+                  {formatDate(
+                    selected.created_at
+                  )}
                 </strong>
               </span>
             </div>
@@ -657,17 +1459,23 @@ export default function RequestsAdminPage() {
               <div className="mt-3 grid gap-4 md:grid-cols-2">
                 <DetailCard
                   label="Tipologia azienda"
-                  value={formatCompanyType(selected)}
+                  value={formatCompanyType(
+                    selected
+                  )}
                 />
 
                 <DetailCard
                   label="Dimensione azienda"
-                  value={selected.company_size}
+                  value={
+                    selected.company_size
+                  }
                 />
 
                 <DetailCard
                   label="Settore azienda"
-                  value={formatCompanySector(selected)}
+                  value={formatCompanySector(
+                    selected
+                  )}
                   wide
                 />
               </div>
@@ -691,17 +1499,23 @@ export default function RequestsAdminPage() {
 
                 <DetailCard
                   label="Ruolo referente"
-                  value={selected.contact_role}
+                  value={
+                    selected.contact_role
+                  }
                 />
 
                 <DetailCard
                   label="Email"
-                  value={selected.contact_email}
+                  value={
+                    selected.contact_email
+                  }
                 />
 
                 <DetailCard
                   label="Telefono"
-                  value={selected.contact_phone}
+                  value={
+                    selected.contact_phone
+                  }
                 />
               </div>
             </section>
@@ -714,12 +1528,16 @@ export default function RequestsAdminPage() {
               <div className="mt-3 grid gap-4 md:grid-cols-2">
                 <DetailCard
                   label="Motivo richiesta"
-                  value={formatRequestReason(selected)}
+                  value={formatRequestReason(
+                    selected
+                  )}
                 />
 
                 <DetailCard
                   label="Obiettivo"
-                  value={selected.request_objective}
+                  value={
+                    selected.request_objective
+                  }
                   wide
                 />
               </div>
@@ -733,7 +1551,9 @@ export default function RequestsAdminPage() {
               <div className="mt-3 grid gap-4 md:grid-cols-2">
                 <DetailCard
                   label="Ruoli secondari"
-                  value={selected.secondary_roles}
+                  value={
+                    selected.secondary_roles
+                  }
                   wide
                 />
 
@@ -753,24 +1573,32 @@ export default function RequestsAdminPage() {
 
                 <DetailCard
                   label="Persone gestite"
-                  value={selected.people_managed_band}
+                  value={
+                    selected.people_managed_band
+                  }
                 />
 
                 <DetailCard
                   label="P&L / budget"
-                  value={selected.pnl_band}
+                  value={
+                    selected.pnl_band
+                  }
                 />
 
                 <DetailCard
                   label="Competenze"
-                  value={selected.competencies}
+                  value={
+                    selected.competencies
+                  }
                   wide
                 />
 
                 {selected.other_competency && (
                   <DetailCard
                     label="Altra competenza"
-                    value={selected.other_competency}
+                    value={
+                      selected.other_competency
+                    }
                     wide
                   />
                 )}
@@ -785,24 +1613,32 @@ export default function RequestsAdminPage() {
               <div className="mt-3 grid gap-4 md:grid-cols-2">
                 <DetailCard
                   label="Tipi produzione"
-                  value={selected.production_types}
+                  value={
+                    selected.production_types
+                  }
                 />
 
                 <DetailCard
                   label="Metodologie"
-                  value={selected.methodologies}
+                  value={
+                    selected.methodologies
+                  }
                 />
 
                 {selected.other_methodology && (
                   <DetailCard
                     label="Altra metodologia"
-                    value={selected.other_methodology}
+                    value={
+                      selected.other_methodology
+                    }
                   />
                 )}
 
                 <DetailCard
                   label="Trasferte richieste"
-                  value={selected.travel_required}
+                  value={
+                    selected.travel_required
+                  }
                 />
               </div>
             </section>
@@ -815,50 +1651,48 @@ export default function RequestsAdminPage() {
               <div className="mt-3 grid gap-4 md:grid-cols-2">
                 <DetailCard
                   label="Tipi incarico"
-                  value={selected.assignment_types}
+                  value={
+                    selected.assignment_types
+                  }
                 />
 
                 <DetailCard
                   label="Giorni/settimana"
-                  value={selected.days_per_week}
+                  value={
+                    selected.days_per_week
+                  }
                 />
 
                 <DetailCard
                   label="Avvio"
-                  value={formatDate(selected.start_date)}
+                  value={formatDate(
+                    selected.start_date
+                  )}
                 />
 
                 <DetailCard
                   label="Certificazioni richieste"
-                  value={selected.required_certifications}
+                  value={
+                    selected.required_certifications
+                  }
                 />
 
                 <DetailCard
                   label="Lingue richieste"
-                  value={selected.required_languages}
+                  value={
+                    selected.required_languages
+                  }
                 />
 
                 <DetailCard
                   label="Note"
-                  value={selected.final_notes}
+                  value={
+                    selected.final_notes
+                  }
                   wide
                 />
               </div>
             </section>
-
-            {selected.status !== "archived" && (
-              <div className="mt-8 flex justify-end border-t border-slate-100 pt-6">
-                <button
-                  type="button"
-                  onClick={() =>
-                    void changeStatus(selected, "archived")
-                  }
-                  className="rounded-2xl border border-slate-300 px-5 py-3 font-bold text-slate-700 transition hover:bg-slate-50"
-                >
-                  Archivia richiesta
-                </button>
-              </div>
-            )}
           </div>
         </div>
       )}

@@ -393,15 +393,6 @@ export async function POST(
     const supabase =
       getSupabaseAdmin();
 
-    /*
-     * Il codice viene generato direttamente da PostgreSQL
-     * tramite una sequence:
-     *
-     * RQ-0001
-     * RQ-0002
-     * RQ-0003
-     * ...
-     */
     const {
       data: requestCode,
       error: requestCodeError,
@@ -506,8 +497,7 @@ export async function POST(
       assignment_types:
         assignmentTypes,
 
-      days_per_week:
-        daysPerWeek,
+      days_per_week: daysPerWeek,
 
       start_date: startDate,
 
@@ -576,7 +566,7 @@ export async function POST(
 }
 
 /* ============================================================
-   PATCH — STATO CRM
+   PATCH — STATO / ARCHIVIAZIONE CRM
    ============================================================ */
 
 export async function PATCH(
@@ -603,8 +593,6 @@ export async function PATCH(
         unknown
       >;
 
-    const id = Number(body.id);
-
     const status =
       normalizeText(body.status);
 
@@ -612,19 +600,56 @@ export async function PATCH(
       new Set([
         "new",
         "in_review",
-        "matched",
-        "closed",
+        "completed",
         "archived",
       ]);
 
     if (
-      !Number.isInteger(id) ||
-      id <= 0 ||
       !allowedStatuses.has(status)
     ) {
       return NextResponse.json(
         {
-          error: "Dati non validi.",
+          error:
+            "Stato non valido.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    let ids: number[] = [];
+
+    if (Array.isArray(body.ids)) {
+      ids = [
+        ...new Set(
+          body.ids
+            .map(Number)
+            .filter(
+              (value) =>
+                Number.isInteger(
+                  value
+                ) &&
+                value > 0
+            )
+        ),
+      ];
+    } else {
+      const id = Number(body.id);
+
+      if (
+        Number.isInteger(id) &&
+        id > 0
+      ) {
+        ids = [id];
+      }
+    }
+
+    if (ids.length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Nessuna richiesta selezionata.",
         },
         {
           status: 400,
@@ -645,16 +670,23 @@ export async function PATCH(
           updated_at:
             new Date().toISOString(),
         })
-        .eq("id", id)
-        .select("*")
-        .single();
+        .in("id", ids)
+        .select("*");
 
     if (error) {
       throw error;
     }
 
+    const updatedRequests =
+      data ?? [];
+
     return NextResponse.json({
-      request: data,
+      ok: true,
+      requests: updatedRequests,
+      request:
+        updatedRequests.length === 1
+          ? updatedRequests[0]
+          : null,
     });
   } catch (error) {
     console.error(
@@ -665,7 +697,7 @@ export async function PATCH(
     return NextResponse.json(
       {
         error:
-          "Impossibile aggiornare la richiesta.",
+          "Impossibile aggiornare le richieste.",
       },
       {
         status: 500,
@@ -711,7 +743,9 @@ export async function DELETE(
           .map(Number)
           .filter(
             (value) =>
-              Number.isInteger(value) &&
+              Number.isInteger(
+                value
+              ) &&
               value > 0
           )
       ),
