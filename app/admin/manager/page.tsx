@@ -14,7 +14,6 @@ type Manager = Record<string, any> & {
   sectors?: string[];
   daily_rate_band?: string;
   profile_status?: "registered" | "qualified" | "contracted";
-  profile_visibility_enabled?: boolean;
   updated_at?: string;
 };
 
@@ -104,38 +103,6 @@ function formatSecondaryRoles(value: unknown) {
       }
 
       return role || family;
-    })
-    .filter(Boolean);
-
-  return labels.length ? labels.join(", ") : "—";
-}
-
-function formatGeographicAreas(value: unknown) {
-  if (!Array.isArray(value) || value.length === 0) {
-    return "—";
-  }
-
-  const labels = value
-    .map((item) => {
-      if (!item || typeof item !== "object") {
-        return String(item ?? "");
-      }
-
-      const province =
-        typeof item.province === "string"
-          ? item.province.trim()
-          : "";
-
-      const region =
-        typeof item.region === "string"
-          ? item.region.trim()
-          : "";
-
-      if (province && region) {
-        return `${province} (${region})`;
-      }
-
-      return province || region;
     })
     .filter(Boolean);
 
@@ -295,7 +262,9 @@ export default function ManagersAdminPage() {
       )
     );
 
-    setSelected(null);
+    if (selected?.user_id === manager.user_id) {
+      setSelected(null);
+    }
   }
 
   return (
@@ -368,7 +337,7 @@ export default function ManagersAdminPage() {
       ) : (
         <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1250px] text-left text-sm">
+            <table className="w-full min-w-[1100px] text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-5 py-4">
@@ -395,13 +364,10 @@ export default function ManagersAdminPage() {
                     Stato
                   </th>
 
-                  <th className="px-5 py-4">
-                    Ricerca
-                  </th>
-
-                  <th className="px-5 py-4 text-right">
-                    Azioni
-                  </th>
+                  <th
+                    className="w-12 px-3 py-4"
+                    aria-label="Elimina"
+                  />
                 </tr>
               </thead>
 
@@ -409,7 +375,8 @@ export default function ManagersAdminPage() {
                 {filteredManagers.map((manager) => (
                   <tr
                     key={manager.user_id}
-                    className="transition hover:bg-slate-50/70"
+                    onClick={() => setSelected(manager)}
+                    className="cursor-pointer transition hover:bg-slate-50/70"
                   >
                     <td className="px-5 py-4">
                       <div className="font-bold text-slate-900">
@@ -457,7 +424,12 @@ export default function ManagersAdminPage() {
                       </div>
                     </td>
 
-                    <td className="px-5 py-4">
+                    <td
+                      className="px-5 py-4"
+                      onClick={(event) =>
+                        event.stopPropagation()
+                      }
+                    >
                       <select
                         value={
                           manager.profile_status ||
@@ -488,42 +460,22 @@ export default function ManagersAdminPage() {
                       </select>
                     </td>
 
-                    <td className="px-5 py-4">
+                    <td
+                      className="px-3 py-4 text-right align-top"
+                      onClick={(event) =>
+                        event.stopPropagation()
+                      }
+                    >
                       <button
                         type="button"
                         onClick={() =>
-                          void updateManager(
-                            manager,
-                            {
-                              profile_visibility_enabled:
-                                manager.profile_visibility_enabled ===
-                                false,
-                            }
-                          )
+                          void deleteManager(manager)
                         }
-                        className={`rounded-full px-3 py-1.5 text-xs font-bold ${
-                          manager.profile_visibility_enabled ===
-                          false
-                            ? "bg-slate-100 text-slate-600"
-                            : "bg-[#e8f0f8] text-[#0b2340]"
-                        }`}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold text-slate-400 transition hover:bg-red-50 hover:text-red-700"
+                        aria-label={`Elimina ${manager.first_name ?? ""} ${manager.last_name ?? ""}`}
+                        title="Elimina manager"
                       >
-                        {manager.profile_visibility_enabled ===
-                        false
-                          ? "Pausa"
-                          : "Attivo"}
-                      </button>
-                    </td>
-
-                    <td className="px-5 py-4 text-right">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelected(manager)
-                        }
-                        className="font-bold text-[#164873] hover:underline"
-                      >
-                        Apri
+                        ×
                       </button>
                     </td>
                   </tr>
@@ -532,7 +484,7 @@ export default function ManagersAdminPage() {
                 {filteredManagers.length === 0 && (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={7}
                       className="px-5 py-10 text-center text-slate-500"
                     >
                       Nessun manager trovato.
@@ -706,12 +658,6 @@ export default function ManagersAdminPage() {
               <div className="mt-3 grid gap-4 md:grid-cols-2">
                 {[
                   [
-                    "Aree geografiche",
-                    formatGeographicAreas(
-                      selected.geographic_areas
-                    ),
-                  ],
-                  [
                     "Trasferte",
                     selected.travel_available,
                   ],
@@ -782,18 +728,6 @@ export default function ManagersAdminPage() {
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div className="mt-7 flex justify-end">
-              <button
-                type="button"
-                onClick={() =>
-                  void deleteManager(selected)
-                }
-                className="rounded-2xl border border-red-200 px-5 py-3 font-bold text-red-700 transition hover:bg-red-50"
-              >
-                Elimina manager
-              </button>
             </div>
           </div>
         </div>
