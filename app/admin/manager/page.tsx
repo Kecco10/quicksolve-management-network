@@ -7,8 +7,12 @@ type Manager = Record<string, any> & {
   first_name?: string;
   last_name?: string;
   email?: string;
+  birth_date?: string;
+  study_title?: string;
   primary_role?: string;
   primary_role_family?: string;
+  sectors?: string[];
+  daily_rate_band?: string;
   profile_status?: "registered" | "qualified" | "contracted";
   profile_visibility_enabled?: boolean;
   updated_at?: string;
@@ -18,6 +22,19 @@ const statusLabel: Record<string, string> = {
   registered: "Registrato",
   qualified: "Qualificato",
   contracted: "Contrattualizzato",
+};
+
+const experienceLabel: Record<string, string> = {
+  less_than_6: "Meno di 6 anni",
+  "6_10": "6–10 anni",
+  "11_20": "11–20 anni",
+  over_20: "Oltre 20 anni",
+};
+
+const managerialExperienceLabel: Record<string, string> = {
+  less_than_3: "Meno di 3 anni",
+  "3_10": "3–10 anni",
+  over_10: "Oltre 10 anni",
 };
 
 function show(value: unknown) {
@@ -33,6 +50,96 @@ function show(value: unknown) {
   if (value === false) return "No";
 
   return value ? String(value) : "—";
+}
+
+function formatDate(value: unknown) {
+  if (!value || typeof value !== "string") {
+    return "—";
+  }
+
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+  if (!match) {
+    return value;
+  }
+
+  return `${match[3]}/${match[2]}/${match[1]}`;
+}
+
+function formatExperience(value: unknown) {
+  if (!value) return "—";
+
+  const normalized = String(value);
+
+  return experienceLabel[normalized] ?? normalized;
+}
+
+function formatManagerialExperience(value: unknown) {
+  if (!value) return "—";
+
+  const normalized = String(value);
+
+  return managerialExperienceLabel[normalized] ?? normalized;
+}
+
+function formatSecondaryRoles(value: unknown) {
+  if (!Array.isArray(value) || value.length === 0) {
+    return "—";
+  }
+
+  const labels = value
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return String(item ?? "");
+      }
+
+      const role =
+        typeof item.role === "string" ? item.role.trim() : "";
+
+      const family =
+        typeof item.family === "string" ? item.family.trim() : "";
+
+      if (role && family) {
+        return `${role} (${family})`;
+      }
+
+      return role || family;
+    })
+    .filter(Boolean);
+
+  return labels.length ? labels.join(", ") : "—";
+}
+
+function formatGeographicAreas(value: unknown) {
+  if (!Array.isArray(value) || value.length === 0) {
+    return "—";
+  }
+
+  const labels = value
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return String(item ?? "");
+      }
+
+      const province =
+        typeof item.province === "string"
+          ? item.province.trim()
+          : "";
+
+      const region =
+        typeof item.region === "string"
+          ? item.region.trim()
+          : "";
+
+      if (province && region) {
+        return `${province} (${region})`;
+      }
+
+      return province || region;
+    })
+    .filter(Boolean);
+
+  return labels.length ? labels.join(", ") : "—";
 }
 
 export default function ManagersAdminPage() {
@@ -89,11 +196,17 @@ export default function ManagersAdminPage() {
         manager.first_name,
         manager.last_name,
         manager.email,
+        manager.birth_date,
+        manager.study_title,
         manager.primary_role,
         manager.primary_role_family,
+        manager.region,
+        manager.province,
+        manager.daily_rate_band,
         ...(manager.sectors ?? []),
         ...(manager.competencies ?? []),
       ]
+        .filter(Boolean)
         .join(" ")
         .toLowerCase();
 
@@ -213,7 +326,7 @@ export default function ManagersAdminPage() {
           onChange={(event) =>
             setQuery(event.target.value)
           }
-          placeholder="Cerca nome, email, ruolo, settore, competenza..."
+          placeholder="Cerca nome, ruolo, area, settore, titolo di studio..."
           className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-[#0b2340]"
         />
 
@@ -255,7 +368,7 @@ export default function ManagersAdminPage() {
       ) : (
         <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left text-sm">
+            <table className="w-full min-w-[1250px] text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-5 py-4">
@@ -268,6 +381,14 @@ export default function ManagersAdminPage() {
 
                   <th className="px-5 py-4">
                     Area
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Settori
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Tariffa
                   </th>
 
                   <th className="px-5 py-4">
@@ -296,8 +417,12 @@ export default function ManagersAdminPage() {
                         {manager.last_name}
                       </div>
 
-                      <div className="text-slate-500">
-                        {manager.email}
+                      <div className="mt-1 text-xs text-slate-500">
+                        {formatDate(manager.birth_date)}
+                      </div>
+
+                      <div className="mt-0.5 text-xs text-slate-500">
+                        {show(manager.study_title)}
                       </div>
                     </td>
 
@@ -318,6 +443,18 @@ export default function ManagersAdminPage() {
                         manager.province ||
                           manager.region
                       )}
+                    </td>
+
+                    <td className="px-5 py-4">
+                      <div className="max-w-[230px] leading-relaxed">
+                        {show(manager.sectors)}
+                      </div>
+                    </td>
+
+                    <td className="px-5 py-4">
+                      <div className="font-semibold text-slate-900">
+                        {show(manager.daily_rate_band)}
+                      </div>
                     </td>
 
                     <td className="px-5 py-4">
@@ -395,7 +532,7 @@ export default function ManagersAdminPage() {
                 {filteredManagers.length === 0 && (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={8}
                       className="px-5 py-10 text-center text-slate-500"
                     >
                       Nessun manager trovato.
@@ -436,10 +573,6 @@ export default function ManagersAdminPage() {
                   {selected.first_name}{" "}
                   {selected.last_name}
                 </h2>
-
-                <p className="text-slate-500">
-                  {selected.email}
-                </p>
               </div>
 
               <button
@@ -453,126 +586,202 @@ export default function ManagersAdminPage() {
               </button>
             </div>
 
-            <div className="mt-7 grid gap-4 md:grid-cols-2">
-              {[
-                [
-                  "Ruolo principale",
-                  selected.primary_role,
-                ],
-                [
-                  "Famiglia ruolo",
-                  selected.primary_role_family,
-                ],
-                [
-                  "Ruoli secondari",
-                  selected.secondary_roles,
-                ],
-                [
-                  "Esperienza",
-                  selected.experience_band,
-                ],
-                [
-                  "Esperienza manageriale",
-                  selected.managerial_experience_band,
-                ],
-                [
-                  "Competenze",
-                  selected.competencies,
-                ],
-                [
-                  "Metodologie",
-                  selected.methodologies,
-                ],
-                [
-                  "Settori",
-                  selected.sectors,
-                ],
-                [
-                  "Tipi produzione",
-                  selected.production_types,
-                ],
-                [
-                  "Aree geografiche",
-                  selected.geographic_areas,
-                ],
-                [
-                  "Trasferte",
-                  selected.travel_available,
-                ],
-                [
-                  "Tipi incarico",
-                  selected.assignment_types,
-                ],
-                [
-                  "Giorni/settimana",
-                  selected.days_per_week,
-                ],
-                [
-                  "Disponibile dal",
-                  selected.available_from,
-                ],
-                [
-                  "Tariffa giornaliera",
-                  selected.daily_rate_band,
-                ],
-                [
-                  "Persone gestite",
-                  selected.people_managed_band,
-                ],
-                [
-                  "P&L / budget",
-                  selected.pnl_budget_band,
-                ],
-                [
-                  "Fatturato azienda",
-                  selected.company_revenue_band,
-                ],
-                [
-                  "P.IVA",
-                  selected.vat_active,
-                ],
-                [
-                  "RC professionale",
-                  selected.professional_insurance,
-                ],
-                [
-                  "Massimale RC",
-                  selected.insurance_limit,
-                ],
-                [
-                  "Titolo di studio",
-                  selected.study_title,
-                ],
-                [
-                  "Certificazioni",
-                  selected.certifications,
-                ],
-                [
-                  "Lingue",
-                  selected.languages,
-                ],
-                [
-                  "WhatsApp",
-                  selected.whatsapp_phone,
-                ],
-                [
-                  "LinkedIn",
-                  selected.linkedin_url,
-                ],
-              ].map(([label, value]) => (
-                <div
-                  key={label as string}
-                  className="rounded-2xl bg-slate-50 p-4"
-                >
+            <div className="mt-7">
+              <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[#164873]">
+                Contatti
+              </h3>
+
+              <div className="mt-3 grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl bg-slate-50 p-4">
                   <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                    {label}
+                    Email
                   </div>
 
                   <div className="mt-1 break-words font-medium text-slate-900">
-                    {show(value)}
+                    {show(selected.email)}
                   </div>
                 </div>
-              ))}
+
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    WhatsApp
+                  </div>
+
+                  <div className="mt-1 break-words font-medium text-slate-900">
+                    {show(selected.whatsapp_phone)}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-4 md:col-span-2">
+                  <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    LinkedIn
+                  </div>
+
+                  <div className="mt-1 break-words font-medium text-slate-900">
+                    {show(selected.linkedin_url)}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-7">
+              <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[#164873]">
+                Profilo professionale
+              </h3>
+
+              <div className="mt-3 grid gap-4 md:grid-cols-2">
+                {[
+                  [
+                    "Ruoli secondari",
+                    formatSecondaryRoles(
+                      selected.secondary_roles
+                    ),
+                  ],
+                  [
+                    "Esperienza lavorativa",
+                    formatExperience(
+                      selected.experience_band
+                    ),
+                  ],
+                  [
+                    "Esperienza manageriale",
+                    formatManagerialExperience(
+                      selected.managerial_experience_band
+                    ),
+                  ],
+                  [
+                    "Competenze",
+                    selected.competencies,
+                  ],
+                  [
+                    "Altra competenza",
+                    selected.other_competency,
+                  ],
+                  [
+                    "Metodologie",
+                    selected.methodologies,
+                  ],
+                  [
+                    "Altra metodologia",
+                    selected.other_methodology,
+                  ],
+                  [
+                    "Tipi produzione",
+                    selected.production_types,
+                  ],
+                  [
+                    "Persone gestite",
+                    selected.people_managed_band,
+                  ],
+                  [
+                    "P&L / budget",
+                    selected.pnl_budget_band,
+                  ],
+                  [
+                    "Fatturato azienda",
+                    selected.company_revenue_band,
+                  ],
+                ].map(([label, value]) => (
+                  <div
+                    key={label as string}
+                    className="rounded-2xl bg-slate-50 p-4"
+                  >
+                    <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                      {label}
+                    </div>
+
+                    <div className="mt-1 break-words font-medium text-slate-900">
+                      {show(value)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-7">
+              <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[#164873]">
+                Disponibilità e incarico
+              </h3>
+
+              <div className="mt-3 grid gap-4 md:grid-cols-2">
+                {[
+                  [
+                    "Aree geografiche",
+                    formatGeographicAreas(
+                      selected.geographic_areas
+                    ),
+                  ],
+                  [
+                    "Trasferte",
+                    selected.travel_available,
+                  ],
+                  [
+                    "Tipi incarico",
+                    selected.assignment_types,
+                  ],
+                  [
+                    "Giorni/settimana",
+                    selected.days_per_week,
+                  ],
+                  [
+                    "Disponibile dal",
+                    formatDate(selected.available_from),
+                  ],
+                ].map(([label, value]) => (
+                  <div
+                    key={label as string}
+                    className="rounded-2xl bg-slate-50 p-4"
+                  >
+                    <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                      {label}
+                    </div>
+
+                    <div className="mt-1 break-words font-medium text-slate-900">
+                      {show(value)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-7">
+              <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[#164873]">
+                Qualifiche e informazioni aggiuntive
+              </h3>
+
+              <div className="mt-3 grid gap-4 md:grid-cols-2">
+                {[
+                  [
+                    "RC professionale",
+                    selected.professional_insurance,
+                  ],
+                  [
+                    "Massimale RC",
+                    selected.insurance_limit,
+                  ],
+                  [
+                    "Certificazioni",
+                    selected.certifications,
+                  ],
+                  [
+                    "Lingue",
+                    selected.languages,
+                  ],
+                ].map(([label, value]) => (
+                  <div
+                    key={label as string}
+                    className="rounded-2xl bg-slate-50 p-4"
+                  >
+                    <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                      {label}
+                    </div>
+
+                    <div className="mt-1 break-words font-medium text-slate-900">
+                      {show(value)}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="mt-7 flex justify-end">
