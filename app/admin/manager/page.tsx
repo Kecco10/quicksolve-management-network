@@ -114,7 +114,10 @@ export default function ManagersAdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [areaFilter, setAreaFilter] = useState("all");
+  const [sectorFilter, setSectorFilter] = useState("all");
+  const [rateFilter, setRateFilter] = useState("all");
   const [selected, setSelected] = useState<Manager | null>(null);
 
   async function loadManagers() {
@@ -155,39 +158,62 @@ export default function ManagersAdminPage() {
     void loadManagers();
   }, []);
 
+  const roleOptions = useMemo(
+    () =>
+      [...new Set(items.map((item) => item.primary_role).filter(Boolean))].sort(),
+    [items]
+  );
+
+  const areaOptions = useMemo(
+    () =>
+      [
+        ...new Set(
+          items.map((item) => item.province || item.region).filter(Boolean)
+        ),
+      ].sort(),
+    [items]
+  );
+
+  const sectorOptions = useMemo(
+    () =>
+      [...new Set(items.flatMap((item) => item.sectors ?? []).filter(Boolean))].sort(),
+    [items]
+  );
+
+  const rateOptions = useMemo(
+    () =>
+      [...new Set(items.map((item) => item.daily_rate_band).filter(Boolean))].sort(),
+    [items]
+  );
+
   const filteredManagers = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return items.filter((manager) => {
-      const searchableText = [
-        manager.first_name,
-        manager.last_name,
-        manager.email,
-        manager.birth_date,
-        manager.study_title,
-        manager.primary_role,
-        manager.primary_role_family,
-        manager.region,
-        manager.province,
-        manager.daily_rate_band,
-        ...(manager.sectors ?? []),
-        ...(manager.competencies ?? []),
-      ]
-        .filter(Boolean)
-        .join(" ")
+      const fullName = `${manager.first_name ?? ""} ${manager.last_name ?? ""}`
+        .trim()
         .toLowerCase();
+      const area = manager.province || manager.region || "";
 
       const matchesQuery =
-        !normalizedQuery ||
-        searchableText.includes(normalizedQuery);
+        !normalizedQuery || fullName.includes(normalizedQuery);
+      const matchesRole =
+        roleFilter === "all" || manager.primary_role === roleFilter;
+      const matchesArea = areaFilter === "all" || area === areaFilter;
+      const matchesSector =
+        sectorFilter === "all" || (manager.sectors ?? []).includes(sectorFilter);
+      const matchesRate =
+        rateFilter === "all" || manager.daily_rate_band === rateFilter;
 
-      const matchesStatus =
-        status === "all" ||
-        (manager.profile_status || "registered") === status;
-
-      return matchesQuery && matchesStatus;
+      return (
+        matchesQuery &&
+        matchesRole &&
+        matchesArea &&
+        matchesSector &&
+        matchesRate
+      );
     });
-  }, [items, query, status]);
+  }, [items, query, roleFilter, areaFilter, sectorFilter, rateFilter]);
 
   async function updateManager(
     manager: Manager,
@@ -269,58 +295,56 @@ export default function ManagersAdminPage() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#164873]">
-            CRM
-          </p>
-
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">
-            Manager
-          </h1>
-
-          <p className="mt-2 text-slate-600">
-            Profili iscritti al QuickSolve Management Network.
-          </p>
-        </div>
-
-        <div className="w-fit rounded-2xl bg-[#eef3f8] px-5 py-3 font-bold text-[#071b33]">
-          {items.length} profili
-        </div>
-      </div>
-
-      <div className="mt-7 grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_220px]">
+      <div className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
         <input
           value={query}
-          onChange={(event) =>
-            setQuery(event.target.value)
-          }
-          placeholder="Cerca nome, ruolo, area, settore, titolo di studio..."
-          className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-[#0b2340]"
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Nome manager"
+          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-[#0b2340]"
         />
 
         <select
-          value={status}
-          onChange={(event) =>
-            setStatus(event.target.value)
-          }
-          className="rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none"
+          value={roleFilter}
+          onChange={(event) => setRoleFilter(event.target.value)}
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
         >
-          <option value="all">
-            Tutti gli stati
-          </option>
+          <option value="all">Ruolo</option>
+          {roleOptions.map((value) => (
+            <option key={value} value={value}>{value}</option>
+          ))}
+        </select>
 
-          <option value="registered">
-            Registrati
-          </option>
+        <select
+          value={areaFilter}
+          onChange={(event) => setAreaFilter(event.target.value)}
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+        >
+          <option value="all">Area</option>
+          {areaOptions.map((value) => (
+            <option key={value} value={value}>{value}</option>
+          ))}
+        </select>
 
-          <option value="qualified">
-            Qualificati
-          </option>
+        <select
+          value={sectorFilter}
+          onChange={(event) => setSectorFilter(event.target.value)}
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+        >
+          <option value="all">Settori</option>
+          {sectorOptions.map((value) => (
+            <option key={value} value={value}>{value}</option>
+          ))}
+        </select>
 
-          <option value="contracted">
-            Contrattualizzati
-          </option>
+        <select
+          value={rateFilter}
+          onChange={(event) => setRateFilter(event.target.value)}
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+        >
+          <option value="all">Tariffa</option>
+          {rateOptions.map((value) => (
+            <option key={value} value={value}>{value}</option>
+          ))}
         </select>
       </div>
 

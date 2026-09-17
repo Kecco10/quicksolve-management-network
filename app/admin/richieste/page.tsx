@@ -238,7 +238,10 @@ export default function RequestsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [areaFilter, setAreaFilter] = useState("all");
+  const [sectorFilter, setSectorFilter] = useState("all");
+  const [rateFilter, setRateFilter] = useState("all");
   const [selected, setSelected] =
     useState<CompanyRequest | null>(null);
 
@@ -280,47 +283,71 @@ export default function RequestsAdminPage() {
     void loadRequests();
   }, []);
 
+  const roleOptions = useMemo(
+    () =>
+      [...new Set(items.map((item) => formatRole(item)).filter((value) => value !== "—"))].sort(),
+    [items]
+  );
+
+  const areaOptions = useMemo(
+    () =>
+      [
+        ...new Set(
+          items.map((item) => item.province || item.region).filter(Boolean)
+        ),
+      ].sort(),
+    [items]
+  );
+
+  const sectorOptions = useMemo(
+    () =>
+      [
+        ...new Set(
+          items.flatMap((item) => [
+            ...(item.sectors ?? []),
+            ...(item.other_sector ? [item.other_sector] : []),
+          ])
+        ),
+      ].sort(),
+    [items]
+  );
+
+  const rateOptions = useMemo(
+    () =>
+      [...new Set(items.map((item) => item.daily_rate_band).filter(Boolean))].sort(),
+    [items]
+  );
+
   const filteredRequests = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return items.filter((request) => {
-      const searchableText = [
-        request.request_code,
-        request.company_name,
-        request.company_type,
-        request.other_company_type,
-        request.company_size,
-        request.company_sector,
-        request.other_company_sector,
-        request.contact_first_name,
-        request.contact_last_name,
-        request.contact_role,
-        request.contact_email,
-        request.primary_role,
-        request.other_role,
-        request.role_family,
-        request.region,
-        request.province,
-        request.request_reason,
-        request.other_request_reason,
-        request.daily_rate_band,
+      const companyName = (request.company_name ?? "").toLowerCase();
+      const area = request.province || request.region || "";
+      const sectors = [
         ...(request.sectors ?? []),
-        ...(request.competencies ?? []),
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+        ...(request.other_sector ? [request.other_sector] : []),
+      ];
 
       const matchesQuery =
-        !normalizedQuery ||
-        searchableText.includes(normalizedQuery);
+        !normalizedQuery || companyName.includes(normalizedQuery);
+      const matchesRole =
+        roleFilter === "all" || formatRole(request) === roleFilter;
+      const matchesArea = areaFilter === "all" || area === areaFilter;
+      const matchesSector =
+        sectorFilter === "all" || sectors.includes(sectorFilter);
+      const matchesRate =
+        rateFilter === "all" || request.daily_rate_band === rateFilter;
 
-      const matchesStatus =
-        status === "all" || request.status === status;
-
-      return matchesQuery && matchesStatus;
+      return (
+        matchesQuery &&
+        matchesRole &&
+        matchesArea &&
+        matchesSector &&
+        matchesRate
+      );
     });
-  }, [items, query, status]);
+  }, [items, query, roleFilter, areaFilter, sectorFilter, rateFilter]);
 
   async function changeStatus(
     request: CompanyRequest,
@@ -390,46 +417,56 @@ export default function RequestsAdminPage() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#164873]">
-            CRM
-          </p>
-
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">
-            Richieste aziende
-          </h1>
-
-          <p className="mt-2 text-slate-600">
-            Richieste manager inviate dal sito QuickSolve Management
-            Network.
-          </p>
-        </div>
-
-        <div className="w-fit rounded-2xl bg-[#eef3f8] px-5 py-3 font-bold text-[#071b33]">
-          {items.length} richieste
-        </div>
-      </div>
-
-      <div className="mt-7 grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_220px]">
+      <div className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Cerca azienda, codice RQ, ruolo, area, settore..."
-          className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-[#0b2340]"
+          placeholder="Nome azienda"
+          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-[#0b2340]"
         />
 
         <select
-          value={status}
-          onChange={(event) => setStatus(event.target.value)}
-          className="rounded-2xl border border-slate-300 bg-white px-4 py-3"
+          value={roleFilter}
+          onChange={(event) => setRoleFilter(event.target.value)}
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
         >
-          <option value="all">Tutti gli stati</option>
-          <option value="new">Nuove</option>
-          <option value="in_review">In lavorazione</option>
-          <option value="matched">Matching</option>
-          <option value="closed">Chiuse</option>
-          <option value="archived">Archiviate</option>
+          <option value="all">Ruolo</option>
+          {roleOptions.map((value) => (
+            <option key={value} value={value}>{value}</option>
+          ))}
+        </select>
+
+        <select
+          value={areaFilter}
+          onChange={(event) => setAreaFilter(event.target.value)}
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+        >
+          <option value="all">Area</option>
+          {areaOptions.map((value) => (
+            <option key={value} value={value}>{value}</option>
+          ))}
+        </select>
+
+        <select
+          value={sectorFilter}
+          onChange={(event) => setSectorFilter(event.target.value)}
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+        >
+          <option value="all">Settori</option>
+          {sectorOptions.map((value) => (
+            <option key={value} value={value}>{value}</option>
+          ))}
+        </select>
+
+        <select
+          value={rateFilter}
+          onChange={(event) => setRateFilter(event.target.value)}
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+        >
+          <option value="all">Tariffa</option>
+          {rateOptions.map((value) => (
+            <option key={value} value={value}>{value}</option>
+          ))}
         </select>
       </div>
 

@@ -98,20 +98,6 @@ function normalizeSecondaryRoles(
     .slice(0, 2);
 }
 
-function createRequestCode() {
-  const date = new Date()
-    .toISOString()
-    .slice(0, 10)
-    .replaceAll("-", "");
-
-  const randomCode =
-    crypto.randomUUID()
-      .slice(0, 6)
-      .toUpperCase();
-
-  return `QMN-${date}-${randomCode}`;
-}
-
 /* ============================================================
    GET — CRM
    ============================================================ */
@@ -186,253 +172,211 @@ export async function POST(
         unknown
       >;
 
-    const payload = {
-      request_code:
-        createRequestCode(),
+    const companyName =
+      normalizeText(body.company_name);
 
-      company_name:
-        normalizeText(
-          body.company_name
-        ),
+    const companyType =
+      normalizeText(body.company_type);
 
-      company_type:
-        normalizeText(
-          body.company_type
-        ),
+    const otherCompanyType =
+      normalizeText(
+        body.other_company_type
+      ) || null;
 
-      other_company_type:
-        normalizeText(
-          body.other_company_type
-        ) || null,
+    const companySize =
+      normalizeText(body.company_size);
 
-      company_size:
-        normalizeText(
-          body.company_size
-        ),
+    const companySector =
+      normalizeText(body.company_sector);
 
-      company_sector:
-        normalizeText(
-          body.company_sector
-        ),
+    const otherCompanySector =
+      normalizeText(
+        body.other_company_sector
+      ) || null;
 
-      other_company_sector:
-        normalizeText(
-          body.other_company_sector
-        ) || null,
+    const contactFirstName =
+      normalizeText(
+        body.contact_first_name
+      );
 
-      contact_first_name:
-        normalizeText(
-          body.contact_first_name
-        ),
+    const contactLastName =
+      normalizeText(
+        body.contact_last_name
+      );
 
-      contact_last_name:
-        normalizeText(
-          body.contact_last_name
-        ),
+    const contactRole =
+      normalizeText(body.contact_role);
 
-      contact_role:
-        normalizeText(
-          body.contact_role
-        ),
+    const contactEmail =
+      normalizeText(
+        body.contact_email
+      ).toLowerCase();
 
-      contact_email:
-        normalizeText(
-          body.contact_email
-        ).toLowerCase(),
+    const contactPhone =
+      normalizeText(body.contact_phone);
 
-      contact_phone:
-        normalizeText(
-          body.contact_phone
-        ),
+    const requestReason =
+      normalizeText(body.request_reason);
 
-      request_reason:
-        normalizeText(
-          body.request_reason
-        ),
+    const otherRequestReason =
+      normalizeText(
+        body.other_request_reason
+      ) || null;
 
-      other_request_reason:
-        normalizeText(
-          body.other_request_reason
-        ) || null,
+    const requestObjective =
+      normalizeText(
+        body.request_objective
+      );
 
-      request_objective:
-        normalizeText(
-          body.request_objective
-        ),
+    const roleFamily =
+      normalizeText(body.role_family);
 
-      role_family:
-        normalizeText(
-          body.role_family
-        ),
+    const primaryRole =
+      normalizeText(body.primary_role);
 
-      primary_role:
-        normalizeText(
-          body.primary_role
-        ),
+    const otherRole =
+      normalizeText(
+        body.other_role
+      ) || null;
 
-      other_role:
-        normalizeText(
-          body.other_role
-        ) || null,
+    const secondaryRoles =
+      normalizeSecondaryRoles(
+        body.secondary_roles
+      );
 
-      secondary_roles:
-        normalizeSecondaryRoles(
-          body.secondary_roles
-        ),
+    const experienceBand =
+      normalizeText(
+        body.experience_band
+      );
 
-      experience_band:
-        normalizeText(
-          body.experience_band
-        ),
+    const managerialExperienceBand =
+      normalizeText(
+        body.managerial_experience_band
+      );
 
-      managerial_experience_band:
-        normalizeText(
-          body.managerial_experience_band
-        ),
+    const peopleManagedBand =
+      normalizeText(
+        body.people_managed_band
+      );
 
-      people_managed_band:
-        normalizeText(
-          body.people_managed_band
-        ),
+    const pnlBand =
+      normalizeText(body.pnl_band);
 
-      pnl_band:
-        normalizeText(
-          body.pnl_band
-        ),
+    const competencies =
+      normalizeStringArray(
+        body.competencies
+      );
 
-      competencies:
-        normalizeStringArray(
-          body.competencies
-        ),
+    const otherCompetency =
+      normalizeText(
+        body.other_competency
+      ) || null;
 
-      other_competency:
-        normalizeText(
-          body.other_competency
-        ) || null,
+    const productionTypes =
+      normalizeStringArray(
+        body.production_types
+      );
 
-      production_types:
-        normalizeStringArray(
-          body.production_types
-        ),
+    const sectors =
+      normalizeStringArray(
+        body.sectors
+      );
 
-      sectors:
-        normalizeStringArray(
-          body.sectors
-        ),
+    const otherSector =
+      normalizeText(
+        body.other_sector
+      ) || null;
 
-      other_sector:
-        normalizeText(
-          body.other_sector
-        ) || null,
+    const methodologies =
+      normalizeStringArray(
+        body.methodologies
+      );
 
-      methodologies:
-        normalizeStringArray(
-          body.methodologies
-        ),
+    const otherMethodology =
+      normalizeText(
+        body.other_methodology
+      ) || null;
 
-      other_methodology:
-        normalizeText(
-          body.other_methodology
-        ) || null,
+    const region =
+      normalizeText(body.region);
 
-      region:
-        normalizeText(
-          body.region
-        ),
+    const province =
+      normalizeText(body.province);
 
-      province:
-        normalizeText(
-          body.province
-        ),
+    const travelRequired =
+      body.travel_required === true;
 
-      travel_required:
-        body.travel_required === true,
+    const assignmentTypes =
+      normalizeStringArray(
+        body.assignment_types
+      );
 
-      assignment_types:
-        normalizeStringArray(
-          body.assignment_types
-        ),
+    const daysPerWeek =
+      Number(body.days_per_week);
 
-      days_per_week:
-        Number(
-          body.days_per_week
-        ),
+    const startDate =
+      normalizeText(body.start_date);
 
-      start_date:
-        normalizeText(
-          body.start_date
-        ),
+    const dailyRateBand =
+      normalizeText(
+        body.daily_rate_band
+      );
 
-      daily_rate_band:
-        normalizeText(
-          body.daily_rate_band
-        ),
+    const requiredCertifications =
+      normalizeText(
+        body.required_certifications
+      ) || null;
 
-      required_certifications:
-        normalizeText(
-          body.required_certifications
-        ) || null,
+    const requiredLanguages =
+      normalizeText(
+        body.required_languages
+      ) || null;
 
-      required_languages:
-        normalizeText(
-          body.required_languages
-        ) || null,
+    const finalNotes =
+      normalizeText(
+        body.final_notes
+      ) || null;
 
-      final_notes:
-        normalizeText(
-          body.final_notes
-        ) || null,
-
-      privacy_acknowledged:
-        body.privacy_acknowledged ===
-        true,
-
-      status: "new",
-    };
+    const privacyAcknowledged =
+      body.privacy_acknowledged === true;
 
     const requiredStrings = [
-      payload.company_name,
-      payload.company_type,
-      payload.company_size,
-      payload.company_sector,
-      payload.contact_first_name,
-      payload.contact_last_name,
-      payload.contact_role,
-      payload.contact_email,
-      payload.contact_phone,
-      payload.request_reason,
-      payload.request_objective,
-      payload.role_family,
-      payload.primary_role,
-      payload.experience_band,
-      payload.managerial_experience_band,
-      payload.people_managed_band,
-      payload.pnl_band,
-      payload.region,
-      payload.province,
-      payload.start_date,
-      payload.daily_rate_band,
+      companyName,
+      companyType,
+      companySize,
+      companySector,
+      contactFirstName,
+      contactLastName,
+      contactRole,
+      contactEmail,
+      contactPhone,
+      requestReason,
+      requestObjective,
+      roleFamily,
+      primaryRole,
+      experienceBand,
+      managerialExperienceBand,
+      peopleManagedBand,
+      pnlBand,
+      region,
+      province,
+      startDate,
+      dailyRateBand,
     ];
 
     const invalid =
       requiredStrings.some(
         (value) => !value
       ) ||
-      payload.competencies.length ===
-        0 ||
-      payload.production_types.length ===
-        0 ||
-      payload.sectors.length === 0 ||
-      payload.methodologies.length ===
-        0 ||
-      payload.assignment_types.length ===
-        0 ||
-      !Number.isInteger(
-        payload.days_per_week
-      ) ||
-      payload.days_per_week < 1 ||
-      payload.days_per_week > 5 ||
-      !payload.privacy_acknowledged;
+      competencies.length === 0 ||
+      productionTypes.length === 0 ||
+      sectors.length === 0 ||
+      methodologies.length === 0 ||
+      assignmentTypes.length === 0 ||
+      !Number.isInteger(daysPerWeek) ||
+      daysPerWeek < 1 ||
+      daysPerWeek > 5 ||
+      !privacyAcknowledged;
 
     if (invalid) {
       return NextResponse.json(
@@ -448,6 +392,141 @@ export async function POST(
 
     const supabase =
       getSupabaseAdmin();
+
+    /*
+     * Il codice viene generato direttamente da PostgreSQL
+     * tramite una sequence:
+     *
+     * RQ-0001
+     * RQ-0002
+     * RQ-0003
+     * ...
+     */
+    const {
+      data: requestCode,
+      error: requestCodeError,
+    } = await supabase.rpc(
+      "next_management_request_code"
+    );
+
+    if (
+      requestCodeError ||
+      typeof requestCode !== "string" ||
+      !requestCode
+    ) {
+      console.error(
+        "Errore generazione codice richiesta:",
+        requestCodeError
+      );
+
+      throw new Error(
+        "Impossibile generare il codice richiesta."
+      );
+    }
+
+    const payload = {
+      request_code: requestCode,
+
+      company_name: companyName,
+
+      company_type: companyType,
+
+      other_company_type:
+        otherCompanyType,
+
+      company_size: companySize,
+
+      company_sector: companySector,
+
+      other_company_sector:
+        otherCompanySector,
+
+      contact_first_name:
+        contactFirstName,
+
+      contact_last_name:
+        contactLastName,
+
+      contact_role: contactRole,
+
+      contact_email: contactEmail,
+
+      contact_phone: contactPhone,
+
+      request_reason: requestReason,
+
+      other_request_reason:
+        otherRequestReason,
+
+      request_objective:
+        requestObjective,
+
+      role_family: roleFamily,
+
+      primary_role: primaryRole,
+
+      other_role: otherRole,
+
+      secondary_roles: secondaryRoles,
+
+      experience_band: experienceBand,
+
+      managerial_experience_band:
+        managerialExperienceBand,
+
+      people_managed_band:
+        peopleManagedBand,
+
+      pnl_band: pnlBand,
+
+      competencies,
+
+      other_competency:
+        otherCompetency,
+
+      production_types:
+        productionTypes,
+
+      sectors,
+
+      other_sector: otherSector,
+
+      methodologies,
+
+      other_methodology:
+        otherMethodology,
+
+      region,
+
+      province,
+
+      travel_required:
+        travelRequired,
+
+      assignment_types:
+        assignmentTypes,
+
+      days_per_week:
+        daysPerWeek,
+
+      start_date: startDate,
+
+      daily_rate_band:
+        dailyRateBand,
+
+      required_certifications:
+        requiredCertifications,
+
+      required_languages:
+        requiredLanguages,
+
+      final_notes: finalNotes,
+
+      privacy_acknowledged:
+        privacyAcknowledged,
+
+      status: "new",
+    };
 
     const { data, error } =
       await supabase
