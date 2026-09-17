@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 
@@ -197,7 +197,7 @@ export default function Home() {
                   <span>Sono un manager</span>
 
                   <span className="ml-auto text-xl transition-transform group-hover:translate-x-1">
-                    â†’
+                    →
                   </span>
                 </Link>
 
@@ -250,7 +250,7 @@ export default function Home() {
                   <span>Sono un&apos;azienda</span>
 
                   <span className="ml-auto text-xl transition-transform group-hover:translate-x-1">
-                    â†’
+                    →
                   </span>
                 </Link>
               </div>
@@ -289,11 +289,11 @@ export default function Home() {
             {/* MANAGER */}
             <div className="rounded-2xl border border-[#d7e1ec] bg-[#eef3f8] p-4 shadow-sm sm:p-5">
               <h3 className="text-base font-bold text-[#0b2340] sm:text-lg">
-                ðŸ‘” Manager
+                👔 Manager
               </h3>
 
               <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
-                Crea il tuo profilo ed entra nel network per ricevere opportunitÃ  in linea con
+                Crea il tuo profilo ed entra nel network per ricevere opportunità in linea con
                 la tua esperienza e le tue competenze.
               </p>
             </div>
@@ -301,23 +301,24 @@ export default function Home() {
             {/* AZIENDE */}
             <div className="rounded-2xl border border-[#d7e1ec] bg-[#eef3f8] p-4 shadow-sm sm:p-5">
               <h3 className="text-base font-bold text-[#0b2340] sm:text-lg">
-                ðŸ­ Aziende
+                🏭 Aziende
               </h3>
 
               <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
-                Inserisci la tua esigenza e individua rapidamente il manager piÃ¹ adatto al
-                contesto e agli obiettivi dell'incarico.
+                Inserisci la tua esigenza e individua rapidamente il manager più adatto al
+                contesto e agli obiettivi dell&apos;incarico.
               </p>
             </div>
 
             {/* MATCHING */}
             <div className="rounded-2xl border border-[#d7e1ec] bg-[#eef3f8] p-4 shadow-sm sm:p-5">
               <h3 className="text-base font-bold text-[#0b2340] sm:text-lg">
-                ðŸ§  Matching
+                🧠 Matching
               </h3>
 
               <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
-                Il sistema confronta la richiesta aziendale con i profili manageriali attivi nel network e individua quelli piÃ¹ compatibili.
+                Il sistema confronta la richiesta aziendale con i profili manageriali attivi
+                nel network e individua quelli più compatibili.
               </p>
             </div>
           </div>
@@ -326,7 +327,7 @@ export default function Home() {
         {/* =====================================================
             BANDA VIDEO
             Temporaneamente non cliccabile: il video Management
-            verrÃ  collegato quando sarÃ  disponibile.
+            verrà collegato quando sarà disponibile.
         ====================================================== */}
         <section className="mx-auto w-full max-w-7xl px-4 pb-6 sm:px-6 md:px-8 md:pb-8">
           <div
@@ -355,14 +356,17 @@ export default function Home() {
         {/* =====================================================
             FOOTER
         ====================================================== */}
-        <footer className="border-t border-slate-200 bg-white px-4 pt-1.5 pb-3 sm:px-6">
+        <footer className="border-t border-slate-200 bg-white px-4 pb-3 pt-1.5 sm:px-6">
           <div
             className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-2 text-center text-[12px] font-normal leading-4 text-slate-500 sm:flex-row sm:text-left sm:text-[13px]"
             style={{ fontFamily: "Arial, sans-serif" }}
           >
             <p className="flex items-center">
-              <span>QuickSolve Management Network Â· P.IVA IT04285011203</span>
-              <span className="mx-2" aria-hidden="true">Â·</span>
+              <span>QuickSolve Management Network · P.IVA IT04285011203</span>
+              <span className="mx-2" aria-hidden="true">
+                ·
+              </span>
+
               <a
                 href="https://www.linkedin.com/company/quicksolve-engineering-network/?viewAsMember=true"
                 target="_blank"
@@ -376,7 +380,14 @@ export default function Home() {
                   aria-hidden="true"
                   className="h-[18px] w-[18px]"
                 >
-                  <rect x="2" y="2" width="20" height="20" rx="2.5" fill="#0A66C2" />
+                  <rect
+                    x="2"
+                    y="2"
+                    width="20"
+                    height="20"
+                    rx="2.5"
+                    fill="#0A66C2"
+                  />
                   <circle cx="8" cy="8" r="1.35" fill="white" />
                   <path d="M6.8 10.5h2.4V17H6.8z" fill="white" />
                   <path
@@ -395,7 +406,7 @@ export default function Home() {
                 Privacy Policy
               </Link>
 
-              <span aria-hidden="true">Â·</span>
+              <span aria-hidden="true">·</span>
 
               <Link
                 href="/cookie-policy"
@@ -404,16 +415,16 @@ export default function Home() {
                 Cookie Policy
               </Link>
 
-              <span aria-hidden="true">Â·</span>
+              <span aria-hidden="true">·</span>
 
               <Link
-                href="/legal/condizioni-vendita"
+                href="/legal/condizioni-aziende"
                 className="transition hover:text-[#0b2340]"
               >
-                Condizioni di vendita
+                Condizioni aziende
               </Link>
 
-              <span aria-hidden="true">Â·</span>
+              <span aria-hidden="true">·</span>
 
               <button
                 type="button"
@@ -428,7 +439,6 @@ export default function Home() {
           </div>
         </footer>
       </main>
-
     </>
   );
 }
