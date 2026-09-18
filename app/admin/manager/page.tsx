@@ -235,14 +235,32 @@ export default function ManagersAdminPage() {
       const fullName = `${manager.first_name ?? ""} ${manager.last_name ?? ""}`
         .trim()
         .toLowerCase();
-      const area = manager.province || manager.region || "";
 
       const matchesQuery =
         !normalizedQuery || fullName.includes(normalizedQuery);
       const matchesRole =
         roleFilter === "all" ||
         getManagerRoleNames(manager).includes(roleFilter);
-      const matchesArea = areaFilter === "all" || area === areaFilter;
+      const managerRegions = [
+        manager.region,
+        ...(manager.regions ?? []),
+        ...(manager.geographic_areas ?? []).map((item) => item.region),
+      ].filter(Boolean);
+
+      const managerProvinces = [
+        manager.province,
+        ...(manager.provinces ?? []),
+        ...(manager.geographic_areas ?? []).map((item) => item.province),
+      ].filter(Boolean);
+
+      const matchesRegion =
+        regionFilter === "all" ||
+        managerRegions.includes(regionFilter);
+
+      const matchesProvince =
+        provinceFilter === "all" ||
+        managerProvinces.includes(provinceFilter);
+
       const matchesSector =
         sectorFilter === "all" || (manager.sectors ?? []).includes(sectorFilter);
       const matchesRate =
@@ -257,7 +275,7 @@ export default function ManagersAdminPage() {
         matchesRate
       );
     });
-  }, [items, query, roleFilter, areaFilter, sectorFilter, rateFilter]);
+  }, [items, query, roleFilter, regionFilter, provinceFilter, sectorFilter, rateFilter]);
 
   async function updateManager(
     manager: Manager,
