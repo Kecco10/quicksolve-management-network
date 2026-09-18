@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  dailyRateOptions,
+  regionOptions,
+  regionProvinceMap,
+  roleOptions as catalogueRoleOptions,
+  sectorOptions as catalogueSectorOptions,
+} from "@/lib/management-options";
 
 type Manager = Record<string, any> & {
   user_id: string;
@@ -11,6 +18,8 @@ type Manager = Record<string, any> & {
   study_title?: string;
   primary_role?: string;
   primary_role_family?: string;
+  other_role?: string;
+  secondary_roles?: unknown[];
   sectors?: string[];
   daily_rate_band?: string;
   profile_status?: "registered" | "qualified" | "contracted";
@@ -81,32 +90,48 @@ function formatManagerialExperience(value: unknown) {
   return managerialExperienceLabel[normalized] ?? normalized;
 }
 
-function formatSecondaryRoles(value: unknown) {
-  if (!Array.isArray(value) || value.length === 0) {
-    return "—";
+function getSecondaryRoleNames(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
   }
 
-  const labels = value
+  return value
     .map((item) => {
       if (!item || typeof item !== "object") {
-        return String(item ?? "");
+        return "";
       }
+
+      const record = item as Record<string, unknown>;
 
       const role =
-        typeof item.role === "string" ? item.role.trim() : "";
+        typeof record.role === "string"
+          ? record.role.trim()
+          : "";
 
-      const family =
-        typeof item.family === "string" ? item.family.trim() : "";
+      const otherRole =
+        typeof record.other_role === "string"
+          ? record.other_role.trim()
+          : "";
 
-      if (role && family) {
-        return `${role} (${family})`;
+      if (role === "Altro" && otherRole) {
+        return otherRole;
       }
 
-      return role || family;
+      return role || otherRole;
     })
     .filter(Boolean);
+}
 
-  return labels.length ? labels.join(", ") : "—";
+function getManagerRoleNames(manager: Manager): string[] {
+  const primaryRole =
+    manager.primary_role === "Altro" && manager.other_role
+      ? String(manager.other_role).trim()
+      : String(manager.primary_role ?? "").trim();
+
+  return [
+    primaryRole,
+    ...getSecondaryRoleNames(manager.secondary_roles),
+  ].filter(Boolean);
 }
 
 export default function ManagersAdminPage() {
@@ -115,7 +140,8 @@ export default function ManagersAdminPage() {
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [areaFilter, setAreaFilter] = useState("all");
+  const [regionFilter, setRegionFilter] = useState("all");
+  const [provinceFilter, setProvinceFilter] = useState("all");
   const [sectorFilter, setSectorFilter] = useState("all");
   const [rateFilter, setRateFilter] = useState("all");
   const [selected, setSelected] = useState<Manager | null>(null);
@@ -160,30 +186,46 @@ export default function ManagersAdminPage() {
 
   const roleOptions = useMemo(
     () =>
-      [...new Set(items.map((item) => item.primary_role).filter(Boolean))].sort(),
+      [
+        ...new Set([
+          ...catalogueRoleOptions,
+          ...items.flatMap((item) => getManagerRoleNames(item)),
+        ]),
+      ]
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, "it")),
     [items]
   );
 
-  const areaOptions = useMemo(
+  const sectorFilterOptions = useMemo(
     () =>
       [
-        ...new Set(
-          items.map((item) => item.province || item.region).filter(Boolean)
-        ),
-      ].sort(),
-    [items]
-  );
-
-  const sectorOptions = useMemo(
-    () =>
-      [...new Set(items.flatMap((item) => item.sectors ?? []).filter(Boolean))].sort(),
+        ...new Set([
+          ...catalogueSectorOptions.filter((item) => item !== "Altro"),
+          ...items.flatMap((item) => item.sectors ?? []),
+          ...items.map((item) => item.other_sector ?? "").filter(Boolean),
+        ]),
+      ].sort((a, b) => a.localeCompare(b, "it")),
     [items]
   );
 
   const rateOptions = useMemo(
     () =>
-      [...new Set(items.map((item) => item.daily_rate_band).filter(Boolean))].sort(),
+      [
+        ...new Set([
+          ...dailyRateOptions,
+          ...items.map((item) => item.daily_rate_band ?? "").filter(Boolean),
+        ]),
+      ],
     [items]
+  );
+
+  const provinceOptions = useMemo(
+    () =>
+      regionFilter === "all"
+        ? []
+        : regionProvinceMap[regionFilter] ?? [],
+    [regionFilter]
   );
 
   const filteredManagers = useMemo(() => {
@@ -198,7 +240,8 @@ export default function ManagersAdminPage() {
       const matchesQuery =
         !normalizedQuery || fullName.includes(normalizedQuery);
       const matchesRole =
-        roleFilter === "all" || manager.primary_role === roleFilter;
+        roleFilter === "all" ||
+        getManagerRoleNames(manager).includes(roleFilter);
       const matchesArea = areaFilter === "all" || area === areaFilter;
       const matchesSector =
         sectorFilter === "all" || (manager.sectors ?? []).includes(sectorFilter);
@@ -208,7 +251,8 @@ export default function ManagersAdminPage() {
       return (
         matchesQuery &&
         matchesRole &&
-        matchesArea &&
+        matchesRegion &&
+        matchesProvince &&
         matchesSector &&
         matchesRate
       );
@@ -315,13 +359,34 @@ export default function ManagersAdminPage() {
         </select>
 
         <select
-          value={areaFilter}
-          onChange={(event) => setAreaFilter(event.target.value)}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+          value={regionFilter}
+          onChange={(event) => {
+            setRegionFilter(event.target.value);
+            setProvinceFilter("all");
+          }}
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873]"
         >
-          <option value="all">Area</option>
-          {areaOptions.map((value) => (
-            <option key={value} value={value}>{value}</option>
+          <option value="all">Regione</option>
+          {regionOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={provinceFilter}
+          disabled={regionFilter === "all"}
+          onChange={(event) => setProvinceFilter(event.target.value)}
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+        >
+          <option value="all">
+            {regionFilter === "all" ? "Prima la regione" : "Provincia"}
+          </option>
+          {provinceOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
           ))}
         </select>
 
@@ -418,13 +483,20 @@ export default function ManagersAdminPage() {
                     </td>
 
                     <td className="px-5 py-4">
-                      <div className="font-semibold text-slate-900">
-                        {show(manager.primary_role)}
-                      </div>
+                      <div className="space-y-1">
+                        {getManagerRoleNames(manager).map(
+                          (role, index) => (
+                            <div
+                              key={`${role}-${index}`}
+                              className="font-semibold text-slate-900"
+                            >
+                              {role}
+                            </div>
+                          )
+                        )}
 
-                      <div className="text-xs text-slate-500">
-                        {show(
-                          manager.primary_role_family
+                        {getManagerRoleNames(manager).length === 0 && (
+                          <div className="text-slate-500">—</div>
                         )}
                       </div>
                     </td>
@@ -607,12 +679,6 @@ export default function ManagersAdminPage() {
 
               <div className="mt-3 grid gap-4 md:grid-cols-2">
                 {[
-                  [
-                    "Ruoli secondari",
-                    formatSecondaryRoles(
-                      selected.secondary_roles
-                    ),
-                  ],
                   [
                     "Esperienza lavorativa",
                     formatExperience(

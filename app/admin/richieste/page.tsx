@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  dailyRateOptions,
+  regionOptions,
+  regionProvinceMap,
+  roleOptions as catalogueRoleOptions,
+  sectorOptions as catalogueSectorOptions,
+} from "@/lib/management-options";
 
 type CompanyRequest = Record<string, any> & {
   id: number;
@@ -231,6 +238,55 @@ function formatRole(
   return show(request.primary_role);
 }
 
+function getSecondaryRoleNames(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return "";
+      }
+
+      const record = item as Record<string, unknown>;
+
+      const role =
+        typeof record.role === "string"
+          ? record.role.trim()
+          : "";
+
+      const otherRole =
+        typeof record.other_role === "string"
+          ? record.other_role.trim()
+          : "";
+
+      if (role === "Altro" && otherRole) {
+        return otherRole;
+      }
+
+      return role || otherRole;
+    })
+    .filter(Boolean);
+}
+
+function getRequestRoleNames(
+  request: CompanyRequest
+): string[] {
+  const primaryRole =
+    request.primary_role === "Altro" &&
+    request.other_role
+      ? request.other_role.trim()
+      : request.primary_role?.trim() ?? "";
+
+  return [
+    primaryRole,
+    ...getSecondaryRoleNames(
+      request.secondary_roles
+    ),
+  ].filter(Boolean);
+}
+
 function formatArea(
   request: CompanyRequest
 ) {
@@ -450,48 +506,46 @@ export default function RequestsAdminPage() {
 
   const roleOptions = useMemo(
     () =>
-      uniqueSorted(
-        activeRequests.map(
-          (request) =>
-            request.primary_role ===
-              "Altro" &&
-            request.other_role
-              ? request.other_role
-              : request.primary_role
-        )
-      ),
+      uniqueSorted([
+        ...catalogueRoleOptions,
+        ...activeRequests.flatMap((request) =>
+          getRequestRoleNames(request)
+        ),
+      ]),
     [activeRequests]
   );
 
-  const areaOptions = useMemo(
+  const sectorFilterOptions = useMemo(
     () =>
-      uniqueSorted(
-        activeRequests.map(
-          getAreaValue
-        )
-      ),
-    [activeRequests]
-  );
-
-  const sectorOptions = useMemo(
-    () =>
-      uniqueSorted(
-        activeRequests.flatMap(
-          getSectorValues
-        )
-      ),
+      uniqueSorted([
+        ...catalogueSectorOptions.filter((item) => item !== "Altro"),
+        ...activeRequests.flatMap(
+          (request) => request.sectors ?? []
+        ),
+        ...activeRequests
+          .map((request) => request.other_sector ?? "")
+          .filter(Boolean),
+      ]),
     [activeRequests]
   );
 
   const rateOptions = useMemo(
     () =>
-      uniqueSorted(
-        activeRequests.map(
-          (request) =>
-            request.daily_rate_band
-        )
-      ),
+      uniqueSorted([
+        ...dailyRateOptions,
+        ...activeRequests
+          .map((request) => request.daily_rate_band ?? "")
+          .filter(Boolean),
+      ]),
     [activeRequests]
+  );
+
+  const provinceOptions = useMemo(
+    () =>
+      regionFilter
+        ? regionProvinceMap[regionFilter] ?? []
+        : [],
+    [regionFilter]
   );
 
   const filteredRequests =
@@ -507,16 +561,8 @@ export default function RequestsAdminPage() {
             request.company_name
               ?.toLowerCase() ?? "";
 
-          const requestRole =
-            request.primary_role ===
-              "Altro" &&
-            request.other_role
-              ? request.other_role
-              : request.primary_role ??
-                "";
-
-          const requestArea =
-            getAreaValue(request);
+          const requestRoles =
+            getRequestRoleNames(request);
 
           const requestSectors =
             getSectorValues(request);
@@ -529,11 +575,17 @@ export default function RequestsAdminPage() {
 
           const matchesRole =
             !roleFilter ||
-            requestRole === roleFilter;
+            requestRoles.includes(
+              roleFilter
+            );
 
-          const matchesArea =
-            !areaFilter ||
-            requestArea === areaFilter;
+          const matchesRegion =
+            !regionFilter ||
+            request.region === regionFilter;
+
+          const matchesProvince =
+            !provinceFilter ||
+            request.province === provinceFilter;
 
           const matchesSector =
             !sectorFilter ||
@@ -549,7 +601,8 @@ export default function RequestsAdminPage() {
           return (
             matchesQuery &&
             matchesRole &&
-            matchesArea &&
+            matchesRegion &&
+            matchesProvince &&
             matchesSector &&
             matchesRate
           );
@@ -559,7 +612,8 @@ export default function RequestsAdminPage() {
       activeRequests,
       query,
       roleFilter,
-      areaFilter,
+      regionFilter,
+      provinceFilter,
       sectorFilter,
       rateFilter,
     ]);
@@ -911,24 +965,33 @@ export default function RequestsAdminPage() {
         </select>
 
         <select
-          value={areaFilter}
-          onChange={(event) =>
-            setAreaFilter(
-              event.target.value
-            )
-          }
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:w-40"
+          value={regionFilter}
+          onChange={(event) => {
+            setRegionFilter(event.target.value);
+            setProvinceFilter("");
+          }}
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873]"
+        >
+          <option value="">Regione</option>
+          {regionOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={provinceFilter}
+          disabled={!regionFilter}
+          onChange={(event) => setProvinceFilter(event.target.value)}
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
         >
           <option value="">
-            Area
+            {regionFilter ? "Provincia" : "Prima la regione"}
           </option>
-
-          {areaOptions.map((area) => (
-            <option
-              key={area}
-              value={area}
-            >
-              {area}
+          {provinceOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
             </option>
           ))}
         </select>
@@ -1107,15 +1170,26 @@ export default function RequestsAdminPage() {
                         </td>
 
                         <td className="px-5 py-4">
-                          <div className="font-semibold text-slate-900">
-                            {formatRole(
+                          <div className="space-y-1">
+                            {getRequestRoleNames(
                               request
+                            ).map(
+                              (role, index) => (
+                                <div
+                                  key={`${role}-${index}`}
+                                  className="font-semibold text-slate-900"
+                                >
+                                  {role}
+                                </div>
+                              )
                             )}
-                          </div>
 
-                          <div className="text-xs text-slate-500">
-                            {show(
-                              request.role_family
+                            {getRequestRoleNames(
+                              request
+                            ).length === 0 && (
+                              <div className="text-slate-500">
+                                —
+                              </div>
                             )}
                           </div>
                         </td>
@@ -1343,9 +1417,28 @@ export default function RequestsAdminPage() {
                             </td>
 
                             <td className="px-5 py-4">
-                              {formatRole(
-                                request
-                              )}
+                              <div className="space-y-1">
+                                {getRequestRoleNames(
+                                  request
+                                ).map(
+                                  (role, index) => (
+                                    <div
+                                      key={`${role}-${index}`}
+                                      className="font-semibold text-slate-900"
+                                    >
+                                      {role}
+                                    </div>
+                                  )
+                                )}
+
+                                {getRequestRoleNames(
+                                  request
+                                ).length === 0 && (
+                                  <div className="text-slate-500">
+                                    —
+                                  </div>
+                                )}
+                              </div>
                             </td>
 
                             <td className="px-5 py-4">
@@ -1549,14 +1642,6 @@ export default function RequestsAdminPage() {
               </h3>
 
               <div className="mt-3 grid gap-4 md:grid-cols-2">
-                <DetailCard
-                  label="Ruoli secondari"
-                  value={
-                    selected.secondary_roles
-                  }
-                  wide
-                />
-
                 <DetailCard
                   label="Esperienza lavorativa"
                   value={formatExperience(
