@@ -1147,6 +1147,10 @@ export default function RequestsAdminPage() {
         </button>
       </div>
 
+      <div className="mt-2 text-sm text-slate-600">
+        {filteredRequests.length} richieste attive trovate su {activeRequests.length} presenti
+      </div>
+
       {error && (
         <div className="mt-5 rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">
           {error}

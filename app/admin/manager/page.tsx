@@ -90,6 +90,25 @@ function formatManagerialExperience(value: unknown) {
   return managerialExperienceLabel[normalized] ?? normalized;
 }
 
+function getSecondaryRoleDetails(value: unknown): Array<{ role: string; family: string }> {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const record = item as Record<string, unknown>;
+      const role = typeof record.role === "string" ? record.role.trim() : "";
+      const otherRole =
+        typeof record.other_role === "string" ? record.other_role.trim() : "";
+      const family =
+        typeof record.family === "string" ? record.family.trim() : "";
+
+      const displayRole = role === "Altro" && otherRole ? otherRole : role || otherRole;
+      return displayRole ? { role: displayRole, family } : null;
+    })
+    .filter((item): item is { role: string; family: string } => Boolean(item));
+}
+
 function getSecondaryRoleNames(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -362,13 +381,13 @@ export default function ManagersAdminPage() {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Nome manager"
-          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-[#0b2340] lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-[#0b2340] lg:min-w-[150px] lg:flex-1"
         />
 
         <select
           value={roleFilter}
           onChange={(event) => setRoleFilter(event.target.value)}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:min-w-[150px] lg:flex-1"
         >
           <option value="all">Ruolo</option>
           {roleOptions.map((value) => (
@@ -382,7 +401,7 @@ export default function ManagersAdminPage() {
             setRegionFilter(event.target.value);
             setProvinceFilter("all");
           }}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873] lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873] lg:min-w-[150px] lg:flex-1"
         >
           <option value="all">Regione</option>
           {regionOptions.map((option) => (
@@ -396,7 +415,7 @@ export default function ManagersAdminPage() {
           <select
             value={provinceFilter}
             onChange={(event) => setProvinceFilter(event.target.value)}
-            className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873] lg:flex-1"
+            className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873] lg:min-w-[150px] lg:flex-1"
           >
             <option value="all">Provincia</option>
             {provinceOptions.map((option) => (
@@ -410,7 +429,7 @@ export default function ManagersAdminPage() {
         <select
           value={sectorFilter}
           onChange={(event) => setSectorFilter(event.target.value)}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:min-w-[150px] lg:flex-1"
         >
           <option value="all">Settori</option>
           {sectorFilterOptions.map((value) => (
@@ -421,7 +440,7 @@ export default function ManagersAdminPage() {
         <select
           value={rateFilter}
           onChange={(event) => setRateFilter(event.target.value)}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:min-w-[150px] lg:flex-1"
         >
           <option value="all">Tariffa</option>
           {rateOptions.map((value) => (
@@ -429,6 +448,10 @@ export default function ManagersAdminPage() {
           ))}
         </select>
 
+
+      </div>
+
+      <div className="mt-2 flex justify-end">
         <button
           type="button"
           onClick={() => {
@@ -443,6 +466,10 @@ export default function ManagersAdminPage() {
         >
           Cancella filtri
         </button>
+      </div>
+
+      <div className="mt-2 text-sm text-slate-600">
+        {filteredManagers.length} manager trovati su {items.length} presenti nel CRM scouting
       </div>
 
       {error && (
@@ -531,17 +558,19 @@ export default function ManagersAdminPage() {
 
                     <td className="px-5 py-4">
                       <div className="space-y-1">
-                        {getSecondaryRoleNames(manager.secondary_roles).map(
-                          (role, index) => (
-                            <div
-                              key={`${role}-${index}`}
-                              className="font-semibold text-slate-900"
-                            >
-                              {role}
+                        {getSecondaryRoleDetails(manager.secondary_roles).map(
+                          (item, index) => (
+                            <div key={`${item.role}-${index}`}>
+                              <div className="font-semibold text-slate-900">
+                                {item.role}
+                              </div>
+                              <div className="mt-1 text-xs text-slate-500">
+                                {item.family || "—"}
+                              </div>
                             </div>
                           )
                         )}
-                        {getSecondaryRoleNames(manager.secondary_roles).length === 0 && (
+                        {getSecondaryRoleDetails(manager.secondary_roles).length === 0 && (
                           <div className="text-slate-500">—</div>
                         )}
                       </div>
