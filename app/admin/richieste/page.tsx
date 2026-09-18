@@ -857,6 +857,68 @@ export default function RequestsAdminPage() {
     }
   }
 
+  async function deleteSelected() {
+    if (selectedActiveIds.length === 0) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Eliminare definitivamente ${
+        selectedActiveIds.length
+      } ${
+        selectedActiveIds.length === 1
+          ? "richiesta"
+          : "richieste"
+      }? Questa operazione non può essere annullata.`
+    );
+
+    if (!confirmed) return;
+
+    setActionLoading(true);
+
+    try {
+      const response = await fetch("/api/company-requests", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ids: selectedActiveIds,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Eliminazione non riuscita."
+        );
+      }
+
+      const selectedSet = new Set(selectedActiveIds);
+
+      setItems((current) =>
+        current.filter(
+          (request) => !selectedSet.has(request.id)
+        )
+      );
+
+      if (selected && selectedSet.has(selected.id)) {
+        setSelected(null);
+      }
+
+      setSelectedActiveIds([]);
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Eliminazione non riuscita."
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   async function restoreSelected() {
     if (
       selectedArchivedIds.length === 0
@@ -953,14 +1015,14 @@ export default function RequestsAdminPage() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center">
+      <div className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm lg:flex-row lg:items-center lg:flex-nowrap">
         <input
           value={query}
           onChange={(event) =>
             setQuery(event.target.value)
           }
           placeholder="Nome azienda"
-          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-[#0b2340] lg:min-w-[150px] lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-[#0b2340] lg:min-w-[150px] lg:flex-1"
         />
 
         <select
@@ -970,7 +1032,7 @@ export default function RequestsAdminPage() {
               event.target.value
             )
           }
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:min-w-[150px] lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:min-w-[150px] lg:flex-1"
         >
           <option value="">
             Ruolo
@@ -992,7 +1054,7 @@ export default function RequestsAdminPage() {
             setRegionFilter(event.target.value);
             setProvinceFilter("");
           }}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#164873] lg:min-w-[150px] lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873] lg:min-w-[150px] lg:flex-1"
         >
           <option value="">Regione</option>
           {regionOptions.map((option) => (
@@ -1006,7 +1068,7 @@ export default function RequestsAdminPage() {
           <select
             value={provinceFilter}
             onChange={(event) => setProvinceFilter(event.target.value)}
-            className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#164873] lg:min-w-[150px] lg:flex-1"
+            className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873] lg:min-w-[150px] lg:flex-1"
           >
             <option value="">Provincia</option>
             {provinceOptions.map((option) => (
@@ -1024,7 +1086,7 @@ export default function RequestsAdminPage() {
               event.target.value
             )
           }
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:min-w-[150px] lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:min-w-[150px] lg:flex-1"
         >
           <option value="">
             Settori
@@ -1049,7 +1111,7 @@ export default function RequestsAdminPage() {
               event.target.value
             )
           }
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:min-w-[150px] lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:min-w-[150px] lg:flex-1"
         >
           <option value="">
             Tariffa
@@ -1079,7 +1141,7 @@ export default function RequestsAdminPage() {
             setSectorFilter("");
             setRateFilter("");
           }}
-          className="shrink-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+          className="shrink-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
         >
           Cancella filtri
         </button>
@@ -1098,6 +1160,41 @@ export default function RequestsAdminPage() {
       ) : (
         <>
           <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-slate-950">
+                  Lista richieste aziende
+                </h2>
+                <div className="mt-3 inline-flex rounded-xl bg-[#0b7f78] px-4 py-2 text-sm font-bold text-white">
+                  Attive ({filteredRequests.length})
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={selectedActiveIds.length === 0 || actionLoading}
+                  onClick={() => void archiveSelected()}
+                  className="rounded-2xl border border-amber-400 bg-white px-5 py-2.5 text-sm font-bold text-amber-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {selectedActiveIds.length > 0
+                    ? `Archivia (${selectedActiveIds.length})`
+                    : "Archivia"}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={selectedActiveIds.length === 0 || actionLoading}
+                  onClick={() => void deleteSelected()}
+                  className="rounded-2xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {selectedActiveIds.length > 0
+                    ? `Cancella (${selectedActiveIds.length})`
+                    : "Cancella"}
+                </button>
+              </div>
+            </div>
+
             <div className="overflow-hidden">
               <table className="w-full table-fixed text-left text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
@@ -1141,19 +1238,7 @@ export default function RequestsAdminPage() {
                     </th>
 
                     <th className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <span>Stato</span>
-                        <button
-                          type="button"
-                          disabled={selectedActiveIds.length === 0 || actionLoading}
-                          onClick={() => void archiveSelected()}
-                          className="rounded-lg bg-[#0b2340] px-3 py-1.5 text-[11px] font-bold normal-case tracking-normal text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          {selectedActiveIds.length > 0
-                            ? `Archivia (${selectedActiveIds.length})`
-                            : "Archivia"}
-                        </button>
-                      </div>
+                      Stato
                     </th>
                   </tr>
                 </thead>
