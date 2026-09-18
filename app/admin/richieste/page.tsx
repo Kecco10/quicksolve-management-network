@@ -1046,23 +1046,20 @@ export default function RequestsAdminPage() {
           ))}
         </select>
 
-        <div className="shrink-0">
-          <button
-            type="button"
-            disabled={
-              selectedActiveIds.length ===
-                0 || actionLoading
-            }
-            onClick={() =>
-              void archiveSelected()
-            }
-            className="rounded-xl bg-[#0b2340] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {selectedActiveIds.length > 0
-              ? `Archivia (${selectedActiveIds.length})`
-              : "Archivia"}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setQuery("");
+            setRoleFilter("");
+            setRegionFilter("");
+            setProvinceFilter("");
+            setSectorFilter("");
+            setRateFilter("");
+          }}
+          className="shrink-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+        >
+          Cancella filtri
+        </button>
       </div>
 
       {error && (
@@ -1121,7 +1118,19 @@ export default function RequestsAdminPage() {
                     </th>
 
                     <th className="px-5 py-4">
-                      Stato
+                      <div className="flex items-center gap-3">
+                        <span>Stato</span>
+                        <button
+                          type="button"
+                          disabled={selectedActiveIds.length === 0 || actionLoading}
+                          onClick={() => void archiveSelected()}
+                          className="rounded-lg bg-[#0b2340] px-3 py-1.5 text-[11px] font-bold normal-case tracking-normal text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {selectedActiveIds.length > 0
+                            ? `Archivia (${selectedActiveIds.length})`
+                            : "Archivia"}
+                        </button>
+                      </div>
                     </th>
                   </tr>
                 </thead>
@@ -1178,6 +1187,9 @@ export default function RequestsAdminPage() {
                         <td className="px-5 py-4">
                           <div className="font-semibold text-slate-900">
                             {formatRole(request)}
+                          </div>
+                          <div className="mt-1 text-xs text-slate-500">
+                            {show(request.role_family)}
                           </div>
                         </td>
 
@@ -1428,6 +1440,9 @@ export default function RequestsAdminPage() {
                             <td className="px-5 py-4">
                               <div className="font-semibold text-slate-900">
                                 {formatRole(request)}
+                              </div>
+                              <div className="mt-1 text-xs text-slate-500">
+                                {show(request.role_family)}
                               </div>
                             </td>
 

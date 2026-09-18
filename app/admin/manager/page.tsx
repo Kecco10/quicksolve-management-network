@@ -428,6 +428,21 @@ export default function ManagersAdminPage() {
             <option key={value} value={value}>{value}</option>
           ))}
         </select>
+
+        <button
+          type="button"
+          onClick={() => {
+            setQuery("");
+            setRoleFilter("all");
+            setRegionFilter("all");
+            setProvinceFilter("all");
+            setSectorFilter("all");
+            setRateFilter("all");
+          }}
+          className="shrink-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+        >
+          Cancella filtri
+        </button>
       </div>
 
       {error && (
@@ -508,6 +523,9 @@ export default function ManagersAdminPage() {
                         {manager.primary_role === "Altro" && manager.other_role
                           ? manager.other_role
                           : show(manager.primary_role)}
+                      </div>
+                      <div className="mt-1 text-xs text-slate-500">
+                        {show(manager.primary_role_family)}
                       </div>
                     </td>
 
