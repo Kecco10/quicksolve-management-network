@@ -244,13 +244,13 @@ export default function ManagersAdminPage() {
       const managerRegions = [
         manager.region,
         ...(manager.regions ?? []),
-        ...(manager.geographic_areas ?? []).map((item) => item.region),
+        ...(manager.geographic_areas ?? []).map((item: GeographicArea) => item.region),
       ].filter(Boolean);
 
       const managerProvinces = [
         manager.province,
         ...(manager.provinces ?? []),
-        ...(manager.geographic_areas ?? []).map((item) => item.province),
+        ...(manager.geographic_areas ?? []).map((item: GeographicArea) => item.province),
       ].filter(Boolean);
 
       const matchesRegion =
