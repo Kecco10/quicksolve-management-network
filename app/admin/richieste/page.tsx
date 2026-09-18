@@ -403,7 +403,10 @@ export default function RequestsAdminPage() {
   const [roleFilter, setRoleFilter] =
     useState("");
 
-  const [areaFilter, setAreaFilter] =
+  const [regionFilter, setRegionFilter] =
+    useState("");
+
+  const [provinceFilter, setProvinceFilter] =
     useState("");
 
   const [
@@ -1009,7 +1012,7 @@ export default function RequestsAdminPage() {
             Settori
           </option>
 
-          {sectorOptions.map(
+          {sectorFilterOptions.map(
             (sector) => (
               <option
                 key={sector}

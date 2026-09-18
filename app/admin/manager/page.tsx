@@ -244,13 +244,13 @@ export default function ManagersAdminPage() {
       const managerRegions = [
         manager.region,
         ...(manager.regions ?? []),
-        ...(manager.geographic_areas ?? []).map((item: GeographicArea) => item.region),
+        ...(manager.geographic_areas ?? []).map((item: { region?: string; province?: string }) => item.region),
       ].filter(Boolean);
 
       const managerProvinces = [
         manager.province,
         ...(manager.provinces ?? []),
-        ...(manager.geographic_areas ?? []).map((item: GeographicArea) => item.province),
+        ...(manager.geographic_areas ?? []).map((item: { region?: string; province?: string }) => item.province),
       ].filter(Boolean);
 
       const matchesRegion =
@@ -414,7 +414,7 @@ export default function ManagersAdminPage() {
           className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
         >
           <option value="all">Settori</option>
-          {sectorOptions.map((value) => (
+          {sectorFilterOptions.map((value) => (
             <option key={value} value={value}>{value}</option>
           ))}
         </select>
