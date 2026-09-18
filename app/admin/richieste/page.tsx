@@ -1130,7 +1130,11 @@ export default function RequestsAdminPage() {
 
       </div>
 
-      <div className="mt-2 flex justify-end">
+      <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-sm text-slate-600">
+          {filteredRequests.length} richieste attive trovate su {activeRequests.length} presenti
+        </div>
+
         <button
           type="button"
           onClick={() => {
@@ -1145,10 +1149,6 @@ export default function RequestsAdminPage() {
         >
           Cancella filtri
         </button>
-      </div>
-
-      <div className="mt-2 text-sm text-slate-600">
-        {filteredRequests.length} richieste attive trovate su {activeRequests.length} presenti
       </div>
 
       {error && (
