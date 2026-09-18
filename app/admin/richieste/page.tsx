@@ -238,6 +238,25 @@ function formatRole(
   return show(request.primary_role);
 }
 
+function getSecondaryRoleDetails(value: unknown): Array<{ role: string; family: string }> {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const record = item as Record<string, unknown>;
+      const role = typeof record.role === "string" ? record.role.trim() : "";
+      const otherRole =
+        typeof record.other_role === "string" ? record.other_role.trim() : "";
+      const family =
+        typeof record.family === "string" ? record.family.trim() : "";
+
+      const displayRole = role === "Altro" && otherRole ? otherRole : role || otherRole;
+      return displayRole ? { role: displayRole, family } : null;
+    })
+    .filter((item): item is { role: string; family: string } => Boolean(item));
+}
+
 function getSecondaryRoleNames(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -941,7 +960,7 @@ export default function RequestsAdminPage() {
             setQuery(event.target.value)
           }
           placeholder="Nome azienda"
-          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-[#0b2340] lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-[#0b2340] lg:min-w-[150px] lg:flex-1"
         />
 
         <select
@@ -951,7 +970,7 @@ export default function RequestsAdminPage() {
               event.target.value
             )
           }
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:flex-1"
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:min-w-[150px] lg:flex-1"
         >
           <option value="">
             Ruolo
@@ -973,7 +992,7 @@ export default function RequestsAdminPage() {
             setRegionFilter(event.target.value);
             setProvinceFilter("");
           }}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#164873] lg:flex-1"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#164873] lg:min-w-[150px] lg:flex-1"
         >
           <option value="">Regione</option>
           {regionOptions.map((option) => (
@@ -987,7 +1006,7 @@ export default function RequestsAdminPage() {
           <select
             value={provinceFilter}
             onChange={(event) => setProvinceFilter(event.target.value)}
-            className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#164873] lg:flex-1"
+            className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#164873] lg:min-w-[150px] lg:flex-1"
           >
             <option value="">Provincia</option>
             {provinceOptions.map((option) => (
@@ -1005,7 +1024,7 @@ export default function RequestsAdminPage() {
               event.target.value
             )
           }
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:flex-1"
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:min-w-[150px] lg:flex-1"
         >
           <option value="">
             Settori
@@ -1030,7 +1049,7 @@ export default function RequestsAdminPage() {
               event.target.value
             )
           }
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:flex-1"
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm lg:min-w-[150px] lg:flex-1"
         >
           <option value="">
             Tariffa
@@ -1046,6 +1065,10 @@ export default function RequestsAdminPage() {
           ))}
         </select>
 
+
+      </div>
+
+      <div className="mt-2 flex justify-end">
         <button
           type="button"
           onClick={() => {
@@ -1075,8 +1098,8 @@ export default function RequestsAdminPage() {
       ) : (
         <>
           <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[1300px] text-left text-sm">
+            <div className="overflow-hidden">
+              <table className="w-full table-fixed text-left text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
                     <th className="w-12 px-4 py-4 text-center">
@@ -1195,17 +1218,19 @@ export default function RequestsAdminPage() {
 
                         <td className="px-5 py-4">
                           <div className="space-y-1">
-                            {getSecondaryRoleNames(request.secondary_roles).map(
-                              (role, index) => (
-                                <div
-                                  key={`${role}-${index}`}
-                                  className="font-semibold text-slate-900"
-                                >
-                                  {role}
+                            {getSecondaryRoleDetails(request.secondary_roles).map(
+                              (item, index) => (
+                                <div key={`${item.role}-${index}`}>
+                                  <div className="font-semibold text-slate-900">
+                                    {item.role}
+                                  </div>
+                                  <div className="mt-1 text-xs text-slate-500">
+                                    {item.family || "—"}
+                                  </div>
                                 </div>
                               )
                             )}
-                            {getSecondaryRoleNames(request.secondary_roles).length === 0 && (
+                            {getSecondaryRoleDetails(request.secondary_roles).length === 0 && (
                               <div className="text-slate-500">—</div>
                             )}
                           </div>
@@ -1342,8 +1367,8 @@ export default function RequestsAdminPage() {
                   </button>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[1200px] text-left text-sm">
+                <div className="overflow-hidden">
+                  <table className="w-full table-fixed text-left text-sm">
                     <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                       <tr>
                         <th className="w-12 px-4 py-4 text-center">
