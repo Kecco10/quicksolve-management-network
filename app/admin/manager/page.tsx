@@ -357,18 +357,18 @@ export default function ManagersAdminPage() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
+      <div className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm lg:flex-row lg:items-center lg:flex-nowrap">
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Nome manager"
-          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-[#0b2340]"
+          className="min-w-0 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-[#0b2340] lg:flex-1"
         />
 
         <select
           value={roleFilter}
           onChange={(event) => setRoleFilter(event.target.value)}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:flex-1"
         >
           <option value="all">Ruolo</option>
           {roleOptions.map((value) => (
@@ -382,7 +382,7 @@ export default function ManagersAdminPage() {
             setRegionFilter(event.target.value);
             setProvinceFilter("all");
           }}
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873]"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873] lg:flex-1"
         >
           <option value="all">Regione</option>
           {regionOptions.map((option) => (
@@ -392,26 +392,25 @@ export default function ManagersAdminPage() {
           ))}
         </select>
 
-        <select
-          value={provinceFilter}
-          disabled={regionFilter === "all"}
-          onChange={(event) => setProvinceFilter(event.target.value)}
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-        >
-          <option value="all">
-            {regionFilter === "all" ? "Prima la regione" : "Provincia"}
-          </option>
-          {provinceOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        {regionFilter !== "all" && (
+          <select
+            value={provinceFilter}
+            onChange={(event) => setProvinceFilter(event.target.value)}
+            className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#164873] lg:flex-1"
+          >
+            <option value="all">Provincia</option>
+            {provinceOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        )}
 
         <select
           value={sectorFilter}
           onChange={(event) => setSectorFilter(event.target.value)}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:flex-1"
         >
           <option value="all">Settori</option>
           {sectorFilterOptions.map((value) => (
@@ -422,7 +421,7 @@ export default function ManagersAdminPage() {
         <select
           value={rateFilter}
           onChange={(event) => setRateFilter(event.target.value)}
-          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none"
+          className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none lg:flex-1"
         >
           <option value="all">Tariffa</option>
           {rateOptions.map((value) => (
@@ -444,7 +443,7 @@ export default function ManagersAdminPage() {
       ) : (
         <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1100px] text-left text-sm">
+            <table className="w-full min-w-[1250px] text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-5 py-4">
@@ -453,6 +452,10 @@ export default function ManagersAdminPage() {
 
                   <th className="px-5 py-4">
                     Ruolo
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Altri ruoli
                   </th>
 
                   <th className="px-5 py-4">
@@ -501,8 +504,16 @@ export default function ManagersAdminPage() {
                     </td>
 
                     <td className="px-5 py-4">
+                      <div className="font-semibold text-slate-900">
+                        {manager.primary_role === "Altro" && manager.other_role
+                          ? manager.other_role
+                          : show(manager.primary_role)}
+                      </div>
+                    </td>
+
+                    <td className="px-5 py-4">
                       <div className="space-y-1">
-                        {getManagerRoleNames(manager).map(
+                        {getSecondaryRoleNames(manager.secondary_roles).map(
                           (role, index) => (
                             <div
                               key={`${role}-${index}`}
@@ -512,8 +523,7 @@ export default function ManagersAdminPage() {
                             </div>
                           )
                         )}
-
-                        {getManagerRoleNames(manager).length === 0 && (
+                        {getSecondaryRoleNames(manager.secondary_roles).length === 0 && (
                           <div className="text-slate-500">—</div>
                         )}
                       </div>
