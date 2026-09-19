@@ -167,7 +167,6 @@ export async function PATCH(request: Request) {
 
     const geographicAreas = cleanGeographicAreas(body.geographic_areas);
     const secondaryRoles = cleanSecondaryRoles(body.secondary_roles);
-    const competencies = cleanStringArray(body.competencies);
     const methodologies = cleanStringArray(body.methodologies);
     const productionTypes = cleanStringArray(body.production_types);
     const sectors = cleanStringArray(body.sectors);
@@ -184,7 +183,6 @@ export async function PATCH(request: Request) {
       !cleanString(body.managerial_experience_band) ||
       !cleanString(body.primary_role_family) ||
       !cleanString(body.primary_role) ||
-      competencies.length === 0 ||
       methodologies.length === 0 ||
       !cleanString(body.company_revenue_band) ||
       !cleanString(body.people_managed_band) ||
@@ -243,8 +241,6 @@ export async function PATCH(request: Request) {
       other_role: cleanString(body.other_role) || null,
       secondary_roles: secondaryRoles,
 
-      competencies,
-      other_competency: cleanString(body.other_competency) || null,
       methodologies,
       other_methodology: cleanString(body.other_methodology) || null,
 

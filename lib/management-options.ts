@@ -33,6 +33,7 @@ export const roleFamilies = {
     "Materials Manager",
   ],
   PROGETTI: ["Project Manager", "Program Manager", "PMO Manager"],
+  "AREA COMMERCIALE": ["Marketing", "Commerciale"],
   "FUNZIONI DI SUPPORTO": [
     "CFO / Direttore Amministrativo",
     "Controller Industriale",
@@ -58,11 +59,11 @@ export const sectorOptions = [
 ] as const;
 
 export const dailyRateOptions = [
-  "Fino a 500 € / giorno",
-  "500–700 € / giorno",
-  "700–900 € / giorno",
-  "900–1.200 € / giorno",
-  "Oltre 1.200 € / giorno",
+  "Fino a 400 € / giorno",
+  "500 € / giorno",
+  "600 € / giorno",
+  "700 € / giorno",
+  "800 € / giorno",
 ] as const;
 
 export const regionProvinceMap: Record<string, string[]> = {

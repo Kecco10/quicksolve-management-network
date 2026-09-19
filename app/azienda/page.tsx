@@ -101,6 +101,7 @@ const roleFamilies = {
     "Logistics Manager / Responsabile Logistica e Magazzini",
     "Materials Manager",
   ],
+  "AREA COMMERCIALE": ["Marketing", "Commerciale"],
   PROGETTI: ["Project Manager", "Program Manager", "PMO Manager"],
   "FUNZIONI DI SUPPORTO": [
     "CFO / Direttore Amministrativo",
@@ -124,23 +125,6 @@ const managerialExperienceOptions: ManagerialExperienceBand[] = [
   "Oltre 10 anni",
 ];
 
-const competencyOptions = [
-  "Direzione operations e di stabilimento",
-  "Produzione e industrializzazione",
-  "Pianificazione e programmazione (S&OP, MPS, MRP)",
-  "Supply chain e logistica",
-  "Acquisti e gestione fornitori",
-  "Qualità e sistemi di gestione",
-  "Manutenzione e affidabilità",
-  "Ufficio tecnico e progettazione",
-  "R&S e innovazione di prodotto",
-  "Sicurezza e ambiente (HSE)",
-  "Controllo di gestione industriale e costificazione",
-  "Project e program management",
-  "Organizzazione e people management",
-  "Sistemi informativi industriali (ERP / MES)",
-  "Altro",
-] as const;
 
 const methodologyOptions = [
   "Lean Manufacturing (VSM, 5S, SMED, Kanban, Kaizen)",
@@ -159,6 +143,11 @@ const methodologyOptions = [
   "Post-merger integration",
   "Relazioni sindacali e gestione del cambiamento",
   "Gestione commesse ETO / project manufacturing",
+  "Strategic sourcing e category management",
+  "Negoziazione acquisti e gestione fornitori",
+  "Marketing strategico e go-to-market",
+  "Sviluppo commerciale e gestione rete vendita",
+  "CRM, pipeline e sales management",
   "Altro",
 ] as const;
 
@@ -195,11 +184,8 @@ const assignmentTypeOptions = [
 ] as const;
 
 const dailyRateOptions = [
-  "Fino a 500 € / giorno",
-  "500–700 € / giorno",
-  "700–900 € / giorno",
-  "900–1.200 € / giorno",
-  "Oltre 1.200 € / giorno",
+  "< 700 € / giorno",
+  "> 700 € / giorno",
 ] as const;
 
 const regionProvinceMap: Record<string, string[]> = {
@@ -280,13 +266,11 @@ export default function CompanyRequestPage() {
   const [secondaryRole2, setSecondaryRole2] = useState("");
   const [secondaryOtherRole2, setSecondaryOtherRole2] = useState("");
 
-  const [experience, setExperience] = useState<ExperienceBand | "">("");
+  const [experience, setExperience] = useState<ExperienceBand[]>([]);
   const [managerialExperience, setManagerialExperience] =
-    useState<ManagerialExperienceBand | "">("");
+    useState<ManagerialExperienceBand[]>([]);
   const [peopleManagedBand, setPeopleManagedBand] = useState("");
   const [pnlBand, setPnlBand] = useState("");
-  const [competencies, setCompetencies] = useState<string[]>([]);
-  const [otherCompetency, setOtherCompetency] = useState("");
 
   // STEP 4 — Contesto
   const [productionTypes, setProductionTypes] = useState<string[]>([]);
@@ -296,7 +280,7 @@ export default function CompanyRequestPage() {
   const [otherMethodology, setOtherMethodology] = useState("");
   const [region, setRegion] = useState("");
   const [province, setProvince] = useState("");
-  const [travelRequired, setTravelRequired] = useState(false);
+  const [travelRequirements, setTravelRequirements] = useState<string[]>([]);
 
   // STEP 5 — Modalità
   const [assignmentTypes, setAssignmentTypes] = useState<string[]>([]);
@@ -356,10 +340,6 @@ export default function CompanyRequestPage() {
     secondaryRoleFamily2 === "" ||
     Boolean(secondaryRole2 && normalizedSecondaryRole2);
 
-  const competenciesValid =
-    competencies.length > 0 &&
-    (!competencies.includes("Altro") || otherCompetency.trim() !== "");
-
   const methodologiesValid =
     methodologies.length > 0 &&
     (!methodologies.includes("Altro") || otherMethodology.trim() !== "");
@@ -393,11 +373,10 @@ export default function CompanyRequestPage() {
           primaryRoleValid &&
           secondaryRole1Valid &&
           secondaryRole2Valid &&
-          experience !== "" &&
-          managerialExperience !== "" &&
+          experience.length > 0 &&
+          managerialExperience.length > 0 &&
           peopleManagedBand !== "" &&
-          pnlBand !== "" &&
-          competenciesValid
+          pnlBand !== ""
         );
 
       case 3:
@@ -445,7 +424,6 @@ export default function CompanyRequestPage() {
     managerialExperience,
     peopleManagedBand,
     pnlBand,
-    competenciesValid,
     productionTypes,
     sectors,
     otherSector,
@@ -540,14 +518,10 @@ export default function CompanyRequestPage() {
           primary_role: primaryRole,
           other_role: primaryRole === "Altro" ? otherRole.trim() : "",
           secondary_roles: secondaryRoles,
-          experience_band: experience,
-          managerial_experience_band: managerialExperience,
+          experience_band: experience.join(" | "),
+          managerial_experience_band: managerialExperience.join(" | "),
           people_managed_band: peopleManagedBand,
           pnl_band: pnlBand,
-          competencies,
-          other_competency:
-            competencies.includes("Altro") ? otherCompetency.trim() : "",
-
           production_types: productionTypes,
           sectors,
           other_sector: sectors.includes("Altro") ? otherSector.trim() : "",
@@ -556,7 +530,8 @@ export default function CompanyRequestPage() {
             methodologies.includes("Altro") ? otherMethodology.trim() : "",
           region,
           province,
-          travel_required: travelRequired,
+          travel_required: travelRequirements.length > 0,
+          travel_requirements: travelRequirements,
 
           assignment_types: assignmentTypes,
           days_per_week: Number(daysPerWeek),
@@ -603,8 +578,7 @@ export default function CompanyRequestPage() {
           </h1>
 
           <p className="mx-auto mt-4 max-w-xl text-lg leading-8 text-slate-600">
-            Abbiamo ricevuto la richiesta. Il team QuickSolve potrà ora
-            prenderla in carico dal CRM Management Network.
+            Abbiamo ricevuto la richiesta. Il team QuickSolve la prenderà in carico al più presto.
           </p>
 
           {requestCode && (
@@ -931,8 +905,12 @@ export default function CompanyRequestPage() {
                   {experienceOptions.map((option) => (
                     <ChoiceButton
                       key={option}
-                      active={experience === option}
-                      onClick={() => setExperience(option)}
+                      active={experience.includes(option)}
+                      onClick={() =>
+                        setExperience((current) =>
+                          toggleInList(option, current) as ExperienceBand[]
+                        )
+                      }
                     >
                       {option}
                     </ChoiceButton>
@@ -945,8 +923,12 @@ export default function CompanyRequestPage() {
                   {managerialExperienceOptions.map((option) => (
                     <ChoiceButton
                       key={option}
-                      active={managerialExperience === option}
-                      onClick={() => setManagerialExperience(option)}
+                      active={managerialExperience.includes(option)}
+                      onClick={() =>
+                        setManagerialExperience((current) =>
+                          toggleInList(option, current) as ManagerialExperienceBand[]
+                        )
+                      }
                     >
                       {option}
                     </ChoiceButton>
@@ -982,28 +964,6 @@ export default function CompanyRequestPage() {
                 </Field>
               </div>
 
-              <MultiSelectSection
-                title="Aree di competenza richieste"
-                subtitle="Seleziona tutte quelle rilevanti per l'incarico."
-                options={competencyOptions}
-                values={competencies}
-                onToggle={(value) =>
-                  setCompetencies((current) =>
-                    toggleInList(value, current)
-                  )
-                }
-              />
-
-              {competencies.includes("Altro") && (
-                <Field label="Specifica altra area di competenza">
-                  <input
-                    value={otherCompetency}
-                    onChange={(e) => setOtherCompetency(e.target.value)}
-                    className={inputClass}
-                    placeholder="Descrivi l'area"
-                  />
-                </Field>
-              )}
             </section>
           )}
 
@@ -1117,17 +1077,23 @@ export default function CompanyRequestPage() {
                   </Field>
                 </div>
 
-                <label className="mt-5 flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={travelRequired}
-                    onChange={(e) => setTravelRequired(e.target.checked)}
-                    className="h-5 w-5 rounded border-slate-300 text-[#0b2340] focus:ring-[#164873]"
+                <div className="mt-5">
+                  <MultiSelectSection
+                    title="Trasferte richieste"
+                    subtitle="Seleziona una o più aree geografiche in cui il manager dovrà essere disponibile a trasferte."
+                    options={[
+                      "Trasferte in Italia",
+                      "Trasferte in Europa",
+                      "Trasferte extra Europa",
+                    ]}
+                    values={travelRequirements}
+                    onToggle={(value) =>
+                      setTravelRequirements((current) =>
+                        toggleInList(value, current)
+                      )
+                    }
                   />
-                  <span className="text-sm font-semibold text-slate-800">
-                    L&apos;incarico può richiedere trasferte
-                  </span>
-                </label>
+                </div>
               </div>
             </section>
           )}

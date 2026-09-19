@@ -64,8 +64,6 @@ type ManagerSignupPayload = {
   other_role?: string;
   secondary_roles?: SecondaryRole[];
 
-  competencies?: string[];
-  other_competency?: string;
   methodologies?: string[];
   other_methodology?: string;
 
@@ -189,8 +187,6 @@ export async function POST(request: Request) {
     const otherRole = cleanString(body.other_role);
     const secondaryRoles = cleanSecondaryRoles(body.secondary_roles);
 
-    const competencies = cleanStringArray(body.competencies);
-    const otherCompetency = cleanString(body.other_competency);
     const methodologies = cleanStringArray(body.methodologies);
     const otherMethodology = cleanString(body.other_methodology);
 
@@ -248,7 +244,6 @@ export async function POST(request: Request) {
       !primaryRoleFamily ||
       !primaryRole ||
       geographicAreas.length === 0 ||
-      competencies.length === 0 ||
       methodologies.length === 0 ||
       !companyRevenueBand ||
       !peopleManagedBand ||
@@ -411,8 +406,6 @@ export async function POST(request: Request) {
           other_role: otherRole || null,
           secondary_roles: secondaryRoles,
 
-          competencies,
-          other_competency: otherCompetency || null,
           methodologies,
           other_methodology: otherMethodology || null,
 

@@ -56,6 +56,7 @@ const roleFamilies = {
     "Logistics Manager / Responsabile Logistica e Magazzini",
     "Materials Manager",
   ],
+  "AREA COMMERCIALE": ["Marketing", "Commerciale"],
   PROGETTI: ["Project Manager", "Program Manager", "PMO Manager"],
   "FUNZIONI DI SUPPORTO": [
     "CFO / Direttore Amministrativo",
@@ -79,23 +80,6 @@ const managerialExperienceOptions: ManagerialExperienceBand[] = [
   "Oltre 10 anni",
 ];
 
-const competencyOptions = [
-  "Direzione operations e di stabilimento",
-  "Produzione e industrializzazione",
-  "Pianificazione e programmazione (S&OP, MPS, MRP)",
-  "Supply chain e logistica",
-  "Acquisti e gestione fornitori",
-  "Qualità e sistemi di gestione",
-  "Manutenzione e affidabilità",
-  "Ufficio tecnico e progettazione",
-  "R&S e innovazione di prodotto",
-  "Sicurezza e ambiente (HSE)",
-  "Controllo di gestione industriale e costificazione",
-  "Project e program management",
-  "Organizzazione e people management",
-  "Sistemi informativi industriali (ERP / MES)",
-  "Altro",
-] as const;
 
 const methodologyOptions = [
   "Lean Manufacturing (VSM, 5S, SMED, Kanban, Kaizen)",
@@ -114,6 +98,11 @@ const methodologyOptions = [
   "Post-merger integration",
   "Relazioni sindacali e gestione del cambiamento",
   "Gestione commesse ETO / project manufacturing",
+  "Strategic sourcing e category management",
+  "Negoziazione acquisti e gestione fornitori",
+  "Marketing strategico e go-to-market",
+  "Sviluppo commerciale e gestione rete vendita",
+  "CRM, pipeline e sales management",
   "Altro",
 ] as const;
 
@@ -166,11 +155,11 @@ const pnlBandOptions = [
 ] as const;
 
 const dailyRateOptions = [
-  "Fino a 500 € / giorno",
-  "500–700 € / giorno",
-  "700–900 € / giorno",
-  "900–1.200 € / giorno",
-  "Oltre 1.200 € / giorno",
+  "Fino a 400 € / giorno",
+  "500 € / giorno",
+  "600 € / giorno",
+  "700 € / giorno",
+  "800 € / giorno",
 ] as const;
 
 const studyTitleOptions = [
@@ -246,8 +235,6 @@ export default function ManagerPage() {
   const [secondaryRoleFamily2, setSecondaryRoleFamily2] = useState<RoleFamily | "">("");
   const [secondaryRole2, setSecondaryRole2] = useState("");
   const [secondaryOtherRole2, setSecondaryOtherRole2] = useState("");
-  const [competencies, setCompetencies] = useState<string[]>([]);
-  const [otherCompetency, setOtherCompetency] = useState("");
   const [methodologies, setMethodologies] = useState<string[]>([]);
   const [otherMethodology, setOtherMethodology] = useState("");
 
@@ -307,10 +294,6 @@ export default function ManagerPage() {
   const secondaryRole2Valid =
     secondaryRoleFamily2 === "" || Boolean(secondaryRole2 && normalizedSecondaryRole2);
 
-  const competenciesValid =
-    competencies.length > 0 &&
-    (!competencies.includes("Altro") || otherCompetency.trim() !== "");
-
   const methodologiesValid =
     methodologies.length > 0 &&
     (!methodologies.includes("Altro") || otherMethodology.trim() !== "");
@@ -326,7 +309,7 @@ export default function ManagerPage() {
           selectedAreas.length > 0
         );
       case 1:
-        return primaryRoleValid && secondaryRole1Valid && secondaryRole2Valid && competenciesValid && methodologiesValid;
+        return primaryRoleValid && secondaryRole1Valid && secondaryRole2Valid && methodologiesValid;
       case 2:
         return revenueBand !== "" && peopleManagedBand !== "" && pnlBand !== "" && productionTypes.length > 0 && (sectors.length > 0 || otherSector.trim() !== "");
       case 3:
@@ -368,7 +351,6 @@ export default function ManagerPage() {
     primaryRoleValid,
     secondaryRole1Valid,
     secondaryRole2Valid,
-    competenciesValid,
     methodologiesValid,
     revenueBand,
     peopleManagedBand,
@@ -442,8 +424,6 @@ export default function ManagerPage() {
           primary_role: normalizedPrimaryRole,
           other_role: primaryRole === "Altro" ? otherRole.trim() : undefined,
           secondary_roles: secondaryRoles,
-          competencies: competencies.filter((item) => item !== "Altro"),
-          other_competency: competencies.includes("Altro") ? otherCompetency.trim() : undefined,
           methodologies: methodologies.filter((item) => item !== "Altro"),
           other_methodology: methodologies.includes("Altro") ? otherMethodology.trim() : undefined,
           company_revenue_band: revenueBand,
@@ -634,8 +614,6 @@ export default function ManagerPage() {
                 </div>
               </div>
 
-              <MultiSelectSection title="Aree di competenza" subtitle="" options={competencyOptions} values={competencies} onToggle={(value) => setCompetencies((current) => toggleInList(value, current))} />
-              {competencies.includes("Altro") && <Field label="Specifica altra area di competenza"><input value={otherCompetency} onChange={(e) => setOtherCompetency(e.target.value)} className={inputClass} placeholder="Descrivi l'area" /></Field>}
 
               <MultiSelectSection title="Metodologie e strumenti" subtitle="" options={methodologyOptions} values={methodologies} onToggle={(value) => setMethodologies((current) => toggleInList(value, current))} />
               {methodologies.includes("Altro") && <Field label="Specifica altra metodologia o strumento"><input value={otherMethodology} onChange={(e) => setOtherMethodology(e.target.value)} className={inputClass} placeholder="Descrivi metodologia o strumento" /></Field>}

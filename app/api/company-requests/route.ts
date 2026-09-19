@@ -244,14 +244,14 @@ export async function POST(
         body.secondary_roles
       );
 
-    const experienceBand =
-      normalizeText(
-        body.experience_band
+    const experienceBands =
+      normalizeStringArray(
+        body.experience_bands ?? body.experience_band
       );
 
-    const managerialExperienceBand =
-      normalizeText(
-        body.managerial_experience_band
+    const managerialExperienceBands =
+      normalizeStringArray(
+        body.managerial_experience_bands ?? body.managerial_experience_band
       );
 
     const peopleManagedBand =
@@ -261,16 +261,6 @@ export async function POST(
 
     const pnlBand =
       normalizeText(body.pnl_band);
-
-    const competencies =
-      normalizeStringArray(
-        body.competencies
-      );
-
-    const otherCompetency =
-      normalizeText(
-        body.other_competency
-      ) || null;
 
     const productionTypes =
       normalizeStringArray(
@@ -303,7 +293,13 @@ export async function POST(
     const province =
       normalizeText(body.province);
 
+    const travelRequirements =
+      normalizeStringArray(
+        body.travel_requirements
+      );
+
     const travelRequired =
+      travelRequirements.length > 0 ||
       body.travel_required === true;
 
     const assignmentTypes =
@@ -354,8 +350,7 @@ export async function POST(
       requestObjective,
       roleFamily,
       primaryRole,
-      experienceBand,
-      managerialExperienceBand,
+
       peopleManagedBand,
       pnlBand,
       region,
@@ -368,7 +363,8 @@ export async function POST(
       requiredStrings.some(
         (value) => !value
       ) ||
-      competencies.length === 0 ||
+      experienceBands.length === 0 ||
+      managerialExperienceBands.length === 0 ||
       productionTypes.length === 0 ||
       sectors.length === 0 ||
       methodologies.length === 0 ||
@@ -460,20 +456,16 @@ export async function POST(
 
       secondary_roles: secondaryRoles,
 
-      experience_band: experienceBand,
+      experience_band:
+        experienceBands.join(" | "),
 
       managerial_experience_band:
-        managerialExperienceBand,
+        managerialExperienceBands.join(" | "),
 
       people_managed_band:
         peopleManagedBand,
 
       pnl_band: pnlBand,
-
-      competencies,
-
-      other_competency:
-        otherCompetency,
 
       production_types:
         productionTypes,
@@ -493,6 +485,9 @@ export async function POST(
 
       travel_required:
         travelRequired,
+
+      travel_requirements:
+        travelRequirements,
 
       assignment_types:
         assignmentTypes,

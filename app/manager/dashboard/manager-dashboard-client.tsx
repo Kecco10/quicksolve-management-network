@@ -129,6 +129,7 @@ const roleFamilies: Record<string, string[]> = {
     "Logistics Manager / Responsabile Logistica e Magazzini",
     "Materials Manager",
   ],
+  "AREA COMMERCIALE": ["Marketing", "Commerciale"],
   PROGETTI: ["Project Manager", "Program Manager", "PMO Manager"],
   "FUNZIONI DI SUPPORTO": [
     "CFO / Direttore Amministrativo",
@@ -187,6 +188,11 @@ const methodologyOptions = [
   "Post-merger integration",
   "Relazioni sindacali e gestione del cambiamento",
   "Gestione commesse ETO / project manufacturing",
+  "Strategic sourcing e category management",
+  "Negoziazione acquisti e gestione fornitori",
+  "Marketing strategico e go-to-market",
+  "Sviluppo commerciale e gestione rete vendita",
+  "CRM, pipeline e sales management",
   "Altro",
 ];
 
@@ -239,11 +245,11 @@ const pnlBandOptions = [
 ];
 
 const dailyRateOptions = [
-  "Fino a 500 € / giorno",
-  "500–700 € / giorno",
-  "700–900 € / giorno",
-  "900–1.200 € / giorno",
-  "Oltre 1.200 € / giorno",
+  "Fino a 400 € / giorno",
+  "500 € / giorno",
+  "600 € / giorno",
+  "700 € / giorno",
+  "800 € / giorno",
 ];
 
 const studyTitleOptions = [
@@ -1442,51 +1448,6 @@ export default function ManagerDashboardClient({
                                 )}
                               </SectionCard>
 
-                <SectionCard
-                              title="Aree di competenza"
-                              sectionKey="competencies"
-                              editingSection={editingSection}
-                              onEdit={startEdit}
-                              onCancel={cancelEdit}
-                              onSave={saveEdit}
-                            >
-                              {editingSection === "competencies" ? (
-                                <div className="space-y-3">
-                                  <div className="grid gap-2 md:grid-cols-2">
-                                    {competencyOptions.map((option) => (
-                                      <ToggleButton
-                                        key={option}
-                                        active={draft.competencies.includes(option)}
-                                        label={option}
-                                        onClick={() => toggleArray("competencies", option)}
-                                      />
-                                    ))}
-                                  </div>
-                
-                                  {draft.competencies.includes("Altro") && (
-                                    <input
-                                      value={draft.otherCompetency}
-                                      onChange={(e) =>
-                                        updateDraft("otherCompetency", e.target.value)
-                                      }
-                                      placeholder="Specifica altra competenza"
-                                      className="w-full rounded-xl border border-slate-300 px-3 py-2"
-                                    />
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="flex flex-wrap gap-2">
-                                  {profile.competencies
-                                    .filter((item) => item !== "Altro")
-                                    .map((item) => (
-                                      <Chip key={item}>{item}</Chip>
-                                    ))}
-                                  {profile.otherCompetency && (
-                                    <Chip>{profile.otherCompetency}</Chip>
-                                  )}
-                                </div>
-                              )}
-                            </SectionCard>
 
                 <SectionCard
                                 title="Contesto produttivo"
