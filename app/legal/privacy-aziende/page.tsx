@@ -12,7 +12,7 @@ export default function Page() {
       <article className="mx-auto max-w-4xl rounded-2xl border border-[#d7e1ec] bg-white p-6 shadow-sm sm:p-9">
         <Link
           href="/"
-          className="text-sm font-semibold text-[#164873] hover:underline"
+          className="text-sm font-semibold text-[#0d3158] hover:underline"
         >
           ← Torna alla home
         </Link>
@@ -21,305 +21,196 @@ export default function Page() {
           Informativa Privacy - Aziende
         </h1>
 
-        <p className="mt-3 text-sm leading-6 text-slate-600">
-          Informativa sul trattamento dei dati personali comunicati dalle
-          aziende e dai relativi referenti tramite QuickSolve Management
-          Network.
+        <p className="mt-2 text-sm text-slate-500">
+          Versione 1.0 - 21 settembre 2026
         </p>
 
-        <div className="mt-8 space-y-8 text-sm leading-7 text-slate-700">
+        <div className="mt-8 space-y-7 text-sm leading-7 sm:text-base">
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
+            <h2 className="text-xl font-bold text-[#0d3158]">
               1. Titolare del trattamento
             </h2>
-
             <p className="mt-2">
               Il Titolare del trattamento è Francesco Nanni, P.IVA
               IT04285011203, gestore di QuickSolve Management Network.
             </p>
+            <p className="mt-2">
+              Per richieste relative alla protezione dei dati personali:{" "}
+              <a
+                className="font-medium text-[#0d3158] hover:underline"
+                href="mailto:francesco.nanni@quicksolve.it"
+              >
+                francesco.nanni@quicksolve.it
+              </a>
+              .
+            </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
+            <h2 className="text-xl font-bold text-[#0d3158]">
               2. Dati trattati
             </h2>
-
             <p className="mt-2">
-              Nell&apos;ambito dell&apos;invio e della gestione di una richiesta
-              aziendale possono essere trattati dati relativi all&apos;azienda,
-              al referente e all&apos;esigenza professionale comunicata.
+              Sono trattati i dati inseriti nella richiesta, inclusi ragione
+              sociale o denominazione, caratteristiche e settore
+              dell&apos;azienda, dati del referente, requisiti della figura
+              cercata, descrizione della richiesta, zona e modalità
+              dell&apos;incarico, budget o range economico, settori di
+              esperienza, metodologie e strumenti richiesti, oltre ai dati
+              tecnici necessari al servizio.
             </p>
-
             <p className="mt-2">
-              In particolare, possono essere raccolti dati quali denominazione
-              aziendale, tipologia e dimensione dell&apos;azienda, settore di
-              attività, nome e cognome del referente, ruolo aziendale, indirizzo
-              e-mail, numero di telefono e le informazioni necessarie a
-              descrivere la richiesta.
-            </p>
-
-            <p className="mt-2">
-              Possono inoltre essere trattate informazioni relative al profilo
-              manageriale ricercato, tra cui ruolo, esperienza, competenze,
-              contesto aziendale, settori, metodologie, area geografica,
-              disponibilità richiesta, modalità dell&apos;incarico,
-              tempistiche, requisiti professionali ed eventuali note fornite
-              dall&apos;azienda.
+              Se viene attivato un servizio a pagamento, possono inoltre essere
+              trattati i dati necessari alla gestione contrattuale,
+              amministrativa e fiscale.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              3. Finalità del trattamento
-            </h2>
-
+            <h2 className="text-xl font-bold text-[#0d3158]">3. Finalità</h2>
             <p className="mt-2">
-              I dati sono trattati per ricevere, registrare e gestire la
-              richiesta dell&apos;azienda; comprenderne le esigenze;
-              ricontattare il referente per eventuali approfondimenti;
-              organizzare e classificare internamente la richiesta; valutare
-              profili manageriali potenzialmente coerenti con le esigenze
-              comunicate e gestire le eventuali successive fasi di contatto e
-              introduzione.
-            </p>
-
-            <p className="mt-2">
-              I dati possono inoltre essere trattati per finalità connesse alla
-              sicurezza del servizio, alla prevenzione di utilizzi impropri,
-              alla gestione di richieste di assistenza e all&apos;adempimento
-              di obblighi previsti dalla legge.
+              I dati sono utilizzati per ricevere e registrare gratuitamente la
+              richiesta; attribuire un codice RQ ove previsto; effettuare il
+              matching con i profili presenti nel network; mostrare i profili
+              compatibili in forma non direttamente identificativa; registrare
+              i profili selezionati dall&apos;azienda; contattare i manager
+              selezionati per verificarne disponibilità e interesse; in caso di
+              interesse reciproco, facilitare l&apos;introduzione tra le parti;
+              gestire assistenza, sicurezza, eventuali servizi a pagamento,
+              fatturazione e adempimenti amministrativi o di legge.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              4. Valutazione della compatibilità
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              4. Basi giuridiche
             </h2>
-
             <p className="mt-2">
-              Le informazioni contenute nella richiesta possono essere
-              confrontate con le caratteristiche professionali e le
-              disponibilità dei manager presenti nel network al fine di
-              individuare profili potenzialmente coerenti con
-              l&apos;esigenza aziendale.
+              Il trattamento necessario alla gestione della richiesta, al
+              matching, alla verifica dell&apos;interesse e
+              all&apos;erogazione delle funzionalità del servizio avviene per
+              dare seguito alla richiesta dell&apos;azienda e alle relative
+              misure contrattuali o precontrattuali.
             </p>
-
             <p className="mt-2">
-              Le modalità tecniche e organizzative utilizzate per supportare
-              tale valutazione possono evolvere nel tempo in funzione dello
-              sviluppo del servizio.
-            </p>
-
-            <p className="mt-2">
-              L&apos;eventuale individuazione di un profilo non costituisce una
-              garanzia di idoneità allo specifico incarico e non sostituisce le
-              valutazioni che spettano all&apos;azienda e al professionista
-              interessato.
+              Ulteriori trattamenti possono basarsi su obblighi di legge e sul
+              legittimo interesse del Titolare alla sicurezza, alla prevenzione
+              degli abusi e alla tutela dei propri diritti.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              5. Base giuridica
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              5. Matching e risultati
             </h2>
-
             <p className="mt-2">
-              Il trattamento dei dati necessari a ricevere e gestire la
-              richiesta dell&apos;azienda è effettuato per dare seguito a una
-              richiesta dell&apos;interessato o dell&apos;organizzazione per
-              conto della quale il referente opera e, ove applicabile, per
-              l&apos;esecuzione di misure precontrattuali adottate su richiesta
-              dell&apos;interessato.
+              I requisiti della richiesta vengono confrontati con i profili
+              presenti nel network. Dopo l&apos;invio, l&apos;azienda può
+              ricevere i risultati del matching e visualizzare gratuitamente
+              informazioni professionali dei manager senza ottenere, in questa
+              fase, i loro dati di contatto direttamente identificativi.
             </p>
-
             <p className="mt-2">
-              Ulteriori trattamenti possono essere effettuati quando necessari
-              per adempiere a obblighi di legge o per perseguire legittimi
-              interessi del Titolare, nel rispetto dei requisiti previsti dalla
-              normativa applicabile.
+              Il matching è uno strumento di supporto e non garantisce
+              disponibilità, interesse, idoneità definitiva o conclusione di un
+              rapporto.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              6. Natura del conferimento
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              6. Selezione, verifica dell&apos;interesse e introduzione
             </h2>
-
             <p className="mt-2">
-              Il conferimento dei dati indicati come necessari nel modulo è
-              richiesto per consentire l&apos;invio e la gestione della
+              L&apos;azienda può selezionare uno o più profili di interesse.
+              QuickSolve può quindi contattare i manager selezionati per
+              verificarne disponibilità e interesse rispetto alla specifica
               richiesta.
             </p>
-
             <p className="mt-2">
-              Il mancato conferimento delle informazioni necessarie può rendere
-              impossibile completare l&apos;invio o valutare adeguatamente
-              l&apos;esigenza aziendale.
+              In caso di interesse reciproco e prosecuzione del servizio,
+              QuickSolve può comunicare alle parti i dati necessari alla messa
+              in contatto professionale. I dati ricevuti devono essere
+              utilizzati esclusivamente per la finalità professionale collegata
+              alla richiesta e non possono essere rivenduti, diffusi,
+              utilizzati per creare banche dati autonome o impiegati per
+              finalità incompatibili.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              7. Modalità del trattamento e sicurezza
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              7. Destinatari e fornitori
             </h2>
-
             <p className="mt-2">
-              I dati sono trattati con strumenti informatici e, quando
-              necessario, con modalità organizzative adeguate alle finalità del
-              servizio.
+              I dati dell&apos;azienda e del referente possono essere trattati
+              da fornitori tecnici necessari alla piattaforma, inclusi servizi
+              di hosting, database, infrastruttura, sicurezza e, ove
+              applicabile, pagamento.
             </p>
-
             <p className="mt-2">
-              Sono adottate misure tecniche e organizzative finalizzate a
-              proteggere i dati da accessi non autorizzati, perdita,
-              divulgazione, alterazione o utilizzi non compatibili con le
-              finalità dichiarate.
+              Informazioni pertinenti alla specifica opportunità possono essere
+              comunicate ai manager selezionati nella misura necessaria alla
+              verifica dell&apos;interesse e al processo di introduzione.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              8. Destinatari e fornitori tecnici
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              8. Riservatezza delle informazioni aziendali
             </h2>
-
             <p className="mt-2">
-              I dati possono essere trattati dal Titolare e da soggetti
-              autorizzati coinvolti nella gestione del servizio.
-            </p>
-
-            <p className="mt-2">
-              Per il funzionamento della piattaforma possono inoltre essere
-              utilizzati fornitori di servizi tecnologici, hosting,
-              infrastruttura, autenticazione, database, sicurezza o altri
-              servizi strettamente necessari all&apos;operatività di QuickSolve
-              Management Network.
-            </p>
-
-            <p className="mt-2">
-              I dati possono essere comunicati ad altri soggetti quando ciò sia
-              necessario per adempiere a obblighi di legge o richieste
-              legittime delle autorità competenti.
+              L&apos;azienda non dovrebbe inserire nel form informazioni
+              industriali particolarmente sensibili, segreti industriali o
+              documentazione riservata non necessaria alla prima valutazione.
+              Eventuali informazioni riservate possono essere gestite
+              successivamente con adeguate misure di riservatezza o NDA.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              9. Condivisione delle informazioni con i manager
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              9. Trasferimenti e conservazione
             </h2>
-
             <p className="mt-2">
-              Nell&apos;ambito della gestione di una specifica opportunità,
-              alcune informazioni relative all&apos;esigenza aziendale possono
-              essere utilizzate per verificare la compatibilità e
-              l&apos;interesse di manager potenzialmente pertinenti.
+              Qualora fornitori tecnici trattino dati al di fuori dello Spazio
+              Economico Europeo, il trattamento avverrà mediante gli strumenti e
+              le garanzie previsti dalla normativa applicabile.
             </p>
-
             <p className="mt-2">
-              La comunicazione di informazioni identificative o di contatto
-              viene limitata a quanto necessario per la gestione del processo
-              e delle eventuali fasi di introduzione tra le parti.
+              I dati sono conservati per il tempo necessario alla gestione della
+              richiesta, del servizio e dei rapporti conseguenti, salvo obblighi
+              di legge, tutela di diritti e tempi tecnici di backup e sicurezza.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              10. Conservazione dei dati
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              10. Diritti e aggiornamenti
             </h2>
-
             <p className="mt-2">
-              I dati sono conservati per il periodo necessario alla gestione
-              della richiesta e delle eventuali attività successive, nonché
-              per il tempo ulteriore eventualmente necessario per adempiere a
-              obblighi di legge, tutelare diritti o gestire esigenze
-              amministrative e di sicurezza.
+              Gli interessati possono esercitare, quando applicabili, i diritti
+              previsti dalla normativa privacy e proporre reclamo al Garante per
+              la protezione dei dati personali. Le richieste possono essere
+              inviate a{" "}
+              <a
+                className="font-medium text-[#0d3158] hover:underline"
+                href="mailto:francesco.nanni@quicksolve.it"
+              >
+                francesco.nanni@quicksolve.it
+              </a>
+              .
             </p>
-
             <p className="mt-2">
-              I tempi di conservazione possono variare in funzione della natura
-              dei dati, dello stato della richiesta e degli obblighi
-              applicabili.
+              La versione dell&apos;informativa visualizzata al momento
+              dell&apos;invio viene registrata insieme alla presa visione.
+            </p>
+            <p className="mt-2">
+              Presa visione: prima dell&apos;invio della richiesta il referente
+              dichiara di aver letto questa informativa. La presa visione è
+              distinta dall&apos;accettazione delle Condizioni di utilizzo.
             </p>
           </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              11. Trasferimenti di dati
-            </h2>
-
-            <p className="mt-2">
-              Alcuni fornitori tecnologici utilizzati per l&apos;erogazione del
-              servizio possono trattare dati attraverso infrastrutture situate
-              anche al di fuori dello Spazio Economico Europeo.
-            </p>
-
-            <p className="mt-2">
-              Quando applicabile, tali trasferimenti sono gestiti sulla base
-              degli strumenti e delle garanzie previsti dalla normativa in
-              materia di protezione dei dati personali.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              12. Diritti dell&apos;interessato
-            </h2>
-
-            <p className="mt-2">
-              Nei casi previsti dalla normativa, l&apos;interessato può
-              richiedere l&apos;accesso ai propri dati personali, la rettifica,
-              la cancellazione, la limitazione del trattamento, la portabilità
-              dei dati e può opporsi al trattamento quando ne ricorrono i
-              presupposti.
-            </p>
-
-            <p className="mt-2">
-              L&apos;interessato ha inoltre il diritto di proporre reclamo
-              all&apos;Autorità Garante per la protezione dei dati personali
-              qualora ritenga che il trattamento avvenga in violazione della
-              normativa applicabile.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              13. Contatti
-            </h2>
-
-            <p className="mt-2">
-              Per richieste relative al trattamento dei dati personali è
-              possibile utilizzare i canali di contatto messi a disposizione
-              da QuickSolve Management Network.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              14. Aggiornamenti dell&apos;informativa
-            </h2>
-
-            <p className="mt-2">
-              La presente informativa può essere aggiornata in caso di
-              modifiche normative, tecniche o organizzative del servizio. La
-              versione pubblicata su questa pagina è quella disponibile agli
-              utenti al momento della consultazione.
-            </p>
-          </section>
-        </div>
-
-        <div className="mt-10 flex flex-wrap gap-3 border-t border-[#d7e1ec] pt-6">
-          <Link
-            href="/azienda"
-            className="inline-flex rounded-xl bg-[#0b2340] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#12385f]"
-          >
-            Torna alla richiesta aziendale
-          </Link>
-
-          <Link
-            href="/legal/privacy-policy"
-            className="inline-flex rounded-xl border border-[#d7e1ec] bg-white px-5 py-3 text-sm font-bold text-[#0b2340] transition hover:bg-[#eef3f8]"
-          >
-            Privacy Policy generale
-          </Link>
         </div>
       </article>
     </main>

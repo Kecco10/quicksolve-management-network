@@ -3,7 +3,7 @@ import Link from "next/link";
 export const metadata = {
   title: "Condizioni di Utilizzo Aziende | QuickSolve Management Network",
   description:
-    "Condizioni di utilizzo di QuickSolve Management Network dedicate alle aziende.",
+    "Condizioni di utilizzo del servizio QuickSolve Management Network per le aziende.",
 };
 
 export default function Page() {
@@ -12,7 +12,7 @@ export default function Page() {
       <article className="mx-auto max-w-4xl rounded-2xl border border-[#d7e1ec] bg-white p-6 shadow-sm sm:p-9">
         <Link
           href="/"
-          className="text-sm font-semibold text-[#164873] hover:underline"
+          className="text-sm font-semibold text-[#0d3158] hover:underline"
         >
           ← Torna alla home
         </Link>
@@ -21,221 +21,190 @@ export default function Page() {
           Condizioni di Utilizzo - Aziende
         </h1>
 
-        <p className="mt-3 text-sm leading-6 text-slate-600">
-          Condizioni relative all&apos;invio e alla gestione delle richieste
-          aziendali tramite QuickSolve Management Network.
+        <p className="mt-2 text-sm text-slate-500">
+          Versione 1.0 - 21 settembre 2026
         </p>
 
-        <div className="mt-8 space-y-8 text-sm leading-7 text-slate-700">
+        <div className="mt-8 space-y-7 text-sm leading-7 sm:text-base">
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              1. Ambito del servizio
-            </h2>
-
+            <h2 className="text-xl font-bold text-[#0d3158]">1. Oggetto</h2>
             <p className="mt-2">
               Le presenti condizioni regolano l&apos;invio di richieste
-              aziendali e l&apos;utilizzo dei servizi offerti tramite QuickSolve
-              Management Network, gestito da Francesco Nanni, P.IVA
-              IT04285011203.
-            </p>
-
-            <p className="mt-2">
-              QuickSolve Management Network è finalizzato a raccogliere e
-              valutare esigenze aziendali relative alla ricerca di figure
-              manageriali e a favorire, quando ne ricorrono le condizioni,
-              l&apos;individuazione di profili professionali potenzialmente
-              coerenti con le caratteristiche dell&apos;incarico.
+              aziendali e l&apos;utilizzo del servizio di matching e
+              introduzione offerto da QuickSolve Management Network, gestito da
+              Francesco Nanni, P.IVA IT04285011203.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              2. Invio della richiesta
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              2. Invio gratuito della richiesta
             </h2>
-
             <p className="mt-2">
-              L&apos;azienda può utilizzare il modulo disponibile sul sito per
-              descrivere la propria organizzazione, l&apos;esigenza, il profilo
-              manageriale ricercato, il contesto dell&apos;incarico e le
-              relative modalità operative.
-            </p>
-
-            <p className="mt-2">
-              L&apos;azienda si impegna a fornire informazioni corrette,
-              aggiornate e sufficientemente complete per consentire la
-              valutazione della richiesta.
-            </p>
-
-            <p className="mt-2">
-              L&apos;invio della richiesta tramite il sito è gratuito e non
-              comporta, di per sé, alcun obbligo di acquisto, affidamento di
-              incarico o conclusione di un contratto con un manager.
+              L&apos;invio della richiesta è gratuito e non comporta alcun
+              obbligo di acquisto. L&apos;azienda si impegna a fornire dati
+              corretti e sufficienti alla valutazione della figura ricercata. A
+              ogni richiesta validamente registrata può essere attribuito un
+              codice RQ per la tracciabilità del processo.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              3. Gestione della richiesta
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              3. Risultati e profili anonimi
             </h2>
-
             <p className="mt-2">
-              Dopo l&apos;invio, la richiesta può essere registrata nei sistemi
-              di QuickSolve Management Network e sottoposta a verifica,
-              classificazione e gestione interna.
-            </p>
-
-            <p className="mt-2">
-              QuickSolve può contattare il referente indicato
-              dall&apos;azienda per richiedere chiarimenti, approfondimenti o
-              ulteriori informazioni necessarie a comprendere meglio
-              l&apos;esigenza.
-            </p>
-
-            <p className="mt-2">
-              La ricezione della richiesta non garantisce
-              l&apos;individuazione di uno o più manager né il completamento
-              di un processo di selezione o introduzione.
+              Dopo l&apos;invio della richiesta, il sistema effettua il matching
+              e può mostrare all&apos;azienda i profili compatibili secondo le
+              regole della piattaforma. La consultazione dei risultati e dei
+              profili in forma non direttamente identificativa è gratuita e non
+              genera alcun debito o impegno economico.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              4. Individuazione dei profili
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              4. Selezione e servizio a pagamento
             </h2>
-
             <p className="mt-2">
-              QuickSolve Management Network può confrontare le caratteristiche
-              della richiesta con le informazioni professionali dei manager
-              presenti nel network, tenendo conto dei requisiti e delle
-              disponibilità pertinenti all&apos;incarico.
+              L&apos;azienda può selezionare uno o più profili di interesse.
+              QuickSolve può verificare la disponibilità e l&apos;interesse dei
+              manager selezionati e, in caso di interesse reciproco, facilitare
+              l&apos;introduzione tra le parti.
             </p>
-
             <p className="mt-2">
-              L&apos;eventuale individuazione o presentazione di un profilo
-              costituisce un supporto alla valutazione dell&apos;azienda e non
-              rappresenta una garanzia circa l&apos;idoneità del professionista
-              allo specifico incarico.
+              Per il servizio di visibilità, matching e facilitazione
+              all&apos;avvio della collaborazione può essere prevista una fee.
+              L&apos;importo e le condizioni economiche applicabili vengono
+              comunicati all&apos;azienda prima dell&apos;attivazione del
+              servizio a pagamento e indicati nella relativa proposta
+              commerciale o accordo. Nessun corrispettivo deriva dalla sola
+              visualizzazione dei profili anonimi.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              5. Valutazione e decisione dell&apos;azienda
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              5. Natura del corrispettivo e nessuna success fee
             </h2>
-
             <p className="mt-2">
-              L&apos;azienda rimane responsabile delle proprie valutazioni
-              professionali, organizzative, economiche e contrattuali relative
-              ai manager eventualmente presentati.
-            </p>
-
-            <p className="mt-2">
-              Prima dell&apos;affidamento di un incarico, spetta
-              all&apos;azienda effettuare le verifiche che ritiene opportune
-              sulle competenze, sull&apos;esperienza, sui requisiti
-              professionali e sulla disponibilità del manager.
+              Il corrispettivo riguarda il servizio fornito da QuickSolve e non
+              è collegato alla conclusione, alla durata o al valore economico
+              dell&apos;eventuale collaborazione tra Azienda e Manager. Salvo
+              eventuali servizi ulteriori oggetto di separato accordo, non sono
+              previste percentuali sull&apos;assunzione o sull&apos;incarico,
+              commissioni sul valore della collaborazione o compensi dipendenti
+              dal suo esito.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              6. Rapporti con i manager
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              6. Ruolo di QuickSolve
             </h2>
-
             <p className="mt-2">
-              L&apos;eventuale presentazione o messa in contatto tra azienda e
-              manager non determina automaticamente la nascita di un rapporto
-              professionale o contrattuale.
+              QuickSolve fornisce un servizio di raccolta delle richieste,
+              matching, visibilità dei profili e facilitazione
+              dell&apos;introduzione. QuickSolve non è parte del rapporto
+              professionale eventualmente concluso tra Azienda e Manager e non
+              assume obblighi propri del datore di lavoro o del committente.
             </p>
-
             <p className="mt-2">
-              Termini, durata, compensi, responsabilità, modalità di
-              svolgimento e ogni altra condizione dell&apos;eventuale incarico
-              devono essere definiti dalle parti nell&apos;ambito dei relativi
-              accordi.
+              La qualificazione giuridica delle attività concretamente svolte
+              resta soggetta alla normativa applicabile; le presenti condizioni
+              non intendono attribuire a QuickSolve attività riservate per legge
+              a soggetti autorizzati.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              7. Utilizzo corretto del servizio
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              7. Matching e assenza di garanzia
             </h2>
-
             <p className="mt-2">
-              L&apos;azienda si impegna a non utilizzare QuickSolve Management
-              Network per finalità illecite, fraudolente o estranee allo scopo
-              del servizio e a non trasmettere informazioni consapevolmente
-              false o riferite a soggetti terzi senza una valida base per il
-              relativo trattamento.
-            </p>
-
-            <p className="mt-2">
-              Eventuali informazioni riservate condivise nell&apos;ambito del
-              processo devono essere trattate dalle parti con adeguata
-              riservatezza.
+              I risultati del matching costituiscono uno strumento di supporto
+              basato sui dati dichiarati dall&apos;azienda e dai manager
+              presenti nel network. Non garantiscono disponibilità, interesse,
+              veridicità assoluta delle informazioni, idoneità definitiva,
+              assunzione, collaborazione o conclusione di un rapporto.
+              L&apos;azienda resta responsabile delle proprie verifiche.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              8. Disponibilità del servizio
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              8. Utilizzo dei dati ricevuti
             </h2>
-
             <p className="mt-2">
-              QuickSolve Management Network può essere aggiornato, modificato o
-              temporaneamente sospeso per esigenze tecniche, organizzative, di
-              sicurezza o di manutenzione.
-            </p>
-
-            <p className="mt-2">
-              Non è garantita la disponibilità ininterrotta del sito o di tutte
-              le sue funzionalità.
+              I dati di contatto eventualmente ricevuti a seguito
+              dell&apos;introduzione possono essere utilizzati esclusivamente
+              per contattare e valutare il manager in relazione alla reale
+              opportunità professionale oggetto della richiesta. È vietata la
+              rivendita, la diffusione a soggetti non autorizzati, la creazione
+              di banche dati autonome, l&apos;uso per marketing non richiesto o
+              per finalità estranee.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              9. Protezione dei dati personali
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              9. Rapporto tra Azienda e Manager
             </h2>
-
             <p className="mt-2">
-              Il trattamento dei dati personali comunicati dall&apos;azienda e
-              dal referente è disciplinato dall&apos;{" "}
-              <Link
-                href="/legal/privacy-aziende"
-                className="font-semibold text-[#164873] hover:underline"
-              >
-                Informativa Privacy Aziende
-              </Link>
-              .
+              Dopo l&apos;introduzione, Azienda e Manager gestiscono
+              autonomamente contatti, colloqui, verifiche, negoziazioni e
+              l&apos;eventuale rapporto. Le condizioni dell&apos;eventuale
+              collaborazione vengono concordate direttamente tra le parti.
+              L&apos;azienda resta responsabile degli aspetti organizzativi,
+              contrattuali, fiscali, retributivi, contributivi e di sicurezza
+              applicabili al rapporto che deciderà di instaurare.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0b2340]">
-              10. Aggiornamento delle condizioni
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              10. Riservatezza
             </h2>
-
             <p className="mt-2">
-              Le presenti condizioni possono essere aggiornate per riflettere
-              modifiche del servizio, del modello operativo o della normativa
-              applicabile.
-            </p>
-
-            <p className="mt-2">
-              La versione pubblicata sul sito è quella disponibile agli utenti
-              al momento della consultazione.
+              L&apos;azienda si impegna a non inserire nel form segreti
+              industriali o informazioni riservate non necessarie alla prima
+              valutazione. Le informazioni riservate scambiate successivamente
+              devono essere trattate con adeguata confidenzialità e, quando
+              opportuno, con NDA dedicato.
             </p>
           </section>
-        </div>
 
-        <div className="mt-10 border-t border-[#d7e1ec] pt-6">
-          <Link
-            href="/azienda"
-            className="inline-flex rounded-xl bg-[#0b2340] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#12385f]"
-          >
-            Torna alla richiesta aziendale
-          </Link>
+          <section>
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              11. Uso corretto e disponibilità
+            </h2>
+            <p className="mt-2">
+              È vietato inviare richieste false o illecite, utilizzare la
+              piattaforma per raccogliere dati sui manager senza reale finalità
+              professionale, tentare accessi non autorizzati o interferire con
+              il funzionamento del servizio. QuickSolve può aggiornare,
+              sospendere o modificare funzionalità tecniche per esigenze
+              operative, sicurezza o manutenzione.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-bold text-[#0d3158]">
+              12. Privacy e modifiche
+            </h2>
+            <p className="mt-2">
+              Il trattamento dei dati del referente e della richiesta è
+              disciplinato dall&apos;Informativa Privacy Aziende. La versione
+              visualizzata viene registrata al momento dell&apos;invio della
+              richiesta. In caso di modifiche sostanziali alle condizioni potrà
+              essere richiesta una nuova accettazione.
+            </p>
+            <p className="mt-2">
+              Accettazione: l&apos;invio della richiesta può essere completato
+              solo dopo l&apos;accettazione espressa della versione delle
+              Condizioni di utilizzo visualizzata nel form.
+            </p>
+          </section>
         </div>
       </article>
     </main>
