@@ -434,11 +434,12 @@ export default function AdminMatchingPage() {
           </h1>
         </div>
 
-        <div className="hidden border-b border-[#d7e1ec] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 lg:grid lg:grid-cols-[1.15fr_1.45fr_1fr_1.15fr] lg:gap-4">
+        <div className="hidden border-b border-[#d7e1ec] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 lg:grid lg:grid-cols-[1.2fr_1.35fr_0.9fr_1.35fr_1fr] lg:gap-6">
           <div className="text-center">Azienda</div>
           <div className="text-center">Ruolo richiesto</div>
           <div className="text-center">Area</div>
           <div className="text-center">Settori</div>
+          <div className="text-center">Budget</div>
         </div>
 
         {error ? (
@@ -482,7 +483,7 @@ export default function AdminMatchingPage() {
                     }
                     className="w-full p-3 text-left sm:p-4"
                   >
-                    <div className="grid gap-4 lg:grid-cols-[1.15fr_1.45fr_1fr_1.15fr] lg:items-start">
+                    <div className="grid gap-5 lg:grid-cols-[1.2fr_1.35fr_0.9fr_1.35fr_1fr] lg:items-start lg:gap-6">
                       <div className="text-center">
                         <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 lg:hidden">
                           Azienda
@@ -533,6 +534,15 @@ export default function AdminMatchingPage() {
                         </div>
                       </div>
 
+                      <div className="text-center">
+                        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 lg:hidden">
+                          Budget
+                        </p>
+                        <p className="text-sm font-semibold text-slate-800">
+                          {request.dailyRateBand || "Non indicato"}
+                        </p>
+                      </div>
+
                     </div>
                   </button>
 
@@ -557,10 +567,11 @@ export default function AdminMatchingPage() {
                               key={`${request.id}-${manager.id || index}`}
                               className="rounded-xl border border-[#d7e1ec] bg-white px-3 py-3"
                             >
-                              <div className="grid gap-3 xl:grid-cols-[34px_minmax(200px,1fr)_minmax(190px,1fr)_minmax(150px,0.8fr)_minmax(220px,1.15fr)_minmax(150px,0.75fr)] xl:items-center">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef3f8] text-xs font-bold text-[#0d3158]">
+                              <div className="relative">
+                                <div className="absolute left-0 top-1 flex h-7 w-7 items-center justify-center rounded-lg bg-[#eef3f8] text-[11px] font-bold text-[#0d3158]">
                                   {index + 1}
                                 </div>
+                                <div className="grid gap-5 pl-10 xl:grid-cols-[1.2fr_1.35fr_0.9fr_1.35fr_1fr] xl:items-center xl:gap-6 xl:pl-0">
 
                                 <div className="min-w-0">
                                   <div className="flex flex-wrap items-center gap-2">
@@ -624,6 +635,7 @@ export default function AdminMatchingPage() {
                                     Da: {formatDate(manager.availableFrom)}
                                   </p>
                                 </div>
+                              </div>
                               </div>
                             </div>
                           );
