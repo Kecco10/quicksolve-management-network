@@ -336,6 +336,15 @@ export async function POST(
     const privacyAcknowledged =
       body.privacy_acknowledged === true;
 
+    const privacyVersion =
+      normalizeText(body.privacy_version);
+
+    const termsAccepted =
+      body.terms_accepted === true;
+
+    const termsVersion =
+      normalizeText(body.terms_version);
+
     const requiredStrings = [
       companyName,
       companyType,
@@ -372,7 +381,10 @@ export async function POST(
       !Number.isInteger(daysPerWeek) ||
       daysPerWeek < 1 ||
       daysPerWeek > 5 ||
-      !privacyAcknowledged;
+      !privacyAcknowledged ||
+      !privacyVersion ||
+      !termsAccepted ||
+      !termsVersion;
 
     if (invalid) {
       return NextResponse.json(
@@ -509,6 +521,18 @@ export async function POST(
 
       privacy_acknowledged:
         privacyAcknowledged,
+
+      privacy_version:
+        privacyVersion,
+
+      terms_accepted:
+        termsAccepted,
+
+      terms_version:
+        termsVersion,
+
+      legal_accepted_at:
+        new Date().toISOString(),
 
       status: "new",
     };

@@ -2,6 +2,11 @@
 
 import { useMemo, useState } from "react";
 
+const PRIVACY_VERSION = "1.0-2026-09-21";
+const TERMS_VERSION = "1.0-2026-09-21";
+const PRIVACY_URL = "/legal/privacy-aziende";
+const TERMS_URL = "/legal/condizioni-aziende";
+
 type ExperienceBand =
   | "Meno di 6 anni"
   | "6–10 anni"
@@ -291,6 +296,7 @@ export default function CompanyRequestPage() {
   const [requiredLanguages, setRequiredLanguages] = useState("");
   const [finalNotes, setFinalNotes] = useState("");
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestCode, setRequestCode] = useState("");
@@ -395,7 +401,8 @@ export default function CompanyRequestPage() {
           daysPerWeek !== "" &&
           startDate !== "" &&
           dailyRateBand !== "" &&
-          privacyAcknowledged
+          privacyAcknowledged &&
+          termsAccepted
         );
 
       default:
@@ -435,6 +442,7 @@ export default function CompanyRequestPage() {
     startDate,
     dailyRateBand,
     privacyAcknowledged,
+    termsAccepted,
   ]);
 
   const progress = ((currentStep + 1) / stepTitles.length) * 100;
@@ -519,7 +527,9 @@ export default function CompanyRequestPage() {
           other_role: primaryRole === "Altro" ? otherRole.trim() : "",
           secondary_roles: secondaryRoles,
           experience_band: experience.join(" | "),
+          experience_bands: experience,
           managerial_experience_band: managerialExperience.join(" | "),
+          managerial_experience_bands: managerialExperience,
           people_managed_band: peopleManagedBand,
           pnl_band: pnlBand,
           production_types: productionTypes,
@@ -541,6 +551,9 @@ export default function CompanyRequestPage() {
           required_languages: requiredLanguages.trim(),
           final_notes: finalNotes.trim(),
           privacy_acknowledged: privacyAcknowledged,
+          privacy_version: PRIVACY_VERSION,
+          terms_accepted: termsAccepted,
+          terms_version: TERMS_VERSION,
         }),
       });
 
@@ -1193,23 +1206,41 @@ export default function CompanyRequestPage() {
               </Field>
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <h2 className="text-xl font-bold text-slate-900">Privacy</h2>
+                <h2 className="text-xl font-bold text-slate-900">
+                  Privacy e condizioni
+                </h2>
 
-                <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={privacyAcknowledged}
-                    onChange={(e) =>
-                      setPrivacyAcknowledged(e.target.checked)
-                    }
-                    className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]"
-                  />
+                <div className="mt-4 space-y-4 text-sm leading-6 text-slate-700">
+                  <label className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={privacyAcknowledged}
+                      onChange={(e) => setPrivacyAcknowledged(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]"
+                    />
+                    <span>
+                      Dichiaro di aver letto l&apos;
+                      <a href={PRIVACY_URL} target="_blank" rel="noreferrer" className="font-semibold text-[#0b2340] underline underline-offset-2">
+                        Informativa Privacy Aziende
+                      </a>.
+                    </span>
+                  </label>
 
-                  <span>
-                    Dichiaro di aver letto l&apos;informativa privacy relativa
-                    all&apos;invio della richiesta aziendale.
-                  </span>
-                </label>
+                  <label className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]"
+                    />
+                    <span>
+                      Accetto espressamente le{" "}
+                      <a href={TERMS_URL} target="_blank" rel="noreferrer" className="font-semibold text-[#0b2340] underline underline-offset-2">
+                        Condizioni di Utilizzo Aziende
+                      </a>.
+                    </span>
+                  </label>
+                </div>
               </div>
 
               {submitError && (

@@ -11,8 +11,10 @@ type ExperienceBand =
 type ManagerialExperienceBand = "Meno di 3 anni" | "3–10 anni" | "Oltre 10 anni";
 type RoleFamily = keyof typeof roleFamilies;
 
-const PRIVACY_VERSION = "1.0-2026-09-11";
+const PRIVACY_VERSION = "1.0-2026-09-21";
+const TERMS_VERSION = "1.0-2026-09-21";
 const PRIVACY_URL = "/legal/privacy-manager";
+const TERMS_URL = "/legal/condizioni-manager";
 
 const stepTitles = [
   "Identità ed esperienza",
@@ -259,6 +261,7 @@ export default function ManagerPage() {
 
   const [dailyRateBand, setDailyRateBand] = useState("");
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [visibilityConsent, setVisibilityConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -332,6 +335,7 @@ export default function ManagerPage() {
           birthDate !== "" &&
           passwordValid &&
           privacyAcknowledged &&
+          termsAccepted &&
           visibilityConsent
         );
       default:
@@ -367,6 +371,7 @@ export default function ManagerPage() {
     studyTitleValid,
     dailyRateBand,
     privacyAcknowledged,
+    termsAccepted,
     visibilityConsent,
   ]);
 
@@ -445,6 +450,8 @@ export default function ManagerPage() {
           daily_rate_band: dailyRateBand,
           privacy_acknowledged: privacyAcknowledged,
           privacy_version: PRIVACY_VERSION,
+          terms_accepted: termsAccepted,
+          terms_version: TERMS_VERSION,
           profile_visibility_consent: visibilityConsent,
           profile_visibility_version: PRIVACY_VERSION,
         }),
@@ -718,9 +725,10 @@ export default function ManagerPage() {
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <h2 className="text-xl font-bold text-slate-900">Privacy e visibilità</h2>
+                <h2 className="text-xl font-bold text-slate-900">Privacy, condizioni e visibilità</h2>
                 <div className="mt-4 space-y-4 text-sm leading-6 text-slate-700">
-                  <label className="flex items-start gap-3"><input type="checkbox" checked={privacyAcknowledged} onChange={(e) => setPrivacyAcknowledged(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]" /><span>Dichiaro di aver letto l&apos;<a href={PRIVACY_URL} target="_blank" rel="noreferrer" className="font-semibold text-[#0b2340] underline underline-offset-2">Informativa Privacy Management Network</a>.</span></label>
+                  <label className="flex items-start gap-3"><input type="checkbox" checked={privacyAcknowledged} onChange={(e) => setPrivacyAcknowledged(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]" /><span>Dichiaro di aver letto l&apos;<a href={PRIVACY_URL} target="_blank" rel="noreferrer" className="font-semibold text-[#0b2340] underline underline-offset-2">Informativa Privacy Manager</a>.</span></label>
+                  <label className="flex items-start gap-3"><input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]" /><span>Accetto espressamente le <a href={TERMS_URL} target="_blank" rel="noreferrer" className="font-semibold text-[#0b2340] underline underline-offset-2">Condizioni di Utilizzo Manager</a>.</span></label>
                   <label className="flex items-start gap-3"><input type="checkbox" checked={visibilityConsent} onChange={(e) => setVisibilityConsent(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]" /><span>Acconsento separatamente alla visibilità del mio profilo professionale strutturato alle aziende potenzialmente compatibili, inizialmente senza i miei dati di contatto direttamente identificativi.</span></label>
                 </div>
               </div>

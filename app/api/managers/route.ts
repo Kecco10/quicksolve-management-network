@@ -97,6 +97,8 @@ type ManagerSignupPayload = {
 
   privacy_acknowledged?: boolean;
   privacy_version?: string;
+  terms_accepted?: boolean;
+  terms_version?: string;
   profile_visibility_consent?: boolean;
   profile_visibility_version?: string;
 };
@@ -228,6 +230,7 @@ export async function POST(request: Request) {
     const dailyRateBand = cleanString(body.daily_rate_band);
 
     const privacyVersion = cleanString(body.privacy_version);
+    const termsVersion = cleanString(body.terms_version);
     const visibilityVersion = cleanString(
       body.profile_visibility_version
     );
@@ -326,6 +329,16 @@ export async function POST(request: Request) {
         {
           message:
             "Devi confermare di aver letto l'informativa privacy.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (body.terms_accepted !== true || !termsVersion) {
+      return NextResponse.json(
+        {
+          message:
+            "Devi accettare le Condizioni di Utilizzo Manager.",
         },
         { status: 400 }
       );
@@ -476,6 +489,13 @@ export async function POST(request: Request) {
           consent_type: "privacy_registration",
           accepted: true,
           document_version: privacyVersion,
+        },
+        {
+          user_id: createdUserId,
+          manager_profile_id: profile.id,
+          consent_type: "terms_registration",
+          accepted: true,
+          document_version: termsVersion,
         },
         {
           user_id: createdUserId,
