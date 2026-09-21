@@ -565,13 +565,13 @@ export default function AdminMatchingPage() {
                           return (
                             <div
                               key={`${request.id}-${manager.id || index}`}
-                              className="rounded-xl border border-[#d7e1ec] bg-white px-3 py-3"
+                              className="rounded-xl border border-[#d7e1ec] bg-white px-3 py-3 sm:px-4 xl:px-5"
                             >
-                              <div className="relative">
-                                <div className="absolute left-0 top-1 flex h-7 w-7 items-center justify-center rounded-lg bg-[#eef3f8] text-[11px] font-bold text-[#0d3158]">
+                              <div className="relative pl-11 xl:pl-14">
+                                <div className="absolute left-1 top-1 flex h-7 w-7 items-center justify-center rounded-lg bg-[#eef3f8] text-[11px] font-bold text-[#0d3158] xl:left-2">
                                   {index + 1}
                                 </div>
-                                <div className="grid gap-5 pl-10 xl:grid-cols-[1.2fr_1.35fr_0.9fr_1.35fr_1fr] xl:items-center xl:gap-6 xl:pl-0">
+                                <div className="grid gap-5 xl:grid-cols-[1.08fr_1.18fr_0.82fr_1.55fr_1.12fr] xl:items-center xl:gap-x-8">
 
                                 <div className="min-w-0">
                                   <div className="flex flex-wrap items-center gap-2">
