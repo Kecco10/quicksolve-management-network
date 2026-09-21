@@ -571,10 +571,10 @@ export default function AdminMatchingPage() {
                                 <div className="absolute left-1 top-1 flex h-7 w-7 items-center justify-center rounded-lg bg-[#eef3f8] text-[11px] font-bold text-[#0d3158] xl:left-2">
                                   {index + 1}
                                 </div>
-                                <div className="grid gap-5 xl:grid-cols-[1.08fr_1.18fr_0.82fr_1.55fr_1.12fr] xl:items-center xl:gap-x-8">
+                                <div className="grid gap-5 xl:grid-cols-[1.2fr_1.35fr_0.9fr_1.35fr_1fr] xl:items-center xl:gap-6">
 
-                                <div className="min-w-0">
-                                  <div className="flex flex-wrap items-center gap-2">
+                                <div className="min-w-0 text-center">
+                                  <div className="flex flex-wrap items-center justify-center gap-2">
                                     <p className="truncate text-sm font-semibold text-[#071b33]">
                                       {[manager.firstName, manager.lastName]
                                         .filter(Boolean)
@@ -592,7 +592,7 @@ export default function AdminMatchingPage() {
                                   </div>
                                 </div>
 
-                                <div className="min-w-0">
+                                <div className="min-w-0 text-center">
                                   <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
                                     {match.matchedAs}
                                   </p>
@@ -604,7 +604,7 @@ export default function AdminMatchingPage() {
                                   </p>
                                 </div>
 
-                                <div className="min-w-0">
+                                <div className="min-w-0 text-center">
                                   <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
                                     Area
                                   </p>
@@ -613,7 +613,7 @@ export default function AdminMatchingPage() {
                                   </p>
                                 </div>
 
-                                <div className="min-w-0">
+                                <div className="min-w-0 text-center">
                                   <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
                                     Settori
                                   </p>
@@ -624,7 +624,7 @@ export default function AdminMatchingPage() {
                                   </p>
                                 </div>
 
-                                <div className="min-w-0">
+                                <div className="min-w-0 text-center">
                                   <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
                                     Disponibilità
                                   </p>
