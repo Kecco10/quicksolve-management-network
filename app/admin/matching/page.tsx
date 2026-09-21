@@ -1,357 +1,683 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
-type Manager = {
-  user_id: string;
-  first_name?: string;
-  last_name?: string;
-  primary_role?: string;
-  profile_status?: string;
-  profile_visibility_enabled?: boolean;
+type RawRecord = Record<string, unknown>;
+
+type SecondaryRole = {
+  family: string;
+  role: string;
+  other_role?: string | null;
+};
+
+type GeographicArea = {
+  region: string;
+  province: string;
 };
 
 type CompanyRequest = {
-  id: number;
-  request_code: string;
-  company_name: string;
-  primary_role: string;
-  province?: string;
-  region?: string;
+  id: string;
+  requestCode: string;
+  companyName: string;
+  roleFamily: string;
+  primaryRole: string;
+  otherRole: string;
+  sectors: string[];
+  otherSector: string;
+  region: string;
+  province: string;
+  dailyRateBand: string;
   status: string;
 };
 
-export default function MatchingAdminPage() {
-  const [managers, setManagers] =
-    useState<Manager[]>([]);
+type ManagerProfile = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  primaryRoleFamily: string;
+  primaryRole: string;
+  otherRole: string;
+  secondaryRoles: SecondaryRole[];
+  geographicAreas: GeographicArea[];
+  regions: string[];
+  provinces: string[];
+  sectors: string[];
+  otherSector: string;
+  dailyRateBand: string;
+  assignmentTypes: string[];
+  availableFrom: string;
+  profileStatus: string;
+  isSearchActive: boolean;
+};
 
-  const [requests, setRequests] =
-    useState<CompanyRequest[]>([]);
+type MatchResult = {
+  manager: ManagerProfile;
+  matchedRole: string;
+  matchedRoleFamily: string;
+  matchedAs: "Ruolo primario" | "Ruolo secondario";
+};
 
-  const [loading, setLoading] =
-    useState(true);
+function asString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
 
-  const [error, setError] =
-    useState("");
+function asBoolean(value: unknown, fallback = false) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "yes", "si", "sì"].includes(normalized)) return true;
+    if (["false", "0", "no"].includes(normalized)) return false;
+  }
+  return fallback;
+}
+
+function asStringArray(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.map(asString).filter(Boolean);
+}
+
+function normalize(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function uniqueStrings(values: string[]) {
+  const seen = new Set<string>();
+
+  return values.filter((value) => {
+    const key = normalize(value);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function parseSecondaryRoles(value: unknown): SecondaryRole[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+
+      const raw = item as RawRecord;
+      const family = asString(raw.family);
+      const role = asString(raw.role);
+      const otherRole = asString(raw.other_role);
+
+      if (!family || !role) return null;
+
+      return {
+        family,
+        role,
+        other_role: otherRole || null,
+      };
+    })
+    .filter((item): item is SecondaryRole => item !== null);
+}
+
+function parseGeographicAreas(value: unknown): GeographicArea[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+
+      const raw = item as RawRecord;
+      const region = asString(raw.region);
+      const province = asString(raw.province);
+
+      if (!region && !province) return null;
+
+      return { region, province };
+    })
+    .filter((item): item is GeographicArea => item !== null);
+}
+
+function displayRole(role: string, otherRole: string) {
+  return role === "Altro" && otherRole ? otherRole : role;
+}
+
+function mapRequest(raw: RawRecord): CompanyRequest {
+  return {
+    id: asString(raw.id) || String(raw.id ?? ""),
+    requestCode: asString(raw.request_code) || "—",
+    companyName: asString(raw.company_name) || "Azienda non indicata",
+    roleFamily: asString(raw.role_family),
+    primaryRole: asString(raw.primary_role),
+    otherRole: asString(raw.other_role),
+    sectors: asStringArray(raw.sectors),
+    otherSector: asString(raw.other_sector),
+    region: asString(raw.region),
+    province: asString(raw.province),
+    dailyRateBand: asString(raw.daily_rate_band),
+    status: asString(raw.status) || "new",
+  };
+}
+
+function mapManager(raw: RawRecord): ManagerProfile {
+  const geographicAreas = parseGeographicAreas(raw.geographic_areas);
+
+  const regions = uniqueStrings([
+    ...asStringArray(raw.regions),
+    asString(raw.region),
+    ...geographicAreas.map((item) => item.region),
+  ].filter(Boolean));
+
+  const provinces = uniqueStrings([
+    ...asStringArray(raw.provinces),
+    asString(raw.province),
+    ...geographicAreas.map((item) => item.province),
+  ].filter(Boolean));
+
+  return {
+    id: asString(raw.id) || asString(raw.user_id),
+    firstName: asString(raw.first_name),
+    lastName: asString(raw.last_name),
+    email: asString(raw.email),
+    phone: asString(raw.whatsapp_phone) || asString(raw.whatsapp),
+    primaryRoleFamily: asString(raw.primary_role_family),
+    primaryRole: asString(raw.primary_role),
+    otherRole: asString(raw.other_role),
+    secondaryRoles: parseSecondaryRoles(raw.secondary_roles),
+    geographicAreas,
+    regions,
+    provinces,
+    sectors: asStringArray(raw.sectors),
+    otherSector: asString(raw.other_sector),
+    dailyRateBand: asString(raw.daily_rate_band),
+    assignmentTypes: asStringArray(raw.assignment_types),
+    availableFrom: asString(raw.available_from),
+    profileStatus: asString(raw.status) || asString(raw.profile_status),
+    isSearchActive: asBoolean(raw.profile_visibility_enabled, true),
+  };
+}
+
+function getRoleMatch(
+  request: CompanyRequest,
+  manager: ManagerProfile
+): Omit<MatchResult, "manager"> | null {
+  const requestedRole = normalize(
+    displayRole(request.primaryRole, request.otherRole)
+  );
+
+  if (!requestedRole) return null;
+
+  const managerPrimaryRole = displayRole(
+    manager.primaryRole,
+    manager.otherRole
+  );
+
+  if (normalize(managerPrimaryRole) === requestedRole) {
+    return {
+      matchedRole: managerPrimaryRole,
+      matchedRoleFamily: manager.primaryRoleFamily,
+      matchedAs: "Ruolo primario",
+    };
+  }
+
+  for (const secondary of manager.secondaryRoles) {
+    const secondaryRole = displayRole(
+      secondary.role,
+      secondary.other_role ?? ""
+    );
+
+    if (normalize(secondaryRole) === requestedRole) {
+      return {
+        matchedRole: secondaryRole,
+        matchedRoleFamily: secondary.family,
+        matchedAs: "Ruolo secondario",
+      };
+    }
+  }
+
+  return null;
+}
+
+function isGeographicallyCompatible(
+  request: CompanyRequest,
+  manager: ManagerProfile
+) {
+  const requestProvince = normalize(request.province);
+  const requestRegion = normalize(request.region);
+
+  /*
+   * Regola Management:
+   * - se abbiamo la provincia sia nella richiesta sia nel profilo, usiamo
+   *   la provincia come corrispondenza più precisa;
+   * - per i profili legacy senza provincia, usiamo la regione;
+   * - se la richiesta non ha provincia, usiamo la regione.
+   */
+  if (requestProvince && manager.provinces.length > 0) {
+    return manager.provinces.some(
+      (province) => normalize(province) === requestProvince
+    );
+  }
+
+  if (requestRegion) {
+    return manager.regions.some(
+      (region) => normalize(region) === requestRegion
+    );
+  }
+
+  return false;
+}
+
+function getMatches(
+  request: CompanyRequest,
+  managers: ManagerProfile[]
+): MatchResult[] {
+  return managers
+    .filter((manager) => manager.isSearchActive)
+    .filter((manager) => isGeographicallyCompatible(request, manager))
+    .map((manager) => {
+      const roleMatch = getRoleMatch(request, manager);
+
+      return roleMatch
+        ? {
+            manager,
+            ...roleMatch,
+          }
+        : null;
+    })
+    .filter((item): item is MatchResult => item !== null)
+    .sort((a, b) => {
+      if (a.matchedAs !== b.matchedAs) {
+        return a.matchedAs === "Ruolo primario" ? -1 : 1;
+      }
+
+      return `${a.manager.lastName} ${a.manager.firstName}`.localeCompare(
+        `${b.manager.lastName} ${b.manager.firstName}`,
+        "it"
+      );
+    });
+}
+
+function formatDate(value: string) {
+  if (!value) return "Non indicata";
+
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return value;
+
+  const [, year, month, day] = match;
+  return `${day}/${month}/${year}`;
+}
+
+function formatArea(request: CompanyRequest) {
+  return [request.province, request.region].filter(Boolean).join(", ") || "Non indicata";
+}
+
+function formatManagerArea(manager: ManagerProfile) {
+  if (manager.geographicAreas.length > 0) {
+    return manager.geographicAreas
+      .map((area) => [area.province, area.region].filter(Boolean).join(", "))
+      .join(" · ");
+  }
+
+  if (manager.provinces.length > 0) return manager.provinces.join(", ");
+  if (manager.regions.length > 0) return manager.regions.join(", ");
+
+  return "Non indicata";
+}
+
+function Badge({
+  children,
+  tone = "neutral",
+}: {
+  children: React.ReactNode;
+  tone?: "neutral" | "blue" | "green";
+}) {
+  const classes =
+    tone === "blue"
+      ? "border border-[#9ebbd8] bg-[#eef3f8] text-[#0d3158]"
+      : tone === "green"
+      ? "border border-emerald-200 bg-emerald-50 text-emerald-800"
+      : "border border-slate-200 bg-slate-100 text-slate-700";
+
+  return (
+    <span
+      className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold leading-none ${classes}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+export default function AdminMatchingPage() {
+  const [requests, setRequests] = useState<CompanyRequest[]>([]);
+  const [managers, setManagers] = useState<ManagerProfile[]>([]);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [
-          managersResponse,
-          requestsResponse,
-        ] = await Promise.all([
-          fetch(
-            "/api/admin/managers",
-            {
-              cache: "no-store",
-            }
-          ),
+        setLoading(true);
+        setError("");
 
-          fetch(
-            "/api/company-requests",
-            {
-              cache: "no-store",
-            }
-          ),
+        const [requestsResponse, managersResponse] = await Promise.all([
+          fetch("/api/company-requests", { cache: "no-store" }),
+          fetch("/api/admin/managers", { cache: "no-store" }),
         ]);
 
-        if (
-          managersResponse.status ===
-            401 ||
-          requestsResponse.status ===
-            401
-        ) {
-          window.location.href =
-            "/admin";
+        const requestsData = await requestsResponse.json();
+        const managersData = await managersResponse.json();
 
-          return;
+        if (!requestsResponse.ok) {
+          throw new Error(
+            requestsData?.error || "Impossibile caricare le richieste aziende."
+          );
         }
 
-        const managersData =
-          await managersResponse.json();
-
-        const requestsData =
-          await requestsResponse.json();
-
-        if (
-          !managersResponse.ok
-        ) {
+        if (!managersResponse.ok) {
           throw new Error(
-            managersData.error ||
+            managersData?.error ||
+              managersData?.message ||
               "Impossibile caricare i manager."
           );
         }
 
-        if (
-          !requestsResponse.ok
-        ) {
-          throw new Error(
-            requestsData.error ||
-              "Impossibile caricare le richieste."
-          );
-        }
+        const rawRequests = Array.isArray(requestsData?.requests)
+          ? requestsData.requests
+          : [];
 
-        setManagers(
-          managersData.managers ??
-            []
-        );
+        const rawManagers = Array.isArray(managersData?.managers)
+          ? managersData.managers
+          : Array.isArray(managersData?.profiles)
+          ? managersData.profiles
+          : [];
 
         setRequests(
-          requestsData.requests ??
-            []
+          rawRequests
+            .map((item: RawRecord) => mapRequest(item))
+            .filter((item: CompanyRequest) => item.status !== "archived")
         );
-      } catch (error) {
+
+        setManagers(
+          rawManagers.map((item: RawRecord) => mapManager(item))
+        );
+      } catch (err) {
         setError(
-          error instanceof Error
-            ? error.message
-            : "Impossibile caricare i dati."
+          err instanceof Error
+            ? err.message
+            : "Errore nel caricamento dei dati di matching."
         );
       } finally {
         setLoading(false);
       }
     }
 
-    void loadData();
+    loadData();
   }, []);
 
-  const activeManagers =
-    managers.filter(
-      (manager) =>
-        manager.profile_visibility_enabled !==
-        false
-    );
+  const matchesByRequest = useMemo(() => {
+    const result = new Map<string, MatchResult[]>();
 
-  const openRequests =
-    requests.filter(
-      (request) =>
-        ![
-          "closed",
-          "archived",
-        ].includes(
-          request.status
-        )
-    );
+    for (const request of requests) {
+      result.set(request.id, getMatches(request, managers));
+    }
+
+    return result;
+  }, [requests, managers]);
 
   return (
-    <div className="mx-auto max-w-7xl">
-
-      <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#164873]">
-        CRM
-      </p>
-
-      <h1 className="mt-2 text-3xl font-bold text-slate-900">
-        Matching
-      </h1>
-
-      <p className="mt-2 max-w-3xl text-slate-600">
-        Struttura predisposta per
-        l&apos;abbinamento tra richieste
-        aziendali e manager. L&apos;algoritmo
-        di compatibilità verrà collegato
-        in una fase successiva.
-      </p>
-
-      {error && (
-        <div className="mt-6 rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">
-          {error}
-        </div>
-      )}
-
-      <div className="mt-7 grid gap-5 md:grid-cols-3">
-
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-
-          <div className="text-sm font-bold text-slate-500">
-            Richieste aperte
-          </div>
-
-          <div className="mt-2 text-4xl font-bold text-[#071b33]">
-            {loading
-              ? "—"
-              : openRequests.length}
-          </div>
-
-        </div>
-
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-
-          <div className="text-sm font-bold text-slate-500">
-            Manager disponibili
-          </div>
-
-          <div className="mt-2 text-4xl font-bold text-[#071b33]">
-            {loading
-              ? "—"
-              : activeManagers.length}
-          </div>
-
-        </div>
-
-        <div className="rounded-3xl border border-[#d7e1ec] bg-[#eef3f8] p-6">
-
-          <div className="text-sm font-bold text-[#164873]">
-            Algoritmo compatibilità
-          </div>
-
-          <div className="mt-2 text-xl font-bold text-[#071b33]">
-            In sospeso
-          </div>
-
-          <p className="mt-2 text-sm text-slate-600">
-            Nessun punteggio viene
-            calcolato in questa fase.
+    <section className="-mt-2 min-w-0 space-y-3 sm:-mt-4 sm:space-y-4 md:-mt-4">
+      <div className="overflow-hidden rounded-3xl border border-[#d7e1ec] bg-white shadow-sm">
+        <div className="border-b border-[#d7e1ec] px-4 py-4 sm:px-5">
+          <h1 className="text-lg font-semibold text-[#071b33]">
+            Matching aziende / manager
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Manager disponibili nella stessa area geografica della richiesta e con
+            ruolo compatibile, primario o secondario.
           </p>
-
         </div>
 
-      </div>
+        <div className="hidden border-b border-[#d7e1ec] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 lg:grid lg:grid-cols-[1.15fr_1.45fr_1fr_1.15fr_0.8fr] lg:gap-4">
+          <div className="text-center">Azienda</div>
+          <div className="text-center">Ruolo richiesto</div>
+          <div className="text-center">Area</div>
+          <div className="text-center">Settori</div>
+          <div className="text-center">Manager</div>
+        </div>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-2">
-
-        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-
-          <div className="flex items-center justify-between gap-3">
-
-            <h2 className="text-lg font-bold text-slate-900">
-              Richieste da elaborare
-            </h2>
-
-            <span className="rounded-full bg-[#eef3f8] px-3 py-1 text-xs font-bold text-[#0b2340]">
-              {openRequests.length}
-            </span>
-
+        {error ? (
+          <div className="m-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
           </div>
+        ) : null}
 
-          <div className="mt-4 space-y-3">
+        {loading ? (
+          <div className="m-4 rounded-2xl border border-[#d7e1ec] bg-[#eef3f8] px-4 py-3 text-sm text-[#0d3158]">
+            Caricamento richieste e manager...
+          </div>
+        ) : null}
 
-            {openRequests
-              .slice(0, 12)
-              .map((request) => (
+        {!loading && !error ? (
+          <div className="space-y-3 p-4">
+            {requests.map((request) => {
+              const matches = matchesByRequest.get(request.id) ?? [];
+              const isOpen = selectedRequestId === request.id;
+              const requestedRole = displayRole(
+                request.primaryRole,
+                request.otherRole
+              );
+
+              const requestSectors = uniqueStrings([
+                ...request.sectors,
+                ...(request.otherSector ? [request.otherSector] : []),
+              ]);
+
+              return (
                 <div
                   key={request.id}
-                  className="rounded-2xl bg-slate-50 p-4"
+                  className="overflow-hidden rounded-2xl border border-[#d7e1ec] bg-white transition hover:border-[#9ebbd8] hover:shadow-sm"
                 >
-                  <div className="font-bold text-slate-900">
-                    {
-                      request.request_code
-                    }{" "}
-                    ·{" "}
-                    {
-                      request.company_name
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedRequestId((current) =>
+                        current === request.id ? null : request.id
+                      )
                     }
-                  </div>
+                    className="w-full p-3 text-left sm:p-4"
+                  >
+                    <div className="grid gap-4 lg:grid-cols-[1.15fr_1.45fr_1fr_1.15fr_0.8fr] lg:items-start">
+                      <div className="text-center">
+                        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 lg:hidden">
+                          Azienda
+                        </p>
+                        <p className="font-semibold text-[#071b33]">
+                          {request.companyName}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {request.requestCode}
+                        </p>
+                      </div>
 
-                  <div className="mt-1 text-sm text-slate-600">
-                    {
-                      request.primary_role
-                    }
+                      <div className="text-center">
+                        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 lg:hidden">
+                          Ruolo richiesto
+                        </p>
+                        <p className="text-sm font-semibold text-slate-800">
+                          {requestedRole || "Non indicato"}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {request.roleFamily || "Famiglia non indicata"}
+                        </p>
+                      </div>
 
-                    {request.province
-                      ? ` · ${request.province}`
-                      : ""}
+                      <div className="text-center">
+                        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 lg:hidden">
+                          Area
+                        </p>
+                        <Badge tone="blue">{formatArea(request)}</Badge>
+                      </div>
 
-                    {!request.province &&
-                    request.region
-                      ? ` · ${request.region}`
-                      : ""}
-                  </div>
+                      <div className="text-center">
+                        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 lg:hidden">
+                          Settori
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-1.5">
+                          {requestSectors.length > 0 ? (
+                            requestSectors.map((sector) => (
+                              <Badge key={`${request.id}-${sector}`}>
+                                {sector}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm text-slate-500">
+                              Non indicati
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 lg:hidden">
+                          Manager
+                        </p>
+                        <span className="inline-flex min-w-8 items-center justify-center rounded-full bg-[#0d3158] px-2.5 py-1 text-xs font-bold text-white">
+                          {matches.length}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+
+                  {isOpen ? (
+                    <div className="border-t border-[#d7e1ec] bg-[#f8fafc] px-3 py-3 sm:px-4">
+                      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500">
+                          Manager disponibili
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          Area + ruolo compatibile
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        {matches.map((match, index) => {
+                          const manager = match.manager;
+                          const managerSectors = uniqueStrings([
+                            ...manager.sectors,
+                            ...(manager.otherSector
+                              ? [manager.otherSector]
+                              : []),
+                          ]);
+
+                          return (
+                            <div
+                              key={`${request.id}-${manager.id || index}`}
+                              className="rounded-xl border border-[#d7e1ec] bg-white px-3 py-3"
+                            >
+                              <div className="grid gap-3 xl:grid-cols-[34px_minmax(220px,1.05fr)_minmax(220px,1.15fr)_minmax(220px,1.2fr)_minmax(150px,0.75fr)] xl:items-center">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef3f8] text-xs font-bold text-[#0d3158]">
+                                  {index + 1}
+                                </div>
+
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="truncate text-sm font-semibold text-[#071b33]">
+                                      {[manager.firstName, manager.lastName]
+                                        .filter(Boolean)
+                                        .join(" ") || "Manager"}
+                                    </p>
+                                    <Badge
+                                      tone={
+                                        match.matchedAs === "Ruolo primario"
+                                          ? "blue"
+                                          : "green"
+                                      }
+                                    >
+                                      {match.matchedAs}
+                                    </Badge>
+                                  </div>
+
+                                  <div className="mt-1 space-y-0.5 text-[11px] text-slate-500">
+                                    <p className="truncate">
+                                      {manager.email || "Email non indicata"}
+                                    </p>
+                                    <p className="truncate">
+                                      {manager.phone || "Telefono non indicato"}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                                    Ruolo compatibile
+                                  </p>
+                                  <p className="mt-1 text-sm font-semibold text-slate-800">
+                                    {match.matchedRole}
+                                  </p>
+                                  <p className="mt-0.5 text-xs text-slate-500">
+                                    {match.matchedRoleFamily || "—"}
+                                  </p>
+                                </div>
+
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                                    Area disponibile
+                                  </p>
+                                  <p className="mt-1 text-sm text-slate-700">
+                                    {formatManagerArea(manager)}
+                                  </p>
+                                  {managerSectors.length > 0 ? (
+                                    <p className="mt-1 line-clamp-2 text-xs text-slate-500">
+                                      Settori: {managerSectors.join(", ")}
+                                    </p>
+                                  ) : null}
+                                </div>
+
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                                    Disponibilità
+                                  </p>
+                                  <p className="mt-1 text-sm font-semibold text-slate-800">
+                                    {manager.dailyRateBand || "Tariffa non indicata"}
+                                  </p>
+                                  <p className="mt-0.5 text-xs text-slate-500">
+                                    Da: {formatDate(manager.availableFrom)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {matches.length === 0 ? (
+                          <div className="rounded-xl border border-dashed border-[#9ebbd8] bg-white px-4 py-8 text-center">
+                            <p className="text-sm font-semibold text-[#0d3158]">
+                              Nessun manager disponibile
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              Non risultano profili attivi con area geografica e
+                              ruolo compatibili con questa richiesta.
+                            </p>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              ))}
+              );
+            })}
 
-            {!loading &&
-              openRequests.length ===
-                0 && (
-                <p className="py-5 text-sm text-slate-500">
-                  Nessuna richiesta
-                  aperta.
-                </p>
-              )}
-
+            {requests.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-[#9ebbd8] bg-[#eef3f8] px-4 py-10 text-center text-sm text-[#0d3158]">
+                Non ci sono richieste aziendali attive da elaborare.
+              </div>
+            ) : null}
           </div>
-
-        </section>
-
-        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-
-          <div className="flex items-center justify-between gap-3">
-
-            <h2 className="text-lg font-bold text-slate-900">
-              Manager disponibili
-            </h2>
-
-            <span className="rounded-full bg-[#eef3f8] px-3 py-1 text-xs font-bold text-[#0b2340]">
-              {activeManagers.length}
-            </span>
-
-          </div>
-
-          <div className="mt-4 space-y-3">
-
-            {activeManagers
-              .slice(0, 12)
-              .map((manager) => (
-                <div
-                  key={
-                    manager.user_id
-                  }
-                  className="rounded-2xl bg-slate-50 p-4"
-                >
-                  <div className="font-bold text-slate-900">
-                    {
-                      manager.first_name
-                    }{" "}
-                    {
-                      manager.last_name
-                    }
-                  </div>
-
-                  <div className="mt-1 text-sm text-slate-600">
-                    {manager.primary_role ||
-                      "Ruolo non indicato"}
-
-                    {manager.profile_status
-                      ? ` · ${manager.profile_status}`
-                      : ""}
-                  </div>
-                </div>
-              ))}
-
-            {!loading &&
-              activeManagers.length ===
-                0 && (
-                <p className="py-5 text-sm text-slate-500">
-                  Nessun manager
-                  disponibile.
-                </p>
-              )}
-
-          </div>
-
-        </section>
-
+        ) : null}
       </div>
-
-      <div className="mt-6 rounded-3xl border border-dashed border-[#9ebbd8] bg-white p-8 text-center">
-
-        <div className="text-lg font-bold text-[#071b33]">
-          Area risultati matching
-        </div>
-
-        <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-          Qui verranno mostrati
-          compatibilità, ordinamento dei
-          manager, eventuali esclusioni e
-          selezioni quando definiremo
-          l&apos;algoritmo specifico del
-          Management Network.
-        </p>
-
-      </div>
-
-    </div>
+    </section>
   );
 }
