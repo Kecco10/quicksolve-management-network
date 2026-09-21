@@ -434,12 +434,11 @@ export default function AdminMatchingPage() {
           </h1>
         </div>
 
-        <div className="hidden border-b border-[#d7e1ec] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 lg:grid lg:grid-cols-[1.15fr_1.45fr_1fr_1.15fr_0.8fr] lg:gap-4">
+        <div className="hidden border-b border-[#d7e1ec] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 lg:grid lg:grid-cols-[1.15fr_1.45fr_1fr_1.15fr] lg:gap-4">
           <div className="text-center">Azienda</div>
           <div className="text-center">Ruolo richiesto</div>
           <div className="text-center">Area</div>
           <div className="text-center">Settori</div>
-          <div className="text-center">Manager</div>
         </div>
 
         {error ? (
@@ -483,7 +482,7 @@ export default function AdminMatchingPage() {
                     }
                     className="w-full p-3 text-left sm:p-4"
                   >
-                    <div className="grid gap-4 lg:grid-cols-[1.15fr_1.45fr_1fr_1.15fr_0.8fr] lg:items-start">
+                    <div className="grid gap-4 lg:grid-cols-[1.15fr_1.45fr_1fr_1.15fr] lg:items-start">
                       <div className="text-center">
                         <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 lg:hidden">
                           Azienda
@@ -534,14 +533,6 @@ export default function AdminMatchingPage() {
                         </div>
                       </div>
 
-                      <div className="text-center">
-                        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 lg:hidden">
-                          Manager
-                        </p>
-                        <span className="inline-flex min-w-8 items-center justify-center rounded-full bg-[#0d3158] px-2.5 py-1 text-xs font-bold text-white">
-                          {matches.length}
-                        </span>
-                      </div>
                     </div>
                   </button>
 
@@ -556,12 +547,17 @@ export default function AdminMatchingPage() {
                       <div className="space-y-2">
                         {matches.map((match, index) => {
                           const manager = match.manager;
+                          const managerSectors = uniqueStrings([
+                            ...manager.sectors,
+                            ...(manager.otherSector ? [manager.otherSector] : []),
+                          ]);
+
                           return (
                             <div
                               key={`${request.id}-${manager.id || index}`}
                               className="rounded-xl border border-[#d7e1ec] bg-white px-3 py-3"
                             >
-                              <div className="grid gap-3 xl:grid-cols-[34px_minmax(220px,1.05fr)_minmax(220px,1.15fr)_minmax(220px,1.2fr)_minmax(150px,0.75fr)] xl:items-center">
+                              <div className="grid gap-3 xl:grid-cols-[34px_minmax(200px,1fr)_minmax(190px,1fr)_minmax(150px,0.8fr)_minmax(220px,1.15fr)_minmax(150px,0.75fr)] xl:items-center">
                                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef3f8] text-xs font-bold text-[#0d3158]">
                                   {index + 1}
                                 </div>
@@ -573,15 +569,6 @@ export default function AdminMatchingPage() {
                                         .filter(Boolean)
                                         .join(" ") || "Manager"}
                                     </p>
-                                    <Badge
-                                      tone={
-                                        match.matchedAs === "Ruolo primario"
-                                          ? "blue"
-                                          : "green"
-                                      }
-                                    >
-                                      {match.matchedAs}
-                                    </Badge>
                                   </div>
 
                                   <div className="mt-1 space-y-0.5 text-[11px] text-slate-500">
@@ -596,7 +583,7 @@ export default function AdminMatchingPage() {
 
                                 <div className="min-w-0">
                                   <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
-                                    Ruolo compatibile
+                                    {match.matchedAs}
                                   </p>
                                   <p className="mt-1 text-sm font-semibold text-slate-800">
                                     {match.matchedRole}
@@ -612,6 +599,17 @@ export default function AdminMatchingPage() {
                                   </p>
                                   <p className="mt-1 text-sm text-slate-700">
                                     {formatManagerArea(manager)}
+                                  </p>
+                                </div>
+
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                                    Settori
+                                  </p>
+                                  <p className="mt-1 text-sm text-slate-700">
+                                    {managerSectors.length > 0
+                                      ? managerSectors.join(", ")
+                                      : "Non indicati"}
                                   </p>
                                 </div>
 
