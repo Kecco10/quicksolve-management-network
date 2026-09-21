@@ -316,16 +316,12 @@ function formatArea(request: CompanyRequest) {
 }
 
 function formatManagerArea(manager: ManagerProfile) {
-  if (manager.geographicAreas.length > 0) {
-    return manager.geographicAreas
-      .map((area) => [area.province, area.region].filter(Boolean).join(", "))
-      .join(" · ");
-  }
+  const provinces = uniqueStrings([
+    ...manager.provinces,
+    ...manager.geographicAreas.map((area) => area.province),
+  ].filter(Boolean));
 
-  if (manager.provinces.length > 0) return manager.provinces.join(", ");
-  if (manager.regions.length > 0) return manager.regions.join(", ");
-
-  return "Non indicata";
+  return provinces.length > 0 ? provinces.join(", ") : "Non indicata";
 }
 
 function Badge({
@@ -436,10 +432,6 @@ export default function AdminMatchingPage() {
           <h1 className="text-lg font-semibold text-[#071b33]">
             Matching aziende / manager
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Manager disponibili nella stessa area geografica della richiesta e con
-            ruolo compatibile, primario o secondario.
-          </p>
         </div>
 
         <div className="hidden border-b border-[#d7e1ec] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 lg:grid lg:grid-cols-[1.15fr_1.45fr_1fr_1.15fr_0.8fr] lg:gap-4">
@@ -559,21 +551,11 @@ export default function AdminMatchingPage() {
                         <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500">
                           Manager disponibili
                         </p>
-                        <p className="text-xs text-slate-500">
-                          Area + ruolo compatibile
-                        </p>
                       </div>
 
                       <div className="space-y-2">
                         {matches.map((match, index) => {
                           const manager = match.manager;
-                          const managerSectors = uniqueStrings([
-                            ...manager.sectors,
-                            ...(manager.otherSector
-                              ? [manager.otherSector]
-                              : []),
-                          ]);
-
                           return (
                             <div
                               key={`${request.id}-${manager.id || index}`}
@@ -626,16 +608,11 @@ export default function AdminMatchingPage() {
 
                                 <div className="min-w-0">
                                   <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
-                                    Area disponibile
+                                    Area
                                   </p>
                                   <p className="mt-1 text-sm text-slate-700">
                                     {formatManagerArea(manager)}
                                   </p>
-                                  {managerSectors.length > 0 ? (
-                                    <p className="mt-1 line-clamp-2 text-xs text-slate-500">
-                                      Settori: {managerSectors.join(", ")}
-                                    </p>
-                                  ) : null}
                                 </div>
 
                                 <div className="min-w-0">
