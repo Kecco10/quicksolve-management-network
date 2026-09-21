@@ -102,24 +102,26 @@ function uniqueStrings(values: string[]) {
 function parseSecondaryRoles(value: unknown): SecondaryRole[] {
   if (!Array.isArray(value)) return [];
 
-  return value
-    .map((item) => {
-      if (!item || typeof item !== "object") return null;
+  const roles: SecondaryRole[] = [];
 
-      const raw = item as RawRecord;
-      const family = asString(raw.family);
-      const role = asString(raw.role);
-      const otherRole = asString(raw.other_role);
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
 
-      if (!family || !role) return null;
+    const raw = item as RawRecord;
+    const family = asString(raw.family);
+    const role = asString(raw.role);
+    const otherRole = asString(raw.other_role);
 
-      return {
-        family,
-        role,
-        other_role: otherRole || null,
-      };
-    })
-    .filter((item): item is SecondaryRole => item !== null);
+    if (!family || !role) continue;
+
+    roles.push({
+      family,
+      role,
+      other_role: otherRole || null,
+    });
+  }
+
+  return roles;
 }
 
 function parseGeographicAreas(value: unknown): GeographicArea[] {
