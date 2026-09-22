@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 
@@ -10,6 +10,27 @@ export default function Home() {
             HEADER
         ====================================================== */}
         <header className="relative flex h-[115px] items-center justify-center bg-white px-4 sm:h-[125px] md:h-[145px]">
+          {/* NAVIGAZIONE SINISTRA */}
+          <div className="absolute left-3 top-3 z-20 flex flex-col items-start gap-1.5 sm:left-5 sm:top-4 md:left-8">
+            <a
+              href="https://www.quicksolve.it/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex rounded-xl border border-[#0b2340] bg-white px-3.5 py-2 text-xs font-semibold text-[#0b2340] transition hover:bg-[#0b2340] hover:text-white sm:px-4 sm:text-sm"
+            >
+              Chi siamo
+            </a>
+
+            <a
+              href="https://engineering.quicksolve.it"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-semibold text-slate-500 transition hover:text-[#0b2340] sm:text-xs"
+            >
+              Engineering Network
+            </a>
+          </div>
+
           {/* LOGIN */}
           <div className="absolute right-3 top-3 z-20 sm:right-5 sm:top-4 md:right-8">
             <Link
@@ -368,7 +389,7 @@ export default function Home() {
               </span>
 
               <a
-                href="https://www.linkedin.com/company/quicksolve-engineering-network/?viewAsMember=true"
+                href="https://www.linkedin.com/company/quicksolve-team-consulting/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn QuickSolve Management Network"
@@ -422,6 +443,15 @@ export default function Home() {
                 className="transition hover:text-[#0b2340]"
               >
                 Condizioni aziende
+              </Link>
+
+              <span aria-hidden="true">·</span>
+
+              <Link
+                href="/legal/condizioni-vendita"
+                className="transition hover:text-[#0b2340]"
+              >
+                Condizioni di vendita
               </Link>
 
               <span aria-hidden="true">·</span>
