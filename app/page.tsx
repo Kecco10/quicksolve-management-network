@@ -10,25 +10,52 @@ export default function Home() {
             HEADER
         ====================================================== */}
         <header className="relative flex h-[115px] items-center justify-center bg-white px-4 sm:h-[125px] md:h-[145px]">
-          {/* NAVIGAZIONE SINISTRA */}
-          <div className="absolute left-3 top-3 z-20 flex flex-col items-start gap-1.5 sm:left-5 sm:top-4 md:left-8">
-            <a
-              href="https://www.quicksolve.it/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex rounded-xl border border-[#0b2340] bg-white px-3.5 py-2 text-xs font-semibold text-[#0b2340] transition hover:bg-[#0b2340] hover:text-white sm:px-4 sm:text-sm"
+          {/* MENU */}
+          <div className="absolute left-3 top-3 z-30 sm:left-5 sm:top-4 md:left-8">
+            <button
+              type="button"
+              onClick={() => setOpenMenu((value) => !value)}
+              aria-label="Apri menu"
+              aria-expanded={openMenu}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#0b2340] bg-white text-[#0b2340] transition hover:bg-[#0b2340] hover:text-white"
             >
-              Chi siamo
-            </a>
+              <span className="flex w-5 flex-col gap-1.5" aria-hidden="true">
+                <span className="h-0.5 w-full bg-current" />
+                <span className="h-0.5 w-full bg-current" />
+                <span className="h-0.5 w-full bg-current" />
+              </span>
+            </button>
 
-            <a
-              href="https://engineering.quicksolve.it"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] font-semibold text-slate-500 transition hover:text-[#0b2340] sm:text-xs"
-            >
-              Engineering Network
-            </a>
+            {openMenu && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Chiudi menu"
+                  onClick={() => setOpenMenu(false)}
+                  className="fixed inset-0 z-20 cursor-default bg-transparent"
+                />
+                <div className="absolute left-0 top-12 z-30 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                  <a
+                    href="https://www.quicksolve.it/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setOpenMenu(false)}
+                    className="block px-4 py-3 text-sm font-semibold text-[#0b2340] transition hover:bg-[#eef3f8]"
+                  >
+                    CHI SIAMO
+                  </a>
+                  <a
+                    href="https://engineering.quicksolve.it/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setOpenMenu(false)}
+                    className="block border-t border-slate-100 px-4 py-3 text-sm font-semibold text-[#0b2340] transition hover:bg-[#eef3f8]"
+                  >
+                    ENGINEERING NETWORK
+                  </a>
+                </div>
+              </>
+            )}
           </div>
 
           {/* LOGIN */}
@@ -434,15 +461,6 @@ export default function Home() {
                 className="transition hover:text-[#0b2340]"
               >
                 Cookie Policy
-              </Link>
-
-              <span aria-hidden="true">·</span>
-
-              <Link
-                href="/legal/condizioni-aziende"
-                className="transition hover:text-[#0b2340]"
-              >
-                Condizioni aziende
               </Link>
 
               <span aria-hidden="true">·</span>
