@@ -262,7 +262,6 @@ export default function ManagerPage() {
   const [dailyRateBand, setDailyRateBand] = useState("");
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [visibilityConsent, setVisibilityConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -335,8 +334,7 @@ export default function ManagerPage() {
           birthDate !== "" &&
           passwordValid &&
           privacyAcknowledged &&
-          termsAccepted &&
-          visibilityConsent
+          termsAccepted
         );
       default:
         return false;
@@ -372,7 +370,6 @@ export default function ManagerPage() {
     dailyRateBand,
     privacyAcknowledged,
     termsAccepted,
-    visibilityConsent,
   ]);
 
   const progress = ((currentStep + 1) / stepTitles.length) * 100;
@@ -452,8 +449,6 @@ export default function ManagerPage() {
           privacy_version: PRIVACY_VERSION,
           terms_accepted: termsAccepted,
           terms_version: TERMS_VERSION,
-          profile_visibility_consent: visibilityConsent,
-          profile_visibility_version: PRIVACY_VERSION,
         }),
       });
 
@@ -729,7 +724,6 @@ export default function ManagerPage() {
                 <div className="mt-4 space-y-4 text-sm leading-6 text-slate-700">
                   <label className="flex items-start gap-3"><input type="checkbox" checked={privacyAcknowledged} onChange={(e) => setPrivacyAcknowledged(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]" /><span>Dichiaro di aver letto l&apos;<a href={PRIVACY_URL} target="_blank" rel="noreferrer" className="font-semibold text-[#0b2340] underline underline-offset-2">Informativa Privacy Manager</a>.</span></label>
                   <label className="flex items-start gap-3"><input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]" /><span>Accetto espressamente le <a href={TERMS_URL} target="_blank" rel="noreferrer" className="font-semibold text-[#0b2340] underline underline-offset-2">Condizioni di Utilizzo Manager</a>.</span></label>
-                  <label className="flex items-start gap-3"><input type="checkbox" checked={visibilityConsent} onChange={(e) => setVisibilityConsent(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0b2340] focus:ring-[#0b2340]" /><span>Acconsento separatamente alla visibilità del mio profilo professionale strutturato alle aziende potenzialmente compatibili, inizialmente senza i miei dati di contatto direttamente identificativi.</span></label>
                 </div>
               </div>
             </section>

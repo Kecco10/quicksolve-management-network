@@ -99,8 +99,6 @@ type ManagerSignupPayload = {
   privacy_version?: string;
   terms_accepted?: boolean;
   terms_version?: string;
-  profile_visibility_consent?: boolean;
-  profile_visibility_version?: string;
 };
 
 function cleanString(value: unknown) {
@@ -231,9 +229,6 @@ export async function POST(request: Request) {
 
     const privacyVersion = cleanString(body.privacy_version);
     const termsVersion = cleanString(body.terms_version);
-    const visibilityVersion = cleanString(
-      body.profile_visibility_version
-    );
 
     if (
       !firstName ||
@@ -339,19 +334,6 @@ export async function POST(request: Request) {
         {
           message:
             "Devi accettare le Condizioni di Utilizzo Manager.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (
-      body.profile_visibility_consent !== true ||
-      !visibilityVersion
-    ) {
-      return NextResponse.json(
-        {
-          message:
-            "È necessario esprimere il consenso alla visibilità del profilo.",
         },
         { status: 400 }
       );
@@ -496,13 +478,6 @@ export async function POST(request: Request) {
           consent_type: "terms_registration",
           accepted: true,
           document_version: termsVersion,
-        },
-        {
-          user_id: createdUserId,
-          manager_profile_id: profile.id,
-          consent_type: "profile_visibility",
-          accepted: true,
-          document_version: visibilityVersion,
         },
       ]);
 
