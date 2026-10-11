@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Montserrat } from "next/font/google";
+
+const montserrat = Montserrat({ subsets: ["latin"], display: "swap" });
 
 export default function Home() {
   const [openMenu, setOpenMenu] = useState(false);
 
   return (
     <>
-      <main className="min-h-screen overflow-x-hidden bg-white text-slate-900">
+      <main className={`${montserrat.className} min-h-screen overflow-x-hidden bg-white text-slate-900`}>
         {/* =====================================================
             HEADER
         ====================================================== */}
@@ -410,7 +413,7 @@ export default function Home() {
         <footer className="border-t border-slate-200 bg-white px-4 pb-3 pt-1.5 sm:px-6">
           <div
             className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-2 text-center text-[12px] font-normal leading-4 text-slate-500 sm:flex-row sm:text-left sm:text-[13px]"
-            style={{ fontFamily: "Arial, sans-serif" }}
+            
           >
             <p className="flex items-center">
               <span>QuickSolve Management Network · P.IVA IT04285011203</span>
