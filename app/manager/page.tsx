@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 type ExperienceBand =
   | "Meno di 6 anni"
@@ -213,6 +213,15 @@ function toggleInList(value: string, current: string[], max?: number) {
 
 export default function ManagerPage() {
   const [currentStep, setCurrentStep] = useState(0);
+  // Riporta la pagina in alto dopo che il nuovo step è stato renderizzato.
+  const firstStepRender = useRef(true);
+  useLayoutEffect(() => {
+    if (firstStepRender.current) {
+      firstStepRender.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [currentStep]);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");

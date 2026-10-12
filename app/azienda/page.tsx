@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const PRIVACY_VERSION = "1.0-2026-09-21";
 const TERMS_VERSION = "1.0-2026-09-21";
@@ -237,6 +237,15 @@ function toggleInList(value: string, current: string[], max?: number) {
 
 export default function CompanyRequestPage() {
   const [currentStep, setCurrentStep] = useState(0);
+  // Riporta la pagina in alto dopo che il nuovo step è stato renderizzato.
+  const firstStepRender = useRef(true);
+  useLayoutEffect(() => {
+    if (firstStepRender.current) {
+      firstStepRender.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [currentStep]);
 
   // STEP 1 — Azienda
   const [companyName, setCompanyName] = useState("");
