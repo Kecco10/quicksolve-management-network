@@ -273,6 +273,7 @@ export default function ManagerPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [showStepErrors, setShowStepErrors] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const roleOptions = useMemo(() => (roleFamily ? [...roleFamilies[roleFamily]] : []), [roleFamily]);
@@ -381,16 +382,78 @@ export default function ManagerPage() {
     termsAccepted,
   ]);
 
+  // Messaggi specifici relativi soltanto allo step attualmente visibile.
+  const stepErrors = useMemo(() => {
+    const errors: string[] = [];
+    switch (currentStep) {
+      case 0:
+        if (!experience) errors.push("Seleziona gli anni di esperienza professionale.");
+        if (!managerialExperience) errors.push("Seleziona gli anni di esperienza manageriale.");
+        if (!selectedAreas.length) errors.push("Seleziona almeno una regione e una provincia.");
+        break;
+      case 1:
+        if (!roleFamily) errors.push("Seleziona la famiglia professionale del ruolo principale.");
+        if (!primaryRole) errors.push("Seleziona il ruolo principale.");
+        if (primaryRole === "Altro" && !otherRole.trim()) errors.push("Specifica il ruolo principale.");
+        if (!secondaryRole1Valid) errors.push("Completa il primo ruolo secondario oppure rimuovi la famiglia selezionata.");
+        if (!secondaryRole2Valid) errors.push("Completa il secondo ruolo secondario oppure rimuovi la famiglia selezionata.");
+        if (!methodologies.length) errors.push("Seleziona almeno una metodologia o uno strumento.");
+        if (methodologies.includes("Altro") && !otherMethodology.trim()) errors.push("Specifica l'altra metodologia o strumento.");
+        break;
+      case 2:
+        if (!revenueBand) errors.push("Seleziona la fascia di fatturato.");
+        if (!peopleManagedBand) errors.push("Indica il numero massimo di persone coordinate.");
+        if (!pnlBand) errors.push("Seleziona il budget o P&L gestito.");
+        if (!productionTypes.length) errors.push("Seleziona almeno una tipologia produttiva.");
+        if (!sectors.length && !otherSector.trim()) errors.push("Seleziona almeno un settore industriale oppure compila Altro settore.");
+        break;
+      case 3:
+        if (!assignmentTypes.length) errors.push("Seleziona almeno un tipo di incarico.");
+        if (!daysPerWeek) errors.push("Indica i giorni a settimana disponibili.");
+        if (!availableFrom || Number.isNaN(Date.parse(availableFrom))) errors.push("Indica una data di prima disponibilità valida.");
+        if (!dailyRateBand) errors.push("Seleziona la fascia di tariffa giornaliera.");
+        if (vatActive !== "Sì") errors.push("Per registrarti è necessaria una P.IVA attiva: seleziona Sì.");
+        if (!professionalInsurance) errors.push("Indica se hai una copertura RC professionale.");
+        if (professionalInsurance === "Sì" && !insuranceLimit.trim()) errors.push("Indica il massimale RC professionale.");
+        if (!studyTitle) errors.push("Seleziona il titolo di studio.");
+        if (studyTitle === "Altro" && !otherStudyTitle.trim()) errors.push("Specifica il titolo di studio.");
+        break;
+      case 4:
+        if (!firstName.trim()) errors.push("Inserisci il nome.");
+        if (!lastName.trim()) errors.push("Inserisci il cognome.");
+        if (!email.trim()) errors.push("Inserisci l'indirizzo email.");
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.push("Inserisci un indirizzo email valido.");
+        if (!whatsappPhone.trim()) errors.push("Inserisci il numero di telefono WhatsApp.");
+        if (!birthDate || Number.isNaN(Date.parse(birthDate))) errors.push("Inserisci una data di nascita valida.");
+        if (!password) errors.push("Inserisci la password.");
+        else if (password.length < 6) errors.push("La password deve contenere almeno 6 caratteri.");
+        if (!confirmPassword) errors.push("Conferma la password.");
+        else if (password !== confirmPassword) errors.push("Le password non coincidono.");
+        if (!privacyAcknowledged) errors.push("Conferma la lettura dell'informativa privacy.");
+        if (!termsAccepted) errors.push("Accetta le Condizioni di Utilizzo Manager.");
+        break;
+    }
+    return errors;
+  }, [currentStep, experience, managerialExperience, selectedAreas, roleFamily, primaryRole, otherRole,
+    secondaryRole1Valid, secondaryRole2Valid, methodologies, otherMethodology, revenueBand,
+    peopleManagedBand, pnlBand, productionTypes, sectors, otherSector, assignmentTypes,
+    daysPerWeek, availableFrom, dailyRateBand, vatActive, professionalInsurance, insuranceLimit,
+    studyTitle, otherStudyTitle, firstName, lastName, email, whatsappPhone, birthDate,
+    password, confirmPassword, privacyAcknowledged, termsAccepted]);
+
   const progress = ((currentStep + 1) / stepTitles.length) * 100;
 
   function nextStep() {
-    if (!canContinue) return;
+    setShowStepErrors(true);
+    if (stepErrors.length > 0 || !canContinue) return;
+    setShowStepErrors(false);
     setSubmitError("");
     setCurrentStep((prev) => Math.min(prev + 1, stepTitles.length - 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function previousStep() {
+    setShowStepErrors(false);
     setSubmitError("");
     setCurrentStep((prev) => Math.max(prev - 1, 0));
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -407,7 +470,9 @@ export default function ManagerPage() {
 
 
   async function handleSubmit() {
-    if (!canContinue || isSubmitting) return;
+    setShowStepErrors(true);
+    if (stepErrors.length > 0 || !canContinue || isSubmitting) return;
+    setShowStepErrors(false);
 
     setSubmitError("");
     setIsSubmitting(true);
@@ -503,6 +568,12 @@ export default function ManagerPage() {
             </div>
           </div>
 
+          {showStepErrors && stepErrors.length > 0 && (
+            <div role="alert" aria-live="polite" className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-800">
+              <p className="font-bold">Completa questi campi prima di proseguire:</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5">{stepErrors.map((error) => <li key={error}>{error}</li>)}</ul>
+            </div>
+          )}
           {submitError && <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{submitError}</div>}
 
           {currentStep === 0 && (
@@ -741,9 +812,9 @@ export default function ManagerPage() {
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-between">
             <button type="button" onClick={previousStep} disabled={currentStep === 0 || isSubmitting} className="rounded-2xl border border-slate-300 px-6 py-3.5 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">Indietro</button>
             {currentStep < stepTitles.length - 1 ? (
-              <button type="button" onClick={nextStep} disabled={!canContinue} className="rounded-2xl bg-[#0b2340] px-7 py-3.5 font-semibold text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40">Avanti</button>
+              <button type="button" onClick={nextStep} disabled={isSubmitting} className="rounded-2xl bg-[#0b2340] px-7 py-3.5 font-semibold text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40">Avanti</button>
             ) : (
-              <button type="button" onClick={handleSubmit} disabled={!canContinue || isSubmitting} className="rounded-2xl bg-[#0b2340] px-7 py-3.5 font-semibold text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40">{isSubmitting ? "Registrazione in corso..." : "Crea il profilo manageriale"}</button>
+              <button type="button" onClick={handleSubmit} disabled={isSubmitting} className="rounded-2xl bg-[#0b2340] px-7 py-3.5 font-semibold text-white transition hover:bg-[#12385f] disabled:cursor-not-allowed disabled:opacity-40">{isSubmitting ? "Registrazione in corso..." : "Crea il profilo manageriale"}</button>
             )}
           </div>
         </div>
