@@ -455,7 +455,11 @@ export async function POST(request: Request) {
               ? insuranceLimit
               : null,
 
-          certifications: certifications || null,
+          // Supabase manager_profiles.certifications è text[]: inviare un array,
+          // non una stringa. Il campo rimane facoltativo.
+          certifications: certifications
+            ? certifications.split(/[,;\n\r]+/).map((item) => item.trim()).filter(Boolean)
+            : null,
           languages: languages || null,
           study_title: studyTitle,
 
