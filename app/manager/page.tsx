@@ -198,6 +198,27 @@ const regionProvinceMap: Record<string, string[]> = {
 
 const regionOptions = Object.keys(regionProvinceMap);
 
+// Valida realmente una data ISO, senza imporre nuovi requisiti anagrafici.
+function isValidCalendarDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(0);
+  date.setFullYear(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
+// Stessa regola della registrazione progettisti: almeno 18 anni compiuti.
+function maxAdultBirthDate(): string {
+  const today = new Date();
+  return `${today.getFullYear() - 18}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+}
+
+function isAdultBirthDate(value: string): boolean {
+  return isValidCalendarDate(value) && value <= maxAdultBirthDate();
+}
+
+const birthMonthOptions = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+
 function formatPersonName(value: string) {
   return value
     .trim()
@@ -228,6 +249,10 @@ export default function ManagerPage() {
   const [email, setEmail] = useState("");
   const [whatsappPhone, setWhatsappPhone] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [birthDay, setBirthDay] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+  const [birthDateError, setBirthDateError] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -286,6 +311,39 @@ export default function ManagerPage() {
     [secondaryRoleFamily2]
   );
 
+  // Tre menu come per i progettisti: nessuna data under 18 selezionabile.
+  const adultLimit = maxAdultBirthDate();
+  const [limitYear, limitMonth, limitDay] = adultLimit.split("-").map(Number);
+  const birthYearOptions = Array.from({ length: limitYear - 1899 }, (_, index) => limitYear - index);
+  const allowedBirthMonths = Array.from({ length: 12 }, (_, index) => index + 1).filter(
+    (month) => !birthYear || Number(birthYear) < limitYear || month <= limitMonth
+  );
+  const daysInSelectedBirthMonth = birthYear && birthMonth
+    ? new Date(Number(birthYear), Number(birthMonth), 0).getDate()
+    : 31;
+  const allowedBirthDays = Array.from({ length: daysInSelectedBirthMonth }, (_, index) => index + 1).filter(
+    (day) => !birthYear || !birthMonth || Number(birthYear) < limitYear ||
+      Number(birthMonth) < limitMonth || day <= limitDay
+  );
+
+  function updateBirthDate(day: string, month: string, year: string) {
+    const y = Number(year);
+    const m = Number(month);
+    const maxMonth = year && y === limitYear ? limitMonth : 12;
+    const safeMonth = month && m > maxMonth ? "" : month;
+    const daysInMonth = year && safeMonth ? new Date(y, Number(safeMonth), 0).getDate() : 31;
+    const maxDay = year && safeMonth && y === limitYear && Number(safeMonth) === limitMonth
+      ? Math.min(daysInMonth, limitDay) : daysInMonth;
+    const safeDay = day && Number(day) > maxDay ? "" : day;
+    setBirthDay(safeDay);
+    setBirthMonth(safeMonth);
+    setBirthYear(year);
+    setBirthDateError("");
+    const candidate = safeDay && safeMonth && year
+      ? `${year}-${safeMonth.padStart(2, "0")}-${safeDay.padStart(2, "0")}` : "";
+    setBirthDate(candidate && isAdultBirthDate(candidate) ? candidate : "");
+  }
+
   const passwordValid = password.length >= 6 && password === confirmPassword;
   const normalizedPrimaryRole = primaryRole === "Altro" ? otherRole.trim() : primaryRole;
   const normalizedSecondaryRole1 = secondaryRole1 === "Altro" ? secondaryOtherRole1.trim() : secondaryRole1;
@@ -341,7 +399,7 @@ export default function ManagerPage() {
           lastName.trim() !== "" &&
           email.trim() !== "" &&
           whatsappPhone.trim() !== "" &&
-          birthDate !== "" &&
+          isAdultBirthDate(birthDate) &&
           passwordValid &&
           privacyAcknowledged &&
           termsAccepted
@@ -410,7 +468,7 @@ export default function ManagerPage() {
       case 3:
         if (!assignmentTypes.length) errors.push("Seleziona almeno un tipo di incarico.");
         if (!daysPerWeek) errors.push("Indica i giorni a settimana disponibili.");
-        if (!availableFrom || Number.isNaN(Date.parse(availableFrom))) errors.push("Indica una data di prima disponibilità valida.");
+        if (!isValidCalendarDate(availableFrom)) errors.push("Indica una data di prima disponibilità valida.");
         if (!dailyRateBand) errors.push("Seleziona la fascia di tariffa giornaliera.");
         if (vatActive !== "Sì") errors.push("Per registrarti è necessaria una P.IVA attiva: seleziona Sì.");
         if (!professionalInsurance) errors.push("Indica se hai una copertura RC professionale.");
@@ -424,7 +482,7 @@ export default function ManagerPage() {
         if (!email.trim()) errors.push("Inserisci l'indirizzo email.");
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.push("Inserisci un indirizzo email valido.");
         if (!whatsappPhone.trim()) errors.push("Inserisci il numero di telefono WhatsApp.");
-        if (!birthDate || Number.isNaN(Date.parse(birthDate))) errors.push("Inserisci una data di nascita valida.");
+        if (!isAdultBirthDate(birthDate)) errors.push("Inserisci una data di nascita valida: devi aver compiuto almeno 18 anni.");
         if (!password) errors.push("Inserisci la password.");
         else if (password.length < 6) errors.push("La password deve contenere almeno 6 caratteri.");
         if (!confirmPassword) errors.push("Conferma la password.");
@@ -445,7 +503,10 @@ export default function ManagerPage() {
 
   function nextStep() {
     setShowStepErrors(true);
-    if (stepErrors.length > 0 || !canContinue) return;
+    if (stepErrors.length > 0 || !canContinue) {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      return;
+    }
     setShowStepErrors(false);
     setSubmitError("");
     setCurrentStep((prev) => Math.min(prev + 1, stepTitles.length - 1));
@@ -471,7 +532,10 @@ export default function ManagerPage() {
 
   async function handleSubmit() {
     setShowStepErrors(true);
-    if (stepErrors.length > 0 || !canContinue || isSubmitting) return;
+    if (stepErrors.length > 0 || !canContinue || isSubmitting) {
+      if (!isSubmitting) window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      return;
+    }
     setShowStepErrors(false);
 
     setSubmitError("");
@@ -526,12 +590,16 @@ export default function ManagerPage() {
         }),
       });
 
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : null;
-      if (!response.ok) throw new Error(data?.message || "Errore durante la registrazione.");
+       const text = await response.text();
+       let data: { message?: string } | null = null;
+       try { data = text ? JSON.parse(text) : null; } catch { /* Il server può restituire HTML o testo */ }
+       if (!response.ok) {
+         throw new Error(data?.message || `Registrazione non riuscita (errore ${response.status}). Riprova o contatta l'assistenza.`);
+       }
       setSuccess(true);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Si è verificato un errore durante la registrazione.");
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
     } finally {
       setIsSubmitting(false);
     }
@@ -774,14 +842,24 @@ export default function ManagerPage() {
                     />
                   </Field>
 
-                  <Field label="Data di nascita">
-                    <input
-                      type="date"
-                      value={birthDate}
-                      onChange={(e) => setBirthDate(e.target.value)}
-                      className={inputClass}
-                    />
-                  </Field>
+                   <div className="block">
+                     <span className="mb-2 block text-sm font-medium text-slate-700">Data di nascita</span>
+                     <div className="grid grid-cols-3 gap-2">
+                       <select aria-label="Giorno di nascita" value={birthDay} onChange={(e) => updateBirthDate(e.target.value, birthMonth, birthYear)} className={inputClass}>
+                         <option value="">Giorno</option>
+                         {allowedBirthDays.map((day) => <option key={day} value={day}>{day}</option>)}
+                       </select>
+                       <select aria-label="Mese di nascita" value={birthMonth} onChange={(e) => updateBirthDate(birthDay, e.target.value, birthYear)} className={inputClass}>
+                         <option value="">Mese</option>
+                         {birthMonthOptions.map((month, i) => allowedBirthMonths.includes(i + 1) ? <option key={month} value={i + 1}>{month}</option> : null)}
+                       </select>
+                       <select aria-label="Anno di nascita" value={birthYear} onChange={(e) => updateBirthDate(birthDay, birthMonth, e.target.value)} className={inputClass}>
+                         <option value="">Anno</option>
+                         {birthYearOptions.map((year) => <option key={year} value={year}>{year}</option>)}
+                       </select>
+                     </div>
+                     {birthDateError && <p className="mt-2 text-sm text-rose-600" role="alert">{birthDateError}</p>}
+                   </div>
 
                   <Field label="LinkedIn (opzionale)">
                     <input

@@ -157,7 +157,11 @@ function isValidEmail(value: string) {
 }
 
 function isIsoDate(value: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(0);
+  date.setFullYear(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
 export async function POST(request: Request) {
@@ -242,7 +246,7 @@ export async function POST(request: Request) {
       !primaryRoleFamily ||
       !primaryRole ||
       geographicAreas.length === 0 ||
-      methodologies.length === 0 ||
+      (methodologies.length === 0 && !otherMethodology) ||
       !companyRevenueBand ||
       !peopleManagedBand ||
       !pnlBudgetBand ||
@@ -279,6 +283,16 @@ export async function POST(request: Request) {
     if (!isIsoDate(birthDate)) {
       return NextResponse.json(
         { message: "Data di nascita non valida." },
+        { status: 400 }
+      );
+    }
+
+    // Controllo server obbligatorio: non fidarsi dei menu del browser.
+    const today = new Date();
+    const maxBirthDate = `${today.getUTCFullYear() - 18}-${String(today.getUTCMonth() + 1).padStart(2, "0")}-${String(today.getUTCDate()).padStart(2, "0")}`;
+    if (birthDate > maxBirthDate) {
+      return NextResponse.json(
+        { message: "Per registrarti devi aver compiuto almeno 18 anni." },
         { status: 400 }
       );
     }
