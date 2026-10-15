@@ -219,6 +219,15 @@ function isAdultBirthDate(value: string): boolean {
 
 const birthMonthOptions = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
 
+function localTodayIso(): string {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+}
+
+function isCurrentOrFutureDate(value: string): boolean {
+  return isValidCalendarDate(value) && value >= localTodayIso();
+}
+
 function formatPersonName(value: string) {
   return value
     .trim()
@@ -284,6 +293,9 @@ export default function ManagerPage() {
   const [assignmentTypes, setAssignmentTypes] = useState<string[]>([]);
   const [daysPerWeek, setDaysPerWeek] = useState("");
   const [availableFrom, setAvailableFrom] = useState("");
+  const [availabilityDay, setAvailabilityDay] = useState("");
+  const [availabilityMonth, setAvailabilityMonth] = useState("");
+  const [availabilityYear, setAvailabilityYear] = useState("");
   const [travelAvailable, setTravelAvailable] = useState(false);
   const [vatActive, setVatActive] = useState<"" | "Sì" | "No">("");
   const [professionalInsurance, setProfessionalInsurance] = useState<"" | "Sì" | "No">("");
@@ -344,6 +356,35 @@ export default function ManagerPage() {
     setBirthDate(candidate && isAdultBirthDate(candidate) ? candidate : "");
   }
 
+  // Disponibilità: menu nativi semplici da usare su smartphone, solo da oggi in avanti.
+  const todayAvailability = localTodayIso();
+  const [todayYear, todayMonth, todayDay] = todayAvailability.split("-").map(Number);
+  const availabilityYears = Array.from({ length: 51 }, (_, i) => todayYear + i);
+  const availabilityMonths = Array.from({ length: 12 }, (_, i) => i + 1).filter(
+    (month) => !availabilityYear || Number(availabilityYear) > todayYear || month >= todayMonth
+  );
+  const availabilityDaysInMonth = availabilityYear && availabilityMonth
+    ? new Date(Number(availabilityYear), Number(availabilityMonth), 0).getDate() : 31;
+  const availabilityDays = Array.from({ length: availabilityDaysInMonth }, (_, i) => i + 1).filter(
+    (day) => !availabilityYear || !availabilityMonth || Number(availabilityYear) > todayYear ||
+      Number(availabilityMonth) > todayMonth || day >= todayDay
+  );
+
+  function updateAvailabilityDate(day: string, month: string, year: string) {
+    const y = Number(year);
+    const m = Number(month);
+    const safeMonth = month && year && y === todayYear && m < todayMonth ? "" : month;
+    const daysInMonth = year && safeMonth ? new Date(y, Number(safeMonth), 0).getDate() : 31;
+    const minDay = year && safeMonth && y === todayYear && Number(safeMonth) === todayMonth ? todayDay : 1;
+    const safeDay = day && (Number(day) > daysInMonth || Number(day) < minDay) ? "" : day;
+    setAvailabilityDay(safeDay);
+    setAvailabilityMonth(safeMonth);
+    setAvailabilityYear(year);
+    const candidate = safeDay && safeMonth && year
+      ? `${year}-${safeMonth.padStart(2, "0")}-${safeDay.padStart(2, "0")}` : "";
+    setAvailableFrom(candidate && isCurrentOrFutureDate(candidate) ? candidate : "");
+  }
+
   const passwordValid = password.length >= 6 && password === confirmPassword;
   const normalizedPrimaryRole = primaryRole === "Altro" ? otherRole.trim() : primaryRole;
   const normalizedSecondaryRole1 = secondaryRole1 === "Altro" ? secondaryOtherRole1.trim() : secondaryRole1;
@@ -386,7 +427,7 @@ export default function ManagerPage() {
         return (
           assignmentTypes.length > 0 &&
           daysPerWeek !== "" &&
-          availableFrom !== "" &&
+          isCurrentOrFutureDate(availableFrom) &&
           vatActive === "Sì" &&
           professionalInsurance !== "" &&
           (professionalInsurance !== "Sì" || insuranceLimit.trim() !== "") &&
@@ -468,7 +509,7 @@ export default function ManagerPage() {
       case 3:
         if (!assignmentTypes.length) errors.push("Seleziona almeno un tipo di incarico.");
         if (!daysPerWeek) errors.push("Indica i giorni a settimana disponibili.");
-        if (!isValidCalendarDate(availableFrom)) errors.push("Indica una data di prima disponibilità valida.");
+        if (!isCurrentOrFutureDate(availableFrom)) errors.push("Indica una data di prima disponibilità da oggi in avanti.");
         if (!dailyRateBand) errors.push("Seleziona la fascia di tariffa giornaliera.");
         if (vatActive !== "Sì") errors.push("Per registrarti è necessaria una P.IVA attiva: seleziona Sì.");
         if (!professionalInsurance) errors.push("Indica se hai una copertura RC professionale.");
@@ -791,7 +832,23 @@ export default function ManagerPage() {
               <MultiSelectSection title="Tipo di incarico" subtitle="" options={assignmentTypeOptions} values={assignmentTypes} onToggle={(value) => setAssignmentTypes((current) => toggleInList(value, current))} />
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Giorni a settimana disponibili"><select value={daysPerWeek} onChange={(e) => setDaysPerWeek(e.target.value)} className={inputClass}><option value="">Seleziona</option>{[1,2,3,4,5].map((day) => <option key={day} value={day}>{day}</option>)}</select></Field>
-                <Field label="Data di prima disponibilità"><input type="date" value={availableFrom} onChange={(e) => setAvailableFrom(e.target.value)} className={inputClass} /></Field>
+                <div className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-700">Data di prima disponibilità</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    <select aria-label="Giorno di prima disponibilità" value={availabilityDay} onChange={(e) => updateAvailabilityDate(e.target.value, availabilityMonth, availabilityYear)} className={inputClass}>
+                      <option value="">Giorno</option>
+                      {availabilityDays.map((day) => <option key={day} value={day}>{day}</option>)}
+                    </select>
+                    <select aria-label="Mese di prima disponibilità" value={availabilityMonth} onChange={(e) => updateAvailabilityDate(availabilityDay, e.target.value, availabilityYear)} className={inputClass}>
+                      <option value="">Mese</option>
+                      {birthMonthOptions.map((month, i) => availabilityMonths.includes(i + 1) ? <option key={month} value={i + 1}>{month}</option> : null)}
+                    </select>
+                    <select aria-label="Anno di prima disponibilità" value={availabilityYear} onChange={(e) => updateAvailabilityDate(availabilityDay, availabilityMonth, e.target.value)} className={inputClass}>
+                      <option value="">Anno</option>
+                      {availabilityYears.map((year) => <option key={year} value={year}>{year}</option>)}
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">

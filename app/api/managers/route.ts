@@ -304,6 +304,17 @@ export async function POST(request: Request) {
       );
     }
 
+    // La data di disponibilità non può essere precedente a oggi (fuso italiano).
+    const todayItaly = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Rome", year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(new Date());
+    if (availableFrom < todayItaly) {
+      return NextResponse.json(
+        { message: "La prima disponibilità deve essere da oggi in avanti." },
+        { status: 400 }
+      );
+    }
+
     const experienceBand = EXPERIENCE_MAP[experienceLabel];
 
     if (!experienceBand) {
